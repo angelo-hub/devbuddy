@@ -1,6 +1,8 @@
 .vscode/**
 .vscode-test/**
 src/**
+webview-ui/**
+!out/**
 .gitignore
 tsconfig.json
 **/*.map

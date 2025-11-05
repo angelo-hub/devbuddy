@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as path from "path";
 import { LinearClient, LinearIssue } from "../utils/linearClient";
 
 export class LinearTicketPanel {
@@ -27,6 +28,21 @@ export class LinearTicketPanel {
           case "addComment":
             await this.handleAddComment(message.body);
             break;
+          case "updateTitle":
+            await this.handleUpdateTitle(message.title);
+            break;
+          case "updateDescription":
+            await this.handleUpdateDescription(message.description);
+            break;
+          case "updateAssignee":
+            await this.handleUpdateAssignee(message.assigneeId);
+            break;
+          case "loadUsers":
+            await this.handleLoadUsers(message.teamId);
+            break;
+          case "searchUsers":
+            await this.handleSearchUsers(message.searchTerm);
+            break;
           case "openInLinear":
             if (this._issue?.url) {
               vscode.env.openExternal(vscode.Uri.parse(this._issue.url));
@@ -34,6 +50,9 @@ export class LinearTicketPanel {
             break;
           case "refresh":
             await this.refresh();
+            break;
+          case "openIssue":
+            await this.handleOpenIssue(message.issueId);
             break;
         }
       },
@@ -69,14 +88,16 @@ export class LinearTicketPanel {
       {
         enableScripts: true,
         retainContextWhenHidden: true,
-        localResourceRoots: [vscode.Uri.joinPath(extensionUri, "media")],
+        localResourceRoots: [
+          vscode.Uri.joinPath(extensionUri, "out", "webview"),
+        ],
       }
     );
 
-    LinearTicketPanel.currentPanel = new LinearTicketPanel(
-      panel,
-      extensionUri
-    );
+    // Note: WebviewPanel iconPath only supports Uri (file paths), not ThemeIcon
+    // To add icons, we would need to bundle SVG/PNG files in the extension
+
+    LinearTicketPanel.currentPanel = new LinearTicketPanel(panel, extensionUri);
     LinearTicketPanel.currentPanel._issue = issue;
     await LinearTicketPanel.currentPanel._update();
   }
@@ -94,6 +115,25 @@ export class LinearTicketPanel {
       this._issue = updatedIssue;
       await this._update();
       vscode.window.showInformationMessage("Ticket refreshed!");
+    }
+  }
+
+  /**
+   * Open a different issue by ID
+   */
+  private async handleOpenIssue(issueId: string): Promise<void> {
+    try {
+      const issue = await this._linearClient.getIssue(issueId);
+      if (issue) {
+        this._issue = issue;
+        this._panel.title = `${issue.identifier}: ${issue.title}`;
+        await this._update();
+      } else {
+        vscode.window.showErrorMessage("Failed to load issue");
+      }
+    } catch (error) {
+      console.error("[Linear Buddy] Failed to open issue:", error);
+      vscode.window.showErrorMessage("Failed to open issue");
     }
   }
 
@@ -139,6 +179,107 @@ export class LinearTicketPanel {
   }
 
   /**
+   * Handle updating the title
+   */
+  private async handleUpdateTitle(title: string): Promise<void> {
+    if (!this._issue || !title.trim()) {
+      return;
+    }
+
+    const success = await this._linearClient.updateIssueTitle(
+      this._issue.id,
+      title
+    );
+
+    if (success) {
+      vscode.window.showInformationMessage("Title updated!");
+      await this.refresh();
+      // Refresh the sidebar
+      vscode.commands.executeCommand("monorepoTools.refreshTickets");
+    } else {
+      vscode.window.showErrorMessage("Failed to update title");
+    }
+  }
+
+  /**
+   * Handle updating the description
+   */
+  private async handleUpdateDescription(description: string): Promise<void> {
+    if (!this._issue) {
+      return;
+    }
+
+    const success = await this._linearClient.updateIssueDescription(
+      this._issue.id,
+      description
+    );
+
+    if (success) {
+      vscode.window.showInformationMessage("Description updated!");
+      await this.refresh();
+    } else {
+      vscode.window.showErrorMessage("Failed to update description");
+    }
+  }
+
+  /**
+   * Handle updating the assignee
+   */
+  private async handleUpdateAssignee(assigneeId: string | null): Promise<void> {
+    if (!this._issue) {
+      return;
+    }
+
+    const success = await this._linearClient.updateIssueAssignee(
+      this._issue.id,
+      assigneeId
+    );
+
+    if (success) {
+      vscode.window.showInformationMessage("Assignee updated!");
+      await this.refresh();
+      // Refresh the sidebar
+      vscode.commands.executeCommand("monorepoTools.refreshTickets");
+    } else {
+      vscode.window.showErrorMessage("Failed to update assignee");
+    }
+  }
+
+  /**
+   * Handle loading users
+   */
+  private async handleLoadUsers(teamId?: string): Promise<void> {
+    let users;
+
+    if (teamId) {
+      users = await this._linearClient.getTeamMembers(teamId);
+    } else if (this._issue?.team) {
+      // Try to load team members first
+      users = await this._linearClient.getTeamMembers(this._issue.team.id);
+    } else {
+      // Fall back to organization users
+      users = await this._linearClient.getOrganizationUsers();
+    }
+
+    this._panel.webview.postMessage({
+      command: "usersLoaded",
+      users,
+    });
+  }
+
+  /**
+   * Handle searching users
+   */
+  private async handleSearchUsers(searchTerm: string): Promise<void> {
+    const users = await this._linearClient.searchUsers(searchTerm);
+
+    this._panel.webview.postMessage({
+      command: "usersLoaded",
+      users,
+    });
+  }
+
+  /**
    * Clean up resources
    */
   public dispose(): void {
@@ -162,6 +303,9 @@ export class LinearTicketPanel {
     this._panel.title = this._issue
       ? `${this._issue.identifier}: ${this._issue.title}`
       : "Linear Ticket";
+
+    // Note: Cannot dynamically update iconPath with ThemeIcon for webview panels
+
     this._panel.webview.html = await this._getHtmlForWebview(webview);
   }
 
@@ -173,397 +317,87 @@ export class LinearTicketPanel {
       return "<html><body><p>No ticket selected</p></body></html>";
     }
 
-    const issue = this._issue;
+    // Get the script URI
+    const scriptUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(
+        this._extensionUri,
+        "out",
+        "webview",
+        "ticket-panel.js"
+      )
+    );
 
     // Get workflow states for the status dropdown
-    const states = await this._linearClient.getWorkflowStates();
-    const statusOptions = states
-      .map(
-        (state) =>
-          `<option value="${state.id}" ${state.id === issue.state.id ? "selected" : ""}>${state.name}</option>`
-      )
-      .join("");
+    // Filter by team to get a reasonable set of states
+    console.log(
+      `[Linear Buddy] Webview: Issue ${this._issue.identifier} team:`,
+      this._issue
+    );
 
-    const priorityName = this.getPriorityName(issue.priority);
-    const priorityIcon = this.getPriorityIcon(issue.priority);
-    const statusColor = this.getStatusColor(issue.state.type);
+    const workflowStates = await this._linearClient.getWorkflowStates(
+      this._issue.team?.id
+    );
+
+    console.log(
+      `[Linear Buddy] Webview: Loaded ${
+        workflowStates.length
+      } workflow states for team ${
+        this._issue.team?.name || this._issue.team?.id || "default"
+      }`
+    );
+
+    // Use a nonce to whitelist which scripts can be run
+    const nonce = this.getNonce();
+
+    // Pass initial state to React
+    const initialState = {
+      issue: this._issue,
+      workflowStates: workflowStates,
+    };
 
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${issue.identifier}</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      font-size: 13px;
-      line-height: 1.6;
-      color: var(--vscode-foreground);
-      background-color: var(--vscode-editor-background);
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-    }
-
-    .header {
-      margin-bottom: 24px;
-      border-bottom: 1px solid var(--vscode-panel-border);
-      padding-bottom: 16px;
-    }
-
-    .ticket-id {
-      font-size: 12px;
-      color: var(--vscode-descriptionForeground);
-      font-weight: 500;
-      margin-bottom: 8px;
-    }
-
-    .ticket-title {
-      font-size: 24px;
-      font-weight: 600;
-      margin-bottom: 16px;
-      line-height: 1.3;
-    }
-
-    .metadata {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
-    }
-
-    .metadata-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .metadata-label {
-      font-size: 12px;
-      color: var(--vscode-descriptionForeground);
-      font-weight: 500;
-    }
-
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 500;
-      background-color: ${statusColor}20;
-      color: ${statusColor};
-      border: 1px solid ${statusColor}40;
-    }
-
-    .priority-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 12px;
-      font-weight: 500;
-    }
-
-    .section {
-      margin-bottom: 24px;
-    }
-
-    .section-title {
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 12px;
-      color: var(--vscode-foreground);
-    }
-
-    .description {
-      padding: 12px;
-      background-color: var(--vscode-editor-background);
-      border: 1px solid var(--vscode-panel-border);
-      border-radius: 6px;
-      white-space: pre-wrap;
-      line-height: 1.6;
-    }
-
-    .actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 16px;
-      flex-wrap: wrap;
-    }
-
-    .button {
-      padding: 8px 16px;
-      border-radius: 4px;
-      border: 1px solid var(--vscode-button-border, transparent);
-      background-color: var(--vscode-button-background);
-      color: var(--vscode-button-foreground);
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 500;
-      transition: all 0.2s;
-    }
-
-    .button:hover {
-      background-color: var(--vscode-button-hoverBackground);
-    }
-
-    .button-secondary {
-      background-color: var(--vscode-button-secondaryBackground);
-      color: var(--vscode-button-secondaryForeground);
-    }
-
-    .button-secondary:hover {
-      background-color: var(--vscode-button-secondaryHoverBackground);
-    }
-
-    select {
-      padding: 6px 12px;
-      border-radius: 4px;
-      border: 1px solid var(--vscode-input-border);
-      background-color: var(--vscode-input-background);
-      color: var(--vscode-input-foreground);
-      font-size: 13px;
-      cursor: pointer;
-      min-width: 150px;
-    }
-
-    select:focus {
-      outline: 1px solid var(--vscode-focusBorder);
-    }
-
-    .comment-section {
-      margin-top: 24px;
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 100px;
-      padding: 12px;
-      border-radius: 6px;
-      border: 1px solid var(--vscode-input-border);
-      background-color: var(--vscode-input-background);
-      color: var(--vscode-input-foreground);
-      font-size: 13px;
-      font-family: inherit;
-      resize: vertical;
-      margin-bottom: 8px;
-    }
-
-    textarea:focus {
-      outline: 1px solid var(--vscode-focusBorder);
-    }
-
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      padding: 16px;
-      background-color: var(--vscode-editor-background);
-      border: 1px solid var(--vscode-panel-border);
-      border-radius: 6px;
-    }
-
-    .info-item {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .info-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      color: var(--vscode-descriptionForeground);
-      font-weight: 600;
-      letter-spacing: 0.5px;
-    }
-
-    .info-value {
-      font-size: 13px;
-      color: var(--vscode-foreground);
-    }
-
-    .labels {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .label {
-      padding: 3px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 500;
-      background-color: var(--vscode-badge-background);
-      color: var(--vscode-badge-foreground);
-    }
-
-    .empty-state {
-      padding: 24px;
-      text-align: center;
-      color: var(--vscode-descriptionForeground);
-      font-style: italic;
-    }
-
-    .divider {
-      height: 1px;
-      background-color: var(--vscode-panel-border);
-      margin: 24px 0;
-    }
-
-    .url-link {
-      color: var(--vscode-textLink-foreground);
-      text-decoration: none;
-      font-size: 12px;
-    }
-
-    .url-link:hover {
-      text-decoration: underline;
-    }
-  </style>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; style-src ${
+    webview.cspSource
+  } 'unsafe-inline'; script-src 'nonce-${nonce}';">
+  <title>${this._issue.identifier}</title>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <div class="ticket-id">${issue.identifier}</div>
-      <h1 class="ticket-title">${this.escapeHtml(issue.title)}</h1>
-      
-      <div class="metadata">
-        <div class="metadata-item">
-          <span class="status-badge">
-            <span>●</span>
-            ${issue.state.name}
-          </span>
-        </div>
-        <div class="metadata-item">
-          <span class="priority-badge">
-            ${priorityIcon}
-            ${priorityName}
-          </span>
-        </div>
-        ${
-          issue.assignee
-            ? `
-        <div class="metadata-item">
-          <span class="metadata-label">Assigned to:</span>
-          <span>${this.escapeHtml(issue.assignee.name)}</span>
-        </div>
-        `
-            : ""
-        }
-      </div>
-
-      <div class="actions">
-        <select id="statusSelect" class="status-select">
-          ${statusOptions}
-        </select>
-        <button class="button" onclick="updateStatus()">Update Status</button>
-        <button class="button button-secondary" onclick="openInLinear()">Open in Linear</button>
-        <button class="button button-secondary" onclick="refresh()">Refresh</button>
-      </div>
-    </div>
-
-    <div class="info-grid">
-      <div class="info-item">
-        <div class="info-label">Created</div>
-        <div class="info-value">${new Date(issue.createdAt).toLocaleDateString()}</div>
-      </div>
-      <div class="info-item">
-        <div class="info-label">Updated</div>
-        <div class="info-value">${new Date(issue.updatedAt).toLocaleDateString()}</div>
-      </div>
-      ${
-        issue.project
-          ? `
-      <div class="info-item">
-        <div class="info-label">Project</div>
-        <div class="info-value">${this.escapeHtml(issue.project.name)}</div>
-      </div>
-      `
-          : ""
-      }
-    </div>
-
-    ${
-      issue.labels && issue.labels.length > 0
-        ? `
-    <div class="section">
-      <div class="section-title">Labels</div>
-      <div class="labels">
-        ${issue.labels.map((label) => `<span class="label" style="background-color: ${label.color}22; color: ${label.color}">${this.escapeHtml(label.name)}</span>`).join("")}
-      </div>
-    </div>
-    `
-        : ""
-    }
-
-    <div class="divider"></div>
-
-    <div class="section">
-      <div class="section-title">Description</div>
-      ${
-        issue.description
-          ? `<div class="description">${this.escapeHtml(issue.description)}</div>`
-          : `<div class="empty-state">No description provided</div>`
-      }
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="comment-section">
-      <div class="section-title">Add Comment</div>
-      <textarea id="commentInput" placeholder="Write a comment..."></textarea>
-      <button class="button" onclick="addComment()">Add Comment</button>
-    </div>
-  </div>
-
-  <script>
-    const vscode = acquireVsCodeApi();
-
-    function updateStatus() {
-      const select = document.getElementById('statusSelect');
-      const stateId = select.value;
-      vscode.postMessage({
-        command: 'updateStatus',
-        stateId: stateId
-      });
-    }
-
-    function openInLinear() {
-      vscode.postMessage({
-        command: 'openInLinear'
-      });
-    }
-
-    function refresh() {
-      vscode.postMessage({
-        command: 'refresh'
-      });
-    }
-
-    function addComment() {
-      const input = document.getElementById('commentInput');
-      const body = input.value.trim();
-      
-      if (body) {
-        vscode.postMessage({
-          command: 'addComment',
-          body: body
-        });
-        input.value = '';
-      }
-    }
+  <div id="root"></div>
+  <script nonce="${nonce}">
+    window.__INITIAL_STATE__ = ${JSON.stringify(initialState)};
   </script>
+  <script nonce="${nonce}" src="${scriptUri}"></script>
+</body>
+</html>`;
+  }
+
+  private getNonce() {
+    let text = "";
+    const possible =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for (let i = 0; i < 32; i++) {
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
+  }
+
+  private _getErrorHtml(message: string): string {
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Error</title>
+</head>
+<body>
+  <div style="padding: 20px; color: var(--vscode-errorForeground);">
+    <h2>Error</h2>
+    <p>${message}</p>
+  </div>
 </body>
 </html>`;
   }
@@ -624,5 +458,3 @@ export class LinearTicketPanel {
     return text.replace(/[&<>"']/g, (m) => map[m]);
   }
 }
-
-

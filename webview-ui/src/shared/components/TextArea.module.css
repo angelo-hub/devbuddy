@@ -1,0 +1,37 @@
+.container {
+  margin-bottom: 16px;
+}
+
+.label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--color-foreground);
+}
+
+.textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #454545;
+  background-color: var(--input-background);
+  color: var(--input-foreground);
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #007acc;
+  box-shadow: 0 0 0 1px #007acc;
+}
+
+.hint {
+  font-size: 11px;
+  color: var(--color-description);
+  margin-top: 4px;
+}
+

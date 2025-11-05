@@ -122,14 +122,33 @@ Click **"Open in Linear"** button
 ## 🔧 Technical Details
 
 ### Implementation
-- **Webview API** - VS Code's webview panel
-- **HTML/CSS/JS** - Custom UI
-- **Message passing** - Extension ↔ Webview
-- **VS Code theming** - CSS variables
+- **React with TypeScript** - Modern component architecture
+- **esbuild** - Fast bundling for both webviews
+- **CSS Modules** - Scoped styling for components
+- **VS Code Webview API** - Extension ↔ Webview communication
+- **VS Code theming** - Automatic theme inheritance via CSS variables
 - **Retained context** - Panel stays when hidden
 
+### Architecture
+The webviews are built using React and are located in `webview-ui/`:
+- `src/standup-builder/` - Standup Builder React app
+- `src/ticket-panel/` - Ticket Panel React app
+- `src/shared/` - Reusable components, hooks, and utilities
+  - `components/` - Button, Input, Select, TextArea, Badge
+  - `hooks/` - useVSCode (typed message passing)
+  - `types/` - TypeScript interfaces for messages
+  - `global.css` - Theme variables and base styles
+
+### Build System
+- **Development**: `npm run watch:webview` - Auto-rebuild on changes
+- **Production**: `npm run compile:webview` - Minified bundles
+- **Output**: `out/webview/standup-builder.js` and `out/webview/ticket-panel.js`
+
 ### Files
-- `src/views/linearTicketPanel.ts` - Panel logic
+- `webview-ui/build.js` - esbuild configuration
+- `webview-ui/tsconfig.json` - React TypeScript config
+- `src/views/linearTicketPanel.ts` - Panel logic (extension side)
+- `src/views/standupBuilderPanel.ts` - Panel logic (extension side)
 - `src/extension.ts` - Command registration
 
 ### Message Flow

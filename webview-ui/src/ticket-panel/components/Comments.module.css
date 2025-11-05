@@ -1,0 +1,117 @@
+.container {
+  margin: 24px 0;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--vscode-foreground);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.titleIcon {
+  font-size: 16px;
+}
+
+.emptyState {
+  padding: 32px;
+  text-align: center;
+  background: var(--vscode-editor-background);
+  border: 1.5px dashed var(--vscode-panel-border);
+  border-radius: 8px;
+}
+
+.emptyText {
+  font-size: 14px;
+  color: var(--vscode-descriptionForeground);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.emptySubtext {
+  font-size: 12px;
+  color: var(--vscode-descriptionForeground);
+  opacity: 0.7;
+}
+
+.commentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.commentItem {
+  padding: 16px;
+  background: var(--vscode-editor-background);
+  border: 1px solid var(--vscode-panel-border);
+  border-left: 3px solid var(--vscode-textLink-foreground);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.commentItem:hover {
+  border-left-color: var(--vscode-focusBorder);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.commentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid var(--vscode-panel-border);
+}
+
+.userName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--vscode-foreground);
+}
+
+.timestamp {
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  opacity: 0.75;
+}
+
+.commentBody {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--vscode-foreground);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Markdown-like formatting for comments */
+.commentBody a {
+  color: var(--vscode-textLink-foreground);
+  text-decoration: underline;
+}
+
+.commentBody a:hover {
+  color: var(--vscode-textLink-activeForeground);
+}
+
+.commentBody code {
+  background: var(--vscode-textCodeBlock-background);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 12px;
+}
+

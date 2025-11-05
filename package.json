@@ -52,7 +52,28 @@
       },
       {
         "command": "monorepoTools.configureLinearToken",
-        "title": "Linear Buddy: Configure API Token"
+        "title": "Linear Buddy: Update Linear API Key"
+      },
+      {
+        "command": "monorepoTools.startBranch",
+        "title": "Linear Buddy: Start Branch for Ticket",
+        "icon": "$(git-branch)"
+      },
+      {
+        "command": "monorepoTools.openPR",
+        "title": "Linear Buddy: Open Pull Request",
+        "icon": "$(git-pull-request)"
+      },
+      {
+        "command": "monorepoTools.changeTicketStatus",
+        "title": "Linear Buddy: Change Ticket Status",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "monorepoTools.convertTodoToTicket",
+        "title": "Linear Buddy: Convert TODO to Ticket",
+        "icon": "$(add)",
+        "category": "Linear Buddy"
       }
     ],
     "viewsContainers": {
@@ -73,6 +94,13 @@
       ]
     },
     "menus": {
+      "editor/context": [
+        {
+          "command": "monorepoTools.convertTodoToTicket",
+          "when": "editorTextFocus && editorHasSelection || editorTextFocus",
+          "group": "linear@1"
+        }
+      ],
       "view/title": [
         {
           "command": "monorepoTools.refreshTickets",
@@ -87,14 +115,29 @@
       ],
       "view/item/context": [
         {
+          "command": "monorepoTools.startBranch",
+          "when": "view == linearTickets && viewItem == linearTicket:unstarted",
+          "group": "inline@1"
+        },
+        {
+          "command": "monorepoTools.openPR",
+          "when": "view == linearTickets && viewItem =~ /linearTicket.*:withPR/",
+          "group": "inline@1"
+        },
+        {
+          "command": "monorepoTools.changeTicketStatus",
+          "when": "view == linearTickets && viewItem =~ /linearTicket.*/",
+          "group": "status@1"
+        },
+        {
           "command": "monorepoTools.startWork",
-          "when": "view == linearTickets",
-          "group": "inline"
+          "when": "view == linearTickets && viewItem == linearTicket",
+          "group": "inline@2"
         },
         {
           "command": "monorepoTools.completeTicket",
-          "when": "view == linearTickets",
-          "group": "inline"
+          "when": "view == linearTickets && viewItem == linearTicket",
+          "group": "inline@3"
         }
       ]
     },
@@ -179,7 +222,12 @@
         },
         "monorepoTools.writingTone": {
           "type": "string",
-          "enum": ["casual", "professional", "technical", "concise"],
+          "enum": [
+            "casual",
+            "professional",
+            "technical",
+            "concise"
+          ],
           "default": "professional",
           "description": "Writing tone for AI-generated summaries"
         },
@@ -198,30 +246,55 @@
           "default": "",
           "description": "Linear team ID to filter tickets (optional)"
         },
+        "monorepoTools.linearDefaultTeamId": {
+          "type": "string",
+          "default": "",
+          "description": "Default Linear team ID for creating tickets (saved from TODO converter)"
+        },
         "monorepoTools.autoRefreshInterval": {
           "type": "number",
           "default": 5,
           "description": "Auto-refresh interval for Linear tickets in minutes (0 to disable)"
+        },
+        "monorepoTools.branchNamingConvention": {
+          "type": "string",
+          "enum": [
+            "conventional",
+            "simple",
+            "custom"
+          ],
+          "default": "conventional",
+          "description": "Branch naming convention: conventional (feat/fix/etc), simple (identifier-only), or custom"
+        },
+        "monorepoTools.customBranchTemplate": {
+          "type": "string",
+          "default": "{type}/{identifier}-{slug}",
+          "description": "Custom branch template. Available placeholders: {type}, {identifier}, {slug}, {username}"
         }
       }
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run compile && npm run compile:webview",
     "compile": "tsc -p ./",
+    "compile:webview": "node webview-ui/build.js",
     "watch": "tsc -watch -p ./",
+    "watch:webview": "node webview-ui/build.js --watch",
     "pretest": "npm run compile",
     "package": "vsce package --allow-missing-repository"
   },
   "devDependencies": {
     "@types/node": "^20.x",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
     "@types/vscode": "^1.85.0",
     "@vscode/vsce": "^2.22.0",
+    "esbuild": "^0.19.11",
     "typescript": "^5.3.3"
   },
   "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "simple-git": "^3.21.0"
   }
 }
-
-

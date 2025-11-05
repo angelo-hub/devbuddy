@@ -1,0 +1,124 @@
+.container {
+  margin: 24px 0;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--vscode-foreground);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.titleIcon {
+  font-size: 16px;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: var(--vscode-descriptionForeground);
+  margin-bottom: 12px;
+  font-style: italic;
+}
+
+.prList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.prItem {
+  display: block;
+  padding: 16px 18px;
+  background: var(--vscode-editor-background);
+  border: 1.5px solid var(--vscode-panel-border);
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--vscode-foreground);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.prItem:hover {
+  background: var(--vscode-list-hoverBackground);
+  border-color: var(--vscode-focusBorder);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.prItem:active {
+  transform: translateY(-1px);
+}
+
+.prHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.prInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.platformIcon {
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  opacity: 0.8;
+}
+
+.platformIcon.github {
+  filter: grayscale(0.2);
+}
+
+.platformIcon.gitlab {
+  filter: hue-rotate(20deg);
+}
+
+.prNumber {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--vscode-textLink-foreground);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.prRepo {
+  font-size: 12px;
+  color: var(--vscode-descriptionForeground);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.openArrow {
+  font-size: 18px;
+  color: var(--vscode-textLink-foreground);
+  opacity: 0.6;
+  transition: all 0.2s ease;
+}
+
+.prItem:hover .openArrow {
+  opacity: 1;
+  transform: translateX(4px);
+}
+
+.prTitle {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+  margin-bottom: 6px;
+  color: var(--vscode-foreground);
+}
+
+.prSubtitle {
+  font-size: 12px;
+  color: var(--vscode-descriptionForeground);
+  line-height: 1.4;
+  opacity: 0.85;
+}
+
