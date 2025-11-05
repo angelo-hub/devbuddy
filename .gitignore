@@ -1,0 +1,22 @@
+# Compiled output
+out/
+*.vsix
+
+# Dependencies
+node_modules/
+
+# IDE
+.vscode-test/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+
+# TypeScript
+*.tsbuildinfo
+

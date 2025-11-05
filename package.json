@@ -1,0 +1,227 @@
+{
+  "name": "cursor-monorepo-tools",
+  "displayName": "Linear Buddy - Monorepo Tools",
+  "description": "AI-powered Linear integration with workflow automation for monorepo PRs and standups",
+  "version": "0.1.0",
+  "publisher": "personal",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Chat"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "monorepoTools.generatePRSummary",
+        "title": "Linear Buddy: Generate PR Summary"
+      },
+      {
+        "command": "monorepoTools.generateStandup",
+        "title": "Linear Buddy: Generate Standup Update"
+      },
+      {
+        "command": "monorepoTools.openStandupBuilder",
+        "title": "Linear Buddy: Open Standup Builder",
+        "icon": "$(notebook)",
+        "category": "Linear Buddy"
+      },
+      {
+        "command": "monorepoTools.refreshTickets",
+        "title": "Linear Buddy: Refresh Tickets",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "monorepoTools.openTicket",
+        "title": "Linear Buddy: Open Ticket"
+      },
+      {
+        "command": "monorepoTools.startWork",
+        "title": "Linear Buddy: Start Work on Ticket",
+        "icon": "$(play)"
+      },
+      {
+        "command": "monorepoTools.completeTicket",
+        "title": "Linear Buddy: Complete Ticket",
+        "icon": "$(check)"
+      },
+      {
+        "command": "monorepoTools.configureLinearToken",
+        "title": "Linear Buddy: Configure API Token"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "linear-buddy",
+          "title": "Linear Buddy",
+          "icon": "$(checklist)"
+        }
+      ]
+    },
+    "views": {
+      "linear-buddy": [
+        {
+          "id": "linearTickets",
+          "name": "My Tickets"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "monorepoTools.refreshTickets",
+          "when": "view == linearTickets",
+          "group": "navigation"
+        },
+        {
+          "command": "monorepoTools.openStandupBuilder",
+          "when": "view == linearTickets",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "monorepoTools.startWork",
+          "when": "view == linearTickets",
+          "group": "inline"
+        },
+        {
+          "command": "monorepoTools.completeTicket",
+          "when": "view == linearTickets",
+          "group": "inline"
+        }
+      ]
+    },
+    "chatParticipants": [
+      {
+        "id": "linear-buddy",
+        "name": "linear",
+        "description": "AI assistant for Linear workflow, PRs, and standups",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "tickets",
+            "description": "Show your Linear tickets"
+          },
+          {
+            "name": "standup",
+            "description": "Generate standup update"
+          },
+          {
+            "name": "pr",
+            "description": "Generate PR summary"
+          },
+          {
+            "name": "status",
+            "description": "Update ticket status"
+          }
+        ]
+      }
+    ],
+    "configuration": {
+      "title": "Monorepo Tools",
+      "properties": {
+        "monorepoTools.baseBranch": {
+          "type": "string",
+          "default": "main",
+          "description": "Default base branch for comparing changes (with fallback to 'master')"
+        },
+        "monorepoTools.maxPackageScope": {
+          "type": "number",
+          "default": 2,
+          "description": "Maximum number of packages that should be modified in a single PR"
+        },
+        "monorepoTools.packagesPaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "packages/",
+            "apps/"
+          ],
+          "description": "Array of directory paths to scan for package changes (e.g., ['packages/', 'apps/', 'domains/'])"
+        },
+        "monorepoTools.prTemplatePath": {
+          "type": "string",
+          "default": ".github/pull_request_template.md",
+          "description": "Path to the PR template file in the workspace"
+        },
+        "monorepoTools.standupTimeWindow": {
+          "type": "string",
+          "default": "24 hours ago",
+          "description": "Time window for standup commits (e.g., '24 hours ago', '2 days ago')"
+        },
+        "monorepoTools.enableAISummarization": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable AI-powered summarization for PR summaries and standups (requires Cursor/Copilot)"
+        },
+        "monorepoTools.aiModel": {
+          "type": "string",
+          "enum": [
+            "gpt-4o",
+            "gpt-4.1",
+            "gpt-4-turbo",
+            "gpt-4",
+            "gpt-4o-mini",
+            "gpt-3.5-turbo",
+            "gemini-2.0-flash"
+          ],
+          "default": "gpt-4o",
+          "description": "AI model to use for summarization (verified working Copilot models)"
+        },
+        "monorepoTools.writingTone": {
+          "type": "string",
+          "enum": ["casual", "professional", "technical", "concise"],
+          "default": "professional",
+          "description": "Writing tone for AI-generated summaries"
+        },
+        "monorepoTools.firstTimeSetupComplete": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether first-time setup has been completed"
+        },
+        "monorepoTools.linearApiToken": {
+          "type": "string",
+          "default": "",
+          "description": "Linear API token for fetching tickets (get from linear.app/settings/api)"
+        },
+        "monorepoTools.linearTeamId": {
+          "type": "string",
+          "default": "",
+          "description": "Linear team ID to filter tickets (optional)"
+        },
+        "monorepoTools.autoRefreshInterval": {
+          "type": "number",
+          "default": 5,
+          "description": "Auto-refresh interval for Linear tickets in minutes (0 to disable)"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "package": "vsce package --allow-missing-repository"
+  },
+  "devDependencies": {
+    "@types/node": "^20.x",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.22.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "simple-git": "^3.21.0"
+  }
+}
+
+
