@@ -4,12 +4,15 @@ import {
   LinearIssue,
   LinearProject,
 } from "../utils/linearClient";
+import { BranchAssociationManager } from "../utils/branchAssociationManager";
+import { getLogger } from "../utils/logger";
 
 export class LinearTicketTreeItem extends vscode.TreeItem {
   constructor(
     public readonly issue: LinearIssue,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-    public readonly itemType: "ticket" | "project" | "section" = "ticket"
+    public readonly itemType: "ticket" | "project" | "section" = "ticket",
+    private branchManager?: BranchAssociationManager
   ) {
     super(issue.title, collapsibleState);
 
@@ -20,14 +23,14 @@ export class LinearTicketTreeItem extends vscode.TreeItem {
     if (itemType === "ticket") {
       // Check if ticket has a PR attachment
       const attachmentNodes = issue.attachments?.nodes || [];
-      const hasPR = attachmentNodes.some(
-        (att) => {
-          const sourceType = att.sourceType?.toLowerCase() || "";
-          return sourceType.includes("github") || 
-                 sourceType.includes("gitlab") || 
-                 sourceType.includes("bitbucket");
-        }
-      );
+      const hasPR = attachmentNodes.some((att) => {
+        const sourceType = att.sourceType?.toLowerCase() || "";
+        return (
+          sourceType.includes("github") ||
+          sourceType.includes("gitlab") ||
+          sourceType.includes("bitbucket")
+        );
+      });
 
       // Build context value
       let contextValue = "linearTicket";
@@ -35,6 +38,21 @@ export class LinearTicketTreeItem extends vscode.TreeItem {
       // Add unstarted indicator for start branch button
       if (issue.state.type === "unstarted") {
         contextValue += ":unstarted";
+      }
+
+      // Add started indicator for checkout branch button
+      if (issue.state.type === "started") {
+        contextValue += ":started";
+
+        // Check if there's an associated branch
+        if (branchManager) {
+          const associatedBranch = branchManager.getBranchForTicket(
+            issue.identifier
+          );
+          if (associatedBranch) {
+            contextValue += ":withBranch";
+          }
+        }
       }
 
       // Add PR indicator for open PR button
@@ -55,7 +73,7 @@ export class LinearTicketTreeItem extends vscode.TreeItem {
     // Command to open ticket when clicked
     if (itemType === "ticket") {
       this.command = {
-        command: "monorepoTools.openTicket",
+        command: "linearBuddy.openTicket",
         title: "Open Ticket",
         arguments: [issue],
       };
@@ -134,22 +152,45 @@ export class LinearTicketsProvider
     LinearTicketTreeItem | undefined | null | void
   > = this._onDidChangeTreeData.event;
 
-  private linearClient: LinearClient;
+  private linearClient: LinearClient | null = null;
+  private branchManager: BranchAssociationManager;
   private issues: LinearIssue[] = [];
   private projects: LinearProject[] = [];
   private teams: Array<{ id: string; name: string; key: string }> = [];
   private refreshTimer: NodeJS.Timeout | undefined;
+  private isRefreshing: boolean = false;
 
-  constructor() {
-    this.linearClient = new LinearClient();
+  constructor(context?: vscode.ExtensionContext) {
+    this.branchManager = context
+      ? new BranchAssociationManager(context)
+      : (null as any);
+    this.initializeClient();
     this.startAutoRefresh();
+  }
+
+  /**
+   * Initialize the Linear client asynchronously
+   */
+  private async initializeClient(): Promise<void> {
+    this.linearClient = await LinearClient.create();
+    this.refresh();
+  }
+
+  /**
+   * Get the Linear client, ensuring it's initialized
+   */
+  private async getClient(): Promise<LinearClient> {
+    if (!this.linearClient) {
+      this.linearClient = await LinearClient.create();
+    }
+    return this.linearClient;
   }
 
   /**
    * Start auto-refresh timer
    */
   private startAutoRefresh(): void {
-    const config = vscode.workspace.getConfiguration("monorepoTools");
+    const config = vscode.workspace.getConfiguration("linearBuddy");
     const intervalMinutes = config.get<number>("autoRefreshInterval", 5);
 
     // Clear existing timer
@@ -159,17 +200,16 @@ export class LinearTicketsProvider
 
     // Start new timer if interval > 0
     if (intervalMinutes > 0) {
+      const logger = getLogger();
       const intervalMs = intervalMinutes * 60 * 1000;
       this.refreshTimer = setInterval(() => {
-        console.log("[Linear Buddy] Auto-refreshing tickets...");
+        logger.debug("Auto-refreshing tickets...");
         this.refresh();
       }, intervalMs);
 
-      console.log(
-        `[Linear Buddy] Auto-refresh enabled: every ${intervalMinutes} minutes`
-      );
+      logger.debug(`Auto-refresh enabled: every ${intervalMinutes} minutes`);
     } else {
-      console.log("[Linear Buddy] Auto-refresh disabled");
+      getLogger().debug("Auto-refresh disabled");
     }
   }
 
@@ -191,6 +231,58 @@ export class LinearTicketsProvider
   }
 
   /**
+   * Refresh data in the background without changing the existing view
+   * This preloads data so the next view update will be instant
+   */
+  async refreshInBackground(): Promise<void> {
+    if (this.isRefreshing) {
+      return; // Don't start another refresh if one is already in progress
+    }
+
+    this.isRefreshing = true;
+    try {
+      const client = await this.getClient();
+      if (!client.isConfigured()) {
+        return;
+      }
+
+      const config = vscode.workspace.getConfiguration("linearBuddy");
+      const teamId = config.get<string>("linearTeamId");
+
+      // Preload data for all sections in parallel
+      const [myIssues, completedIssues, teams, projects] = await Promise.all([
+        client
+          .getMyIssues({
+            state: ["unstarted", "started"],
+            teamId: teamId || undefined,
+          })
+          .catch(() => [] as LinearIssue[]),
+        client
+          .getMyIssues({
+            state: ["completed"],
+            teamId: teamId || undefined,
+          })
+          .catch(() => [] as LinearIssue[]),
+        client
+          .getUserTeams()
+          .catch(() => [] as Array<{ id: string; name: string; key: string }>),
+        client.getUserProjects().catch(() => [] as LinearProject[]),
+      ]);
+
+      // Update the cached data
+      this.issues = myIssues;
+      this.projects = projects;
+      this.teams = teams;
+
+      getLogger().debug("Background refresh completed - data preloaded");
+    } catch (error) {
+      getLogger().error("Background refresh failed", error);
+    } finally {
+      this.isRefreshing = false;
+    }
+  }
+
+  /**
    * Get tree item
    */
   getTreeItem(element: LinearTicketTreeItem): vscode.TreeItem {
@@ -203,7 +295,8 @@ export class LinearTicketsProvider
   async getChildren(
     element?: LinearTicketTreeItem
   ): Promise<LinearTicketTreeItem[]> {
-    if (!this.linearClient.isConfigured()) {
+    const client = await this.getClient();
+    if (!client.isConfigured()) {
       // Show a message to configure Linear API token
       return [this.createConfigureItem()];
     }
@@ -213,19 +306,22 @@ export class LinearTicketsProvider
       switch (element.contextValue) {
         case "myIssuesSection":
           return this.getMyIssuesChildren();
-        
+
+        case "completedSection":
+          return this.getCompletedIssuesChildren();
+
         case "teamsSection":
           return this.getTeamsChildren();
-        
+
         case "projectsSection":
           return this.getProjectsChildren();
-        
+
         case "project":
           return this.getUnassignedIssuesForProject(element.issue.id);
-        
+
         case "team":
           return this.getTeamIssuesChildren(element.issue.id);
-        
+
         case "statusHeader":
           const status = element.issue.state.name;
           const statusIssues = this.issues.filter(
@@ -236,10 +332,11 @@ export class LinearTicketsProvider
               new LinearTicketTreeItem(
                 issue,
                 vscode.TreeItemCollapsibleState.None,
-                "ticket"
+                "ticket",
+                this.branchManager
               )
           );
-        
+
         default:
           return [];
       }
@@ -247,7 +344,7 @@ export class LinearTicketsProvider
 
     try {
       // Fetch data from Linear
-      const config = vscode.workspace.getConfiguration("monorepoTools");
+      const config = vscode.workspace.getConfiguration("linearBuddy");
       const teamId = config.get<string>("linearTeamId");
 
       const items: LinearTicketTreeItem[] = [];
@@ -255,10 +352,15 @@ export class LinearTicketsProvider
       // Section 1: My Issues (collapsible)
       items.push(this.createCollapsibleSection("myIssuesSection", "My Issues"));
 
-      // Section 2: Your Teams (collapsible)
+      // Section 2: Recently Completed (collapsible)
+      items.push(
+        this.createCollapsibleSection("completedSection", "Recently Completed")
+      );
+
+      // Section 3: Your Teams (collapsible)
       items.push(this.createCollapsibleSection("teamsSection", "Your Teams"));
 
-      // Section 3: Projects (collapsible)
+      // Section 4: Projects (collapsible)
       items.push(this.createCollapsibleSection("projectsSection", "Projects"));
 
       return items;
@@ -280,19 +382,22 @@ export class LinearTicketsProvider
     projectId: string
   ): Promise<LinearTicketTreeItem[]> {
     try {
-      const unassignedIssues =
-        await this.linearClient.getProjectUnassignedIssues(projectId);
+      const client = await this.getClient();
+      const unassignedIssues = await client.getProjectUnassignedIssues(
+        projectId
+      );
 
       if (unassignedIssues.length === 0) {
         return [this.createNoUnassignedIssuesItem()];
       }
 
       return unassignedIssues.map(
-        (issue) =>
+        (issue: LinearIssue) =>
           new LinearTicketTreeItem(
             issue,
             vscode.TreeItemCollapsibleState.None,
-            "ticket"
+            "ticket",
+            this.branchManager
           )
       );
     } catch (error) {
@@ -306,10 +411,11 @@ export class LinearTicketsProvider
    */
   private async getMyIssuesChildren(): Promise<LinearTicketTreeItem[]> {
     try {
-      const config = vscode.workspace.getConfiguration("monorepoTools");
+      const client = await this.getClient();
+      const config = vscode.workspace.getConfiguration("linearBuddy");
       const teamId = config.get<string>("linearTeamId");
 
-      this.issues = await this.linearClient.getMyIssues({
+      this.issues = await client.getMyIssues({
         state: ["unstarted", "started"], // Only show active issues
         teamId: teamId || undefined,
       });
@@ -342,11 +448,54 @@ export class LinearTicketsProvider
   }
 
   /**
+   * Get children for Recently Completed section
+   */
+  private async getCompletedIssuesChildren(): Promise<LinearTicketTreeItem[]> {
+    try {
+      const client = await this.getClient();
+      const config = vscode.workspace.getConfiguration("linearBuddy");
+      const teamId = config.get<string>("linearTeamId");
+
+      const completedIssues = await client.getMyIssues({
+        state: ["completed"],
+        teamId: teamId || undefined,
+      });
+
+      if (completedIssues.length === 0) {
+        return [this.createNoCompletedIssuesItem()];
+      }
+
+      // Sort by updated date (most recent first) and limit to 10
+      const sortedIssues = completedIssues
+        .sort((a: LinearIssue, b: LinearIssue) => {
+          const dateA = new Date(a.updatedAt).getTime();
+          const dateB = new Date(b.updatedAt).getTime();
+          return dateB - dateA;
+        })
+        .slice(0, 10);
+
+      return sortedIssues.map(
+        (issue: LinearIssue) =>
+          new LinearTicketTreeItem(
+            issue,
+            vscode.TreeItemCollapsibleState.None,
+            "ticket",
+            this.branchManager
+          )
+      );
+    } catch (error) {
+      console.error("[Linear Buddy] Failed to fetch completed issues:", error);
+      return [this.createErrorItem()];
+    }
+  }
+
+  /**
    * Get children for Teams section
    */
   private async getTeamsChildren(): Promise<LinearTicketTreeItem[]> {
     try {
-      this.teams = await this.linearClient.getUserTeams();
+      const client = await this.getClient();
+      this.teams = await client.getUserTeams();
 
       if (this.teams.length === 0) {
         return [this.createNoTeamsItem()];
@@ -366,7 +515,8 @@ export class LinearTicketsProvider
     teamId: string
   ): Promise<LinearTicketTreeItem[]> {
     try {
-      const teamIssues = await this.linearClient.getMyIssues({
+      const client = await this.getClient();
+      const teamIssues = await client.getMyIssues({
         state: ["unstarted", "started"],
         teamId: teamId,
       });
@@ -380,7 +530,8 @@ export class LinearTicketsProvider
           new LinearTicketTreeItem(
             issue,
             vscode.TreeItemCollapsibleState.None,
-            "ticket"
+            "ticket",
+            this.branchManager
           )
       );
     } catch (error) {
@@ -394,7 +545,8 @@ export class LinearTicketsProvider
    */
   private async getProjectsChildren(): Promise<LinearTicketTreeItem[]> {
     try {
-      this.projects = await this.linearClient.getUserProjects();
+      const client = await this.getClient();
+      this.projects = await client.getUserProjects();
 
       if (this.projects.length === 0) {
         return [this.createNoProjectsItem()];
@@ -445,13 +597,16 @@ export class LinearTicketsProvider
       vscode.TreeItemCollapsibleState.Collapsed,
       "section"
     );
-    
+
     let icon = "folder";
     let iconColor = new vscode.ThemeColor("symbolIcon.classForeground");
-    
+
     if (contextValue === "myIssuesSection") {
       icon = "folder-opened";
       iconColor = new vscode.ThemeColor("charts.blue");
+    } else if (contextValue === "completedSection") {
+      icon = "folder-opened";
+      iconColor = new vscode.ThemeColor("charts.green");
     } else if (contextValue === "teamsSection") {
       icon = "folder-opened";
       iconColor = new vscode.ThemeColor("charts.purple");
@@ -459,7 +614,7 @@ export class LinearTicketsProvider
       icon = "folder-opened";
       iconColor = new vscode.ThemeColor("charts.orange");
     }
-    
+
     item.iconPath = new vscode.ThemeIcon(icon, iconColor);
     item.contextValue = contextValue;
     item.command = undefined;
@@ -677,7 +832,7 @@ export class LinearTicketsProvider
     );
     item.iconPath = new vscode.ThemeIcon("settings-gear");
     item.command = {
-      command: "monorepoTools.configureLinearToken",
+      command: "linearBuddy.configureLinearToken",
       title: "Configure Linear API Token",
     };
     item.contextValue = "configure";
@@ -708,6 +863,33 @@ export class LinearTicketsProvider
     );
     item.command = undefined;
     item.contextValue = "no-issues";
+    return item;
+  }
+
+  /**
+   * Create "No completed issues" item
+   */
+  private createNoCompletedIssuesItem(): LinearTicketTreeItem {
+    const item = new LinearTicketTreeItem(
+      {
+        id: "no-completed-issues",
+        identifier: "",
+        title: "  No recently completed issues",
+        state: { id: "", name: "", type: "" },
+        priority: 0,
+        url: "",
+        createdAt: "",
+        updatedAt: "",
+      } as LinearIssue,
+      vscode.TreeItemCollapsibleState.None,
+      "section"
+    );
+    item.iconPath = new vscode.ThemeIcon(
+      "info",
+      new vscode.ThemeColor("charts.gray")
+    );
+    item.command = undefined;
+    item.contextValue = "no-completed-issues";
     return item;
   }
 
@@ -754,7 +936,7 @@ export class LinearTicketsProvider
     );
     item.iconPath = new vscode.ThemeIcon("error");
     item.command = {
-      command: "monorepoTools.refreshTickets",
+      command: "linearBuddy.refreshTickets",
       title: "Refresh",
     };
     item.contextValue = "error";

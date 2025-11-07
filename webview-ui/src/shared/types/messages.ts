@@ -157,9 +157,16 @@ export type TicketPanelMessageFromWebview =
   | { command: "updateAssignee"; assigneeId: string | null }
   | { command: "loadUsers"; teamId?: string }
   | { command: "searchUsers"; searchTerm: string }
-  | { command: "openIssue"; issueId: string };
+  | { command: "openIssue"; issueId: string }
+  | { command: "checkoutBranch"; ticketId: string }
+  | { command: "associateBranch"; ticketId: string; branchName: string }
+  | { command: "removeAssociation"; ticketId: string }
+  | { command: "loadBranchInfo"; ticketId: string }
+  | { command: "loadAllBranches" };
 
 export type TicketPanelMessageFromExtension =
   | { command: "updateIssue"; issue: LinearIssue }
   | { command: "workflowStates"; states: WorkflowState[] }
-  | { command: "usersLoaded"; users: LinearUser[] };
+  | { command: "usersLoaded"; users: LinearUser[] }
+  | { command: "branchInfo"; branchName: string | null; exists: boolean }
+  | { command: "allBranchesLoaded"; branches: string[]; currentBranch: string | null; suggestions: string[] };

@@ -3,13 +3,45 @@ import { LinearClient, LinearIssue } from "../utils/linearClient";
 import { GitAnalyzer } from "../utils/gitAnalyzer";
 import { AISummarizer } from "../utils/aiSummarizer";
 
+/**
+ * Convert Linear web URL to desktop app URL if preference is enabled
+ */
+function getLinearUrl(webUrl: string): string {
+  const config = vscode.workspace.getConfiguration("linearBuddy");
+  const preferDesktop = config.get<boolean>("preferDesktopApp", false);
+  
+  if (preferDesktop) {
+    // Convert https://linear.app/... to linear://...
+    return webUrl.replace("https://linear.app/", "linear://");
+  }
+  
+  return webUrl;
+}
+
 export class LinearBuddyChatParticipant {
-  private linearClient: LinearClient;
+  private linearClient: LinearClient | null = null;
   private aiSummarizer: AISummarizer;
 
   constructor() {
-    this.linearClient = new LinearClient();
     this.aiSummarizer = new AISummarizer();
+    this.initializeClient();
+  }
+
+  /**
+   * Initialize the Linear client asynchronously
+   */
+  private async initializeClient(): Promise<void> {
+    this.linearClient = await LinearClient.create();
+  }
+
+  /**
+   * Get the Linear client, ensuring it's initialized
+   */
+  private async getClient(): Promise<LinearClient> {
+    if (!this.linearClient) {
+      this.linearClient = await LinearClient.create();
+    }
+    return this.linearClient;
   }
 
   /**
@@ -67,7 +99,8 @@ export class LinearBuddyChatParticipant {
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
   ): Promise<vscode.ChatResult> {
-    if (!this.linearClient.isConfigured()) {
+    const client = await this.getClient();
+    if (!client.isConfigured()) {
       stream.markdown(
         "⚠️ **Linear API not configured.**\n\n" +
           "Please configure your Linear API token:\n" +
@@ -81,7 +114,7 @@ export class LinearBuddyChatParticipant {
     stream.progress("Fetching your tickets from Linear...");
 
     try {
-      const issues = await this.linearClient.getMyIssues({
+      const issues = await client.getMyIssues({
         state: ["unstarted", "started"],
       });
 
@@ -102,8 +135,9 @@ export class LinearBuddyChatParticipant {
 
         for (const issue of statusIssues) {
           const priority = this.getPriorityEmoji(issue.priority);
+          const url = getLinearUrl(issue.url);
           stream.markdown(
-            `${priority} **[${issue.identifier}](${issue.url})** - ${issue.title}\n`
+            `${priority} **[${issue.identifier}](${url})** - ${issue.title}\n`
           );
         }
 
@@ -112,7 +146,7 @@ export class LinearBuddyChatParticipant {
 
       // Add helpful suggestions
       stream.button({
-        command: "monorepoTools.generateStandup",
+        command: "linearBuddy.generateStandup",
         title: "Generate Standup",
       });
 
@@ -139,7 +173,7 @@ export class LinearBuddyChatParticipant {
     }
 
     const gitAnalyzer = new GitAnalyzer(workspaceRoot);
-    const config = vscode.workspace.getConfiguration("monorepoTools");
+    const config = vscode.workspace.getConfiguration("linearBuddy");
     const standupTimeWindow = config.get<string>(
       "standupTimeWindow",
       "24 hours ago"
@@ -219,7 +253,7 @@ export class LinearBuddyChatParticipant {
     );
 
     stream.button({
-      command: "monorepoTools.generatePRSummary",
+      command: "linearBuddy.generatePRSummary",
       title: "Generate Full PR Summary",
     });
 
@@ -234,7 +268,8 @@ export class LinearBuddyChatParticipant {
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
   ): Promise<vscode.ChatResult> {
-    if (!this.linearClient.isConfigured()) {
+    const client = await this.getClient();
+    if (!client.isConfigured()) {
       stream.markdown(
         "⚠️ **Linear API not configured.** Please configure your API token first.\n"
       );
@@ -272,7 +307,8 @@ export class LinearBuddyChatParticipant {
         stream.progress(`Fetching ${ticketId}...`);
 
         try {
-          const issue = await this.linearClient.getIssue(ticketId);
+          const client = await this.getClient();
+          const issue = await client.getIssue(ticketId);
           if (issue) {
             stream.markdown(`## ${issue.identifier}: ${issue.title}\n\n`);
             stream.markdown(`**Status:** ${issue.state.name}\n`);
@@ -282,7 +318,8 @@ export class LinearBuddyChatParticipant {
               stream.markdown(`**Description:**\n${issue.description}\n\n`);
             }
 
-            stream.markdown(`[Open in Linear](${issue.url})\n`);
+            const url = getLinearUrl(issue.url);
+            stream.markdown(`[Open in Linear](${url})\n`);
             return {};
           }
         } catch (error) {
@@ -359,5 +396,6 @@ export class LinearBuddyChatParticipant {
     }
   }
 }
+
 
 

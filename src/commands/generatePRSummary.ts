@@ -37,7 +37,7 @@ export async function generatePRSummaryCommand() {
     const packageAnalysis = packageDetector.analyzeChangedFiles(gitContext.changedFiles);
 
     // Read PR template
-    const config = vscode.workspace.getConfiguration('monorepoTools');
+    const config = vscode.workspace.getConfiguration('linearBuddy');
     const templatePath = config.get<string>('prTemplatePath', '.github/pull_request_template.md');
     const fullTemplatePath = path.join(workspaceRoot, templatePath);
 

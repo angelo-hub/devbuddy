@@ -55,7 +55,7 @@ export class GitAnalyzer {
    * Get the base branch with fallback logic: config → main → master
    */
   async getBaseBranch(): Promise<string> {
-    const config = vscode.workspace.getConfiguration("monorepoTools");
+    const config = vscode.workspace.getConfiguration("linearBuddy");
     const configuredBranch = config.get<string>("baseBranch", "main");
 
     // Check if configured branch exists
@@ -163,25 +163,47 @@ export class GitAnalyzer {
   /**
    * Get actual diff (line changes) for files
    */
-  async getFileDiffs(baseBranch: string, maxLines: number = 200): Promise<string> {
+  async getFileDiffs(
+    baseBranch: string,
+    maxLines: number = 200
+  ): Promise<string> {
     try {
+      // Get actual unified diff with context (removed --stat for actual code changes)
       const diffResult = await this.git.diff([
         baseBranch,
         "HEAD",
-        "--unified=3",
-        "--stat",
+        "--unified=3", // 3 lines of context (good for AI understanding)
+        "--no-color", // Remove ANSI color codes
+        "--no-prefix", // Cleaner paths (removes a/ b/ prefixes)
         "--",
       ]);
-      
-      // Limit the diff to prevent overwhelming the AI
+
+      // Better truncation: try to preserve complete hunks
       const lines = diffResult.split("\n");
-      const limitedDiff = lines.slice(0, maxLines).join("\n");
-      
-      if (lines.length > maxLines) {
-        return limitedDiff + `\n... (${lines.length - maxLines} more lines truncated)`;
+      if (lines.length <= maxLines) {
+        return diffResult;
       }
-      
-      return limitedDiff;
+
+      // Truncate but try to end at a complete hunk
+      let truncatedLines = lines.slice(0, maxLines);
+
+      // Find last complete hunk (ends with context or new file marker)
+      for (let i = truncatedLines.length - 1; i >= 0; i--) {
+        if (
+          truncatedLines[i].startsWith("diff --git") ||
+          truncatedLines[i].startsWith("@@")
+        ) {
+          truncatedLines = truncatedLines.slice(0, i);
+          break;
+        }
+      }
+
+      return (
+        truncatedLines.join("\n") +
+        `\n\n[... truncated ${
+          lines.length - truncatedLines.length
+        } lines for brevity ...]`
+      );
     } catch (error) {
       console.error("Error getting file diffs:", error);
       return "";
@@ -191,9 +213,7 @@ export class GitAnalyzer {
   /**
    * Get commits across all local branches within a time window
    */
-  async getCommitsAcrossBranches(
-    since: string
-  ): Promise<
+  async getCommitsAcrossBranches(since: string): Promise<
     Array<{
       hash: string;
       message: string;
@@ -285,5 +305,3 @@ export class GitAnalyzer {
     return commitsByTicket;
   }
 }
-
-

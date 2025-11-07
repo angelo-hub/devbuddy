@@ -1,4 +1,6 @@
 import * as vscode from "vscode";
+import { FallbackSummarizer } from "./fallbackSummarizer";
+import { getLogger } from "./logger";
 
 export interface AISummaryRequest {
   commits: Array<{ hash: string; message: string; branch?: string }>;
@@ -18,76 +20,126 @@ export class AISummarizer {
   private model: vscode.LanguageModelChat | null = null;
   private modelFamily: string = "gpt-4o";
   private writingTone: string = "professional";
+  private preferredModelSelector: string = "auto";
+  private fallbackSummarizer: FallbackSummarizer;
+  private aiDisabled: boolean = false;
 
   constructor() {
+    this.fallbackSummarizer = new FallbackSummarizer();
     this.loadConfiguration();
     this.initializeModel();
   }
 
   private loadConfiguration() {
-    const config = vscode.workspace.getConfiguration("monorepoTools");
-    const configuredModel = config.get<string>("aiModel", "gpt-4o");
+    const config = vscode.workspace.getConfiguration("linearBuddy");
+    
+    // Check if AI is completely disabled (for sensitive organizations)
+    this.aiDisabled = config.get<boolean>("ai.disabled", false);
+    
+    // Get the preferred model selector (new setting)
+    this.preferredModelSelector = config.get<string>("ai.model", "auto");
     this.writingTone = config.get<string>("writingTone", "professional");
 
-    // Map config to exact model family for VS Code Language Model API
-    // Based on verified working Copilot models
-    switch (configuredModel) {
-      case "gpt-4o":
-        this.modelFamily = "gpt-4o";
-        break;
-      case "gpt-4.1":
-        this.modelFamily = "gpt-4.1";
-        break;
-      case "gpt-4-turbo":
-        this.modelFamily = "gpt-4-turbo";
-        break;
-      case "gpt-4":
-        this.modelFamily = "gpt-4";
-        break;
-      case "gpt-4o-mini":
-        this.modelFamily = "gpt-4o-mini";
-        break;
-      case "gpt-3.5-turbo":
-        this.modelFamily = "gpt-3.5-turbo";
-        break;
-      case "gemini-2.0-flash":
-        this.modelFamily = "gemini-2.0-flash-exp";
-        break;
-      default:
-        this.modelFamily = "gpt-4o"; // default to GPT-4o (most reliable)
+    // Extract model family from selector
+    if (this.preferredModelSelector === "auto") {
+      this.modelFamily = ""; // Will select best available
+    } else {
+      // Remove "copilot:" prefix if present
+      const modelPart = this.preferredModelSelector.replace(/^copilot:/, "");
+      
+      // Map to model family names used by VS Code Language Model API
+      switch (modelPart) {
+        case "gpt-4o":
+          this.modelFamily = "gpt-4o";
+          break;
+        case "gpt-4.1":
+          this.modelFamily = "gpt-4.1";
+          break;
+        case "gpt-4-turbo":
+          this.modelFamily = "gpt-4-turbo";
+          break;
+        case "gpt-4":
+          this.modelFamily = "gpt-4";
+          break;
+        case "gpt-4o-mini":
+          this.modelFamily = "gpt-4o-mini";
+          break;
+        case "gpt-3.5-turbo":
+          this.modelFamily = "gpt-3.5-turbo";
+          break;
+        case "gemini-2.0-flash":
+          this.modelFamily = "gemini-2.0-flash-exp";
+          break;
+        default:
+          // Try legacy setting as fallback
+          const legacyModel = config.get<string>("aiModel", "gpt-4o");
+          this.modelFamily = legacyModel === "gemini-2.0-flash" 
+            ? "gemini-2.0-flash-exp" 
+            : legacyModel;
+      }
     }
   }
 
   private async initializeModel() {
+    const logger = getLogger();
+    
+    // Skip AI initialization if disabled
+    if (this.aiDisabled) {
+      logger.info("AI features disabled by user preference, using rule-based fallback");
+      this.model = null;
+      return;
+    }
+    
     try {
-      console.log(
-        `[Monorepo Tools] Requested model family: ${this.modelFamily}`
+      logger.debug(
+        `Requested model: ${this.preferredModelSelector}, Family: ${this.modelFamily || "auto"}`
       );
 
-      // Get ALL available language models (no filter)
-      console.log("[Monorepo Tools] Fetching all available models...");
+      // Get ALL available language models
+      logger.debug("Fetching all available models...");
       const allModels = await vscode.lm.selectChatModels();
 
       if (!allModels || allModels.length === 0) {
-        console.log(
-          "[Monorepo Tools] ✗ No AI models available, falling back to manual input"
-        );
+        logger.warn("No AI models available, falling back to rule-based summarization");
         this.model = null;
         return;
       }
 
       // Log all available models
-      console.log(
-        `[Monorepo Tools] Found ${allModels.length} available models:`
-      );
+      logger.debug(`Found ${allModels.length} available models:`);
       allModels.forEach((m, index) => {
-        console.log(`  ${index + 1}. ${m.id}`, {
-          vendor: m.vendor,
-          family: m.family,
-          name: m.name,
-          maxInputTokens: m.maxInputTokens,
-        });
+        logger.debug(`  ${index + 1}. ${m.id} (vendor: ${m.vendor}, family: ${m.family}, name: ${m.name})`);
       });
+
+      // If auto mode, select the best available model
+      if (this.preferredModelSelector === "auto" || !this.modelFamily) {
+        // Try models in preference order (verified working models, best quality first)
+        const preferredFamilies = [
+          "gpt-4o", // Best: OpenAI's latest flagship
+          "gpt-4.1", // Excellent: Proven and reliable
+          "gpt-4-turbo", // Great: Fast and powerful
+          "gpt-4", // Good: Classic GPT-4
+          "gemini-2.0-flash-exp", // Alternative: Google's model
+          "gpt-4o-mini", // Faster: When speed matters
+          "gpt-3.5-turbo", // Fallback: Most widely available
+        ];
+
+        for (const family of preferredFamilies) {
+          const match = allModels.find((m) => m.family === family);
+          if (match) {
+            this.model = match;
+            logger.success(
+              `Auto-selected model: ${match.id} (vendor: ${match.vendor}, family: ${match.family})`
+            );
+            return;
+          }
+        }
+
+        // Use first available as last resort
+        this.model = allModels[0];
+        logger.info(`Using first available model: ${this.model.id}`);
+        return;
+      }
 
       // Try to find a model matching the requested family
       const matchingModel = allModels.find((m) =>
@@ -96,29 +148,18 @@ export class AISummarizer {
 
       if (matchingModel) {
         this.model = matchingModel;
-        console.log(
-          `[Monorepo Tools] ✓ Using matching model: ${matchingModel.id}`,
-          {
-            vendor: matchingModel.vendor,
-            family: matchingModel.family,
-            name: matchingModel.name,
-            maxInputTokens: matchingModel.maxInputTokens,
-          }
+        logger.success(
+          `Using matching model: ${matchingModel.id} (vendor: ${matchingModel.vendor}, family: ${matchingModel.family}, maxInputTokens: ${matchingModel.maxInputTokens})`
         );
       } else {
         // Use first available model as fallback
         this.model = allModels[0];
-        console.log(
-          `[Monorepo Tools] ⚠ Model family "${this.modelFamily}" not found, using fallback: ${this.model.id}`,
-          {
-            vendor: this.model.vendor,
-            family: this.model.family,
-            name: this.model.name,
-          }
+        logger.warn(
+          `Model family "${this.modelFamily}" not found, using fallback: ${this.model.id} (vendor: ${this.model.vendor}, family: ${this.model.family})`
         );
       }
     } catch (error) {
-      console.error("[Monorepo Tools] AI model initialization failed:", error);
+      logger.error("AI model initialization failed", error);
       this.model = null;
     }
   }
@@ -136,17 +177,19 @@ export class AISummarizer {
   async summarizeCommitsForPR(
     request: AISummaryRequest
   ): Promise<string | null> {
+    const logger = getLogger();
+    
+    // Use fallback summarizer if no AI model available
     if (!this.model) {
-      return null;
+      logger.debug("Using rule-based PR summary");
+      return this.fallbackSummarizer.generatePRSummary(request);
     }
 
     try {
       const prompt = this.buildPRSummaryPrompt(request);
       const messages = [vscode.LanguageModelChatMessage.User(prompt)];
 
-      console.log(
-        `[Monorepo Tools] Sending PR request to model: ${this.model.id}`
-      );
+      logger.debug(`Sending PR request to model: ${this.model.id}`);
 
       const response = await this.model.sendRequest(
         messages,
@@ -159,14 +202,22 @@ export class AISummarizer {
         summary += fragment;
       }
 
-      console.log(`[Monorepo Tools] ✓ Successfully generated PR summary`);
+      logger.success("Successfully generated PR summary");
       return summary.trim();
     } catch (error) {
-      console.error("[Monorepo Tools] Error generating PR summary:", error);
+      logger.error("Error generating PR summary", error);
 
       // Try fallback to a different model
-      console.log("[Monorepo Tools] Attempting to use fallback model...");
-      return await this.tryFallbackModel(request, "pr");
+      logger.debug("Attempting to use fallback model...");
+      const fallbackResult = await this.tryFallbackModel(request, "pr");
+      
+      // If all AI attempts fail, use rule-based fallback
+      if (!fallbackResult) {
+        logger.info("All AI models failed, using rule-based fallback");
+        return this.fallbackSummarizer.generatePRSummary(request);
+      }
+      
+      return fallbackResult;
     }
   }
 
@@ -176,17 +227,19 @@ export class AISummarizer {
   async summarizeCommitsForStandup(
     request: AISummaryRequest
   ): Promise<string | null> {
+    const logger = getLogger();
+    
+    // Use fallback summarizer if no AI model available
     if (!this.model) {
-      return null;
+      logger.debug("Using rule-based standup summary");
+      return this.fallbackSummarizer.generateStandupSummary(request);
     }
 
     try {
       const prompt = this.buildStandupSummaryPrompt(request);
       const messages = [vscode.LanguageModelChatMessage.User(prompt)];
 
-      console.log(
-        `[Monorepo Tools] Sending request to model: ${this.model.id}`
-      );
+      logger.debug(`Sending request to model: ${this.model.id}`);
 
       const response = await this.model.sendRequest(
         messages,
@@ -199,17 +252,22 @@ export class AISummarizer {
         summary += fragment;
       }
 
-      console.log(`[Monorepo Tools] ✓ Successfully generated standup summary`);
+      logger.success("Successfully generated standup summary");
       return summary.trim();
     } catch (error) {
-      console.error(
-        "[Monorepo Tools] Error generating standup summary:",
-        error
-      );
+      logger.error("Error generating standup summary", error);
 
       // Try fallback to a different model
-      console.log("[Monorepo Tools] Attempting to use fallback model...");
-      return await this.tryFallbackModel(request, "standup");
+      logger.debug("Attempting to use fallback model...");
+      const fallbackResult = await this.tryFallbackModel(request, "standup");
+      
+      // If all AI attempts fail, use rule-based fallback
+      if (!fallbackResult) {
+        logger.info("All AI models failed, using rule-based fallback");
+        return this.fallbackSummarizer.generateStandupSummary(request);
+      }
+      
+      return fallbackResult;
     }
   }
 
@@ -220,12 +278,14 @@ export class AISummarizer {
     request: AISummaryRequest,
     type: "standup" | "pr"
   ): Promise<string | null> {
+    const logger = getLogger();
+    
     try {
       // Get all models again and try first available
       const allModels = await vscode.lm.selectChatModels();
 
       if (!allModels || allModels.length === 0) {
-        console.log("[Monorepo Tools] No fallback models available");
+        logger.debug("No fallback models available");
         return null;
       }
 
@@ -250,9 +310,7 @@ export class AISummarizer {
         fallbackModel = allModels[0];
       }
 
-      console.log(
-        `[Monorepo Tools] Trying fallback model: ${fallbackModel.id} (${fallbackModel.family})`
-      );
+      logger.debug(`Trying fallback model: ${fallbackModel.id} (${fallbackModel.family})`);
 
       const prompt =
         type === "standup"
@@ -271,16 +329,14 @@ export class AISummarizer {
         summary += fragment;
       }
 
-      console.log(
-        `[Monorepo Tools] ✓ Fallback model succeeded: ${fallbackModel.family}`
-      );
+      logger.success(`Fallback model succeeded: ${fallbackModel.family}`);
 
       // Update the model for future use
       this.model = fallbackModel;
 
       return summary.trim();
     } catch (error) {
-      console.error("[Monorepo Tools] Fallback model also failed:", error);
+      logger.error("Fallback model also failed", error);
       return null;
     }
   }
@@ -289,8 +345,12 @@ export class AISummarizer {
    * Suggest "what you'll do next" based on current work
    */
   async suggestNextSteps(request: AISummaryRequest): Promise<string | null> {
+    const logger = getLogger();
+    
+    // Use fallback summarizer if no AI model available
     if (!this.model) {
-      return null;
+      logger.debug("Using rule-based next steps suggestion");
+      return this.fallbackSummarizer.suggestNextSteps(request);
     }
 
     try {
@@ -316,82 +376,105 @@ Provide only the next steps, no explanations.`;
 
       return suggestion.trim();
     } catch (error) {
-      console.error("Error suggesting next steps:", error);
-      return null;
+      logger.error("Error suggesting next steps", error);
+      // Fall back to rule-based suggestions
+      logger.debug("Using rule-based next steps suggestion");
+      return this.fallbackSummarizer.suggestNextSteps(request);
     }
   }
 
   private buildPRSummaryPrompt(request: AISummaryRequest): string {
-    const config = vscode.workspace.getConfiguration("monorepoTools");
+    const config = vscode.workspace.getConfiguration("linearBuddy");
     const tone = config.get<string>("writingTone", "professional");
 
     const toneInstructions = this.getToneInstructions(tone);
     const ticketInfo = request.ticketId ? `Ticket: ${request.ticketId}\n` : "";
     const contextInfo = request.context ? `Context: ${request.context}\n` : "";
 
-    const commitList = request.commits.map((c) => `- ${c.message}`).join("\n");
+    // Categorize commits for better understanding
+    const categorizedCommits = this.categorizeCommits(request.commits);
+    const commitSummary = this.formatCategorizedCommits(categorizedCommits);
 
-    const fileList = request.changedFiles
-      .slice(0, 30)
-      .map((f) => `- ${f}`)
-      .join("\n");
+    // Categorize files by directory/package
+    const categorizedFiles = this.categorizeFilesByPath(request.changedFiles);
+    const fileSummary = this.formatCategorizedFiles(categorizedFiles);
 
     const diffSection = request.fileDiffs
-      ? `\nCode Changes (sample):\n${request.fileDiffs.substring(0, 2000)}${
-          request.fileDiffs.length > 2000 ? "\n... (truncated)" : ""
-        }\n`
+      ? `\n## Code Changes:\n\`\`\`diff\n${request.fileDiffs.substring(0, 3000)}${
+          request.fileDiffs.length > 3000 ? "\n... (truncated)" : ""
+        }\n\`\`\`\n`
       : "";
 
-    return `You are helping generate a PR summary. ${toneInstructions}
+    return `You are an expert code reviewer helping generate a PR summary. ${toneInstructions}
 
+# Context
 ${ticketInfo}${contextInfo}
 
-Commits:
-${commitList}
+# Commit History (${request.commits.length} total)
+${commitSummary}
 
-Changed files:
-${fileList}
-${
-  request.changedFiles.length > 30
-    ? `... and ${request.changedFiles.length - 30} more files`
-    : ""
-}
+# Files Modified (${request.changedFiles.length} total)
+${fileSummary}
+
 ${diffSection}
 
-Provide ONLY the bullet-pointed summary (2-4 bullets), no introduction or conclusion. Each bullet should be one clear sentence.`;
+# Instructions
+Generate a concise PR summary with 2-4 bullet points that:
+- Focus on the **what** and **why**, not just the **how**
+- Highlight user-facing or architectural changes
+- Use clear, action-oriented language
+- Each bullet should be one complete sentence
+
+# Example Output Format
+- ✨ Implemented user authentication with OAuth2 support
+- 🐛 Fixed memory leak in WebSocket connection handling
+- ♻️ Refactored API client for better error handling
+
+Output ONLY the bullets, starting with "-" or a relevant emoji. No preamble or conclusion.`;
   }
 
   private buildStandupSummaryPrompt(request: AISummaryRequest): string {
-    const config = vscode.workspace.getConfiguration("monorepoTools");
+    const config = vscode.workspace.getConfiguration("linearBuddy");
     const tone = config.get<string>("writingTone", "professional");
 
     const toneInstructions = this.getToneInstructions(tone, true);
 
-    const commitList = request.commits
-      .map((c) => {
-        const branchInfo = c.branch ? ` [${c.branch}]` : "";
-        return `- ${c.message}${branchInfo}`;
-      })
-      .join("\n");
+    // Categorize work for better summary
+    const categorizedCommits = this.categorizeCommits(request.commits);
+    const commitSummary = this.formatCategorizedCommits(categorizedCommits);
 
     const fileCount = request.changedFiles.length;
     const contextInfo = request.context ? `\nContext: ${request.context}` : "";
 
     const diffSection = request.fileDiffs
-      ? `\nCode Changes (sample):\n${request.fileDiffs.substring(0, 1500)}${
+      ? `\n## Recent Code Changes:\n\`\`\`diff\n${request.fileDiffs.substring(0, 1500)}${
           request.fileDiffs.length > 1500 ? "\n... (truncated)" : ""
-        }\n`
+        }\n\`\`\`\n`
       : "";
 
     return `You are helping generate a daily standup update. ${toneInstructions}
 
-Commits:
-${commitList}
+# Work Completed
+${commitSummary}
 
-Files changed: ${fileCount}${contextInfo}
+# Scope
+- **Files modified:** ${fileCount}
+- **Commits:** ${request.commits.length}${contextInfo}
+
 ${diffSection}
 
-Provide ONLY the summary text (1-2 sentences, under 100 words), no introduction. Write in first person (I worked on..., I fixed..., etc.).`;
+# Instructions
+Generate a standup summary that:
+- Summarizes what was accomplished in 1-2 sentences
+- Uses first person ("I worked on...", "I fixed...", "I implemented...")
+- Focuses on outcomes and impact, not just tasks
+- Is under 100 words total
+- Is ready to share directly with the team
+
+# Example Output
+I implemented user authentication with OAuth2 and fixed several bugs in the payment flow. Also refactored the API client for better error handling.
+
+Output ONLY the summary text in first person, no introduction or headers.`;
   }
 
   private getToneInstructions(
@@ -420,8 +503,12 @@ Provide ONLY the summary text (1-2 sentences, under 100 words), no introduction.
   async detectBlockersFromCommits(
     commits: Array<{ message: string }>
   ): Promise<string | null> {
+    const logger = getLogger();
+    
+    // Use fallback summarizer if no AI model available
     if (!this.model) {
-      return null;
+      logger.debug("Using rule-based blocker detection");
+      return this.fallbackSummarizer.detectBlockers(commits);
     }
 
     try {
@@ -449,8 +536,156 @@ Respond with either "None detected" or a brief description of the concern.`;
 
       return result.trim();
     } catch (error) {
-      console.error("Error detecting blockers:", error);
-      return null;
+      logger.error("Error detecting blockers", error);
+      // Fall back to rule-based detection
+      logger.debug("Using rule-based blocker detection");
+      return this.fallbackSummarizer.detectBlockers(commits);
     }
+  }
+
+  /**
+   * Categorize commits by type (features, fixes, refactors, etc.)
+   */
+  private categorizeCommits(commits: Array<{ message: string }>) {
+    const categories = {
+      features: [] as string[],
+      fixes: [] as string[],
+      refactors: [] as string[],
+      tests: [] as string[],
+      docs: [] as string[],
+      other: [] as string[],
+    };
+
+    commits.forEach((c) => {
+      const msg = c.message.toLowerCase();
+
+      if (
+        msg.startsWith("feat:") ||
+        msg.startsWith("feature:") ||
+        msg.includes("implement") ||
+        msg.includes("add feature")
+      ) {
+        categories.features.push(c.message);
+      } else if (
+        msg.startsWith("fix:") ||
+        msg.includes("fix ") ||
+        msg.includes("fixed ") ||
+        msg.includes("bug")
+      ) {
+        categories.fixes.push(c.message);
+      } else if (
+        msg.startsWith("refactor:") ||
+        msg.includes("refactor") ||
+        msg.includes("cleanup") ||
+        msg.includes("reorganize")
+      ) {
+        categories.refactors.push(c.message);
+      } else if (
+        msg.startsWith("test:") ||
+        msg.includes("test") ||
+        msg.includes("spec")
+      ) {
+        categories.tests.push(c.message);
+      } else if (
+        msg.startsWith("docs:") ||
+        msg.includes("document") ||
+        msg.includes("readme")
+      ) {
+        categories.docs.push(c.message);
+      } else {
+        categories.other.push(c.message);
+      }
+    });
+
+    return categories;
+  }
+
+  /**
+   * Format categorized commits for AI prompt
+   */
+  private formatCategorizedCommits(
+    categories: ReturnType<typeof this.categorizeCommits>
+  ): string {
+    let output = "";
+
+    if (categories.features.length > 0) {
+      output += `\n**Features/Additions:**\n${categories.features.map((c) => `- ${c}`).join("\n")}\n`;
+    }
+    if (categories.fixes.length > 0) {
+      output += `\n**Bug Fixes:**\n${categories.fixes.map((c) => `- ${c}`).join("\n")}\n`;
+    }
+    if (categories.refactors.length > 0) {
+      output += `\n**Refactors:**\n${categories.refactors.map((c) => `- ${c}`).join("\n")}\n`;
+    }
+    if (categories.tests.length > 0) {
+      output += `\n**Tests:**\n${categories.tests.map((c) => `- ${c}`).join("\n")}\n`;
+    }
+    if (categories.docs.length > 0) {
+      output += `\n**Documentation:**\n${categories.docs.map((c) => `- ${c}`).join("\n")}\n`;
+    }
+    if (categories.other.length > 0 && categories.other.length <= 5) {
+      output += `\n**Other:**\n${categories.other.map((c) => `- ${c}`).join("\n")}\n`;
+    } else if (categories.other.length > 5) {
+      output += `\n**Other:** (${categories.other.length} commits)\n`;
+    }
+
+    return output || categories.other.map((c) => `- ${c}`).join("\n");
+  }
+
+  /**
+   * Categorize files by directory/package
+   */
+  private categorizeFilesByPath(files: string[]): Map<string, string[]> {
+    const categories = new Map<string, string[]>();
+
+    files.forEach((file) => {
+      // Extract meaningful category from path
+      const parts = file.split("/");
+      let category = "root";
+
+      if (parts.includes("src")) {
+        const srcIdx = parts.indexOf("src");
+        category = parts[srcIdx + 1] || "src";
+      } else if (parts.includes("packages")) {
+        const pkgIdx = parts.indexOf("packages");
+        category = `packages/${parts[pkgIdx + 1] || ""}`;
+      } else if (parts.includes("apps")) {
+        const appIdx = parts.indexOf("apps");
+        category = `apps/${parts[appIdx + 1] || ""}`;
+      } else if (parts.length > 1) {
+        category = parts[0];
+      }
+
+      if (!categories.has(category)) {
+        categories.set(category, []);
+      }
+      categories.get(category)!.push(file);
+    });
+
+    return categories;
+  }
+
+  /**
+   * Format categorized files for AI prompt
+   */
+  private formatCategorizedFiles(
+    categories: Map<string, string[]>
+  ): string {
+    let output = "";
+    const topCategories = Array.from(categories.entries())
+      .sort((a, b) => b[1].length - a[1].length)
+      .slice(0, 10); // Top 10 categories
+
+    topCategories.forEach(([category, files]) => {
+      output += `\n**${category}** (${files.length} file${files.length > 1 ? "s" : ""}):\n`;
+      files.slice(0, 5).forEach((f) => {
+        output += `- ${f}\n`;
+      });
+      if (files.length > 5) {
+        output += `  ... and ${files.length - 5} more\n`;
+      }
+    });
+
+    return output;
   }
 }

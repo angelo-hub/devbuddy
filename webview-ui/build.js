@@ -85,6 +85,7 @@ async function main() {
     entryPoints: {
       "standup-builder": path.resolve(__dirname, "src/standup-builder/index.tsx"),
       "ticket-panel": path.resolve(__dirname, "src/ticket-panel/index.tsx"),
+      "create-ticket": path.resolve(__dirname, "src/create-ticket/index.tsx"),
     },
     bundle: true,
     format: "iife",

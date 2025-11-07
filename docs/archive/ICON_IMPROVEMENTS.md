@@ -90,3 +90,4 @@ If you want to add icons to webview panel tabs in the future:
 
 This would provide visual feedback in the tab bar matching the tree view's color scheme.
 
+

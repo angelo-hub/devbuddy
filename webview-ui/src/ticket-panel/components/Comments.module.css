@@ -50,6 +50,8 @@
   border-left: 3px solid var(--vscode-textLink-foreground);
   border-radius: 6px;
   transition: all 0.2s ease;
+  display: flex;
+  gap: 12px;
 }
 
 .commentItem:hover {
@@ -60,21 +62,28 @@
 .commentHeader {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 12px;
 }
 
 .userInfo {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .avatar {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  border: 1.5px solid var(--vscode-panel-border);
+  border: 2px solid var(--vscode-panel-border);
+  flex-shrink: 0;
+  background: var(--vscode-editor-background);
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--vscode-descriptionForeground);
 }
 
 .userName {
@@ -89,12 +98,18 @@
   opacity: 0.75;
 }
 
+.commentContent {
+  flex: 1;
+  min-width: 0;
+}
+
 .commentBody {
   font-size: 13px;
   line-height: 1.6;
   color: var(--vscode-foreground);
   white-space: pre-wrap;
   word-wrap: break-word;
+  margin-top: 8px;
 }
 
 /* Markdown-like formatting for comments */

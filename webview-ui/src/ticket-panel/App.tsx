@@ -18,6 +18,7 @@ import { ActionButtons } from "./components/ActionButtons";
 import { AttachedPRs } from "./components/AttachedPRs";
 import { SubIssues } from "./components/SubIssues";
 import { Comments } from "./components/Comments";
+import { BranchManager } from "./components/BranchManager";
 import styles from "./App.module.css";
 
 // Get initial state from window object (passed from extension)
@@ -46,6 +47,15 @@ function App() {
   const [users, setUsers] = useState<LinearUser[]>(
     window.__INITIAL_STATE__?.users || []
   );
+  const [branchInfo, setBranchInfo] = useState<{
+    branchName: string | null;
+    exists: boolean;
+  } | null>(null);
+  const [allBranches, setAllBranches] = useState<{
+    branches: string[];
+    currentBranch: string | null;
+    suggestions: string[];
+  } | null>(null);
 
   // Handle messages from extension
   useEffect(() => {
@@ -61,6 +71,21 @@ function App() {
 
         case "usersLoaded":
           setUsers(message.users);
+          break;
+
+        case "branchInfo":
+          setBranchInfo({
+            branchName: message.branchName,
+            exists: message.exists,
+          });
+          break;
+
+        case "allBranchesLoaded":
+          setAllBranches({
+            branches: message.branches,
+            currentBranch: message.currentBranch,
+            suggestions: message.suggestions,
+          });
           break;
       }
     });
@@ -106,6 +131,34 @@ function App() {
     postMessage({ command: "openIssue", issueId });
   };
 
+  const handleCheckoutBranch = (ticketId: string) => {
+    postMessage({ command: "checkoutBranch", ticketId });
+  };
+
+  const handleAssociateBranch = (ticketId: string, branchName: string) => {
+    postMessage({ command: "associateBranch", ticketId, branchName });
+    // Refresh branch info after associating
+    setTimeout(() => {
+      handleLoadBranchInfo(ticketId);
+    }, 100);
+  };
+
+  const handleRemoveAssociation = (ticketId: string) => {
+    postMessage({ command: "removeAssociation", ticketId });
+    // Refresh branch info after removing
+    setTimeout(() => {
+      handleLoadBranchInfo(ticketId);
+    }, 100);
+  };
+
+  const handleLoadBranchInfo = (ticketId: string) => {
+    postMessage({ command: "loadBranchInfo", ticketId });
+  };
+
+  const handleLoadAllBranches = () => {
+    postMessage({ command: "loadAllBranches" });
+  };
+
   if (!issue) {
     return (
       <div className={styles.container}>
@@ -145,6 +198,18 @@ function App() {
       <ActionButtons
         onOpenInLinear={handleOpenInLinear}
         onRefresh={handleRefresh}
+      />
+
+      <BranchManager
+        ticketId={issue.identifier}
+        statusType={issue.state.type}
+        onCheckoutBranch={handleCheckoutBranch}
+        onAssociateBranch={handleAssociateBranch}
+        onRemoveAssociation={handleRemoveAssociation}
+        onLoadBranchInfo={handleLoadBranchInfo}
+        onLoadAllBranches={handleLoadAllBranches}
+        branchInfo={branchInfo || undefined}
+        allBranches={allBranches || undefined}
       />
 
       <TicketMetadata

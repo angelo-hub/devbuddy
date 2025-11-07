@@ -1,6 +1,23 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { LinearClient, LinearIssue } from "../utils/linearClient";
+import { BranchAssociationManager } from "../utils/branchAssociationManager";
+import { getLogger } from "../utils/logger";
+
+/**
+ * Convert Linear web URL to desktop app URL if preference is enabled
+ */
+function getLinearUrl(webUrl: string): string {
+  const config = vscode.workspace.getConfiguration("linearBuddy");
+  const preferDesktop = config.get<boolean>("preferDesktopApp", false);
+  
+  if (preferDesktop) {
+    // Convert https://linear.app/... to linear://...
+    return webUrl.replace("https://linear.app/", "linear://");
+  }
+  
+  return webUrl;
+}
 
 export class LinearTicketPanel {
   public static currentPanel: LinearTicketPanel | undefined;
@@ -8,12 +25,18 @@ export class LinearTicketPanel {
   private readonly _extensionUri: vscode.Uri;
   private _disposables: vscode.Disposable[] = [];
   private _issue: LinearIssue | null = null;
-  private _linearClient: LinearClient;
+  private _linearClient: LinearClient | null = null;
+  private _branchManager: BranchAssociationManager;
 
-  private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
+  private constructor(
+    panel: vscode.WebviewPanel,
+    extensionUri: vscode.Uri,
+    context: vscode.ExtensionContext
+  ) {
     this._panel = panel;
     this._extensionUri = extensionUri;
-    this._linearClient = new LinearClient();
+    this._branchManager = new BranchAssociationManager(context);
+    this.initializeClient();
 
     // Set up content and message handling
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
@@ -45,7 +68,8 @@ export class LinearTicketPanel {
             break;
           case "openInLinear":
             if (this._issue?.url) {
-              vscode.env.openExternal(vscode.Uri.parse(this._issue.url));
+              const urlToOpen = getLinearUrl(this._issue.url);
+              vscode.env.openExternal(vscode.Uri.parse(urlToOpen));
             }
             break;
           case "refresh":
@@ -53,6 +77,24 @@ export class LinearTicketPanel {
             break;
           case "openIssue":
             await this.handleOpenIssue(message.issueId);
+            break;
+          case "checkoutBranch":
+            await this.handleCheckoutBranch(message.ticketId);
+            break;
+          case "associateBranch":
+            await this.handleAssociateBranch(
+              message.ticketId,
+              message.branchName
+            );
+            break;
+          case "removeAssociation":
+            await this.handleRemoveAssociation(message.ticketId);
+            break;
+          case "loadBranchInfo":
+            await this.handleLoadBranchInfo(message.ticketId);
+            break;
+          case "loadAllBranches":
+            await this.handleLoadAllBranches();
             break;
         }
       },
@@ -62,11 +104,29 @@ export class LinearTicketPanel {
   }
 
   /**
+   * Initialize the Linear client asynchronously
+   */
+  private async initializeClient(): Promise<void> {
+    this._linearClient = await LinearClient.create();
+  }
+
+  /**
+   * Get the Linear client, ensuring it's initialized
+   */
+  private async getClient(): Promise<LinearClient> {
+    if (!this._linearClient) {
+      this._linearClient = await LinearClient.create();
+    }
+    return this._linearClient;
+  }
+
+  /**
    * Create or show the ticket panel
    */
   public static async createOrShow(
     extensionUri: vscode.Uri,
-    issue: LinearIssue
+    issue: LinearIssue,
+    context: vscode.ExtensionContext
   ): Promise<void> {
     const column = vscode.window.activeTextEditor
       ? vscode.window.activeTextEditor.viewColumn
@@ -97,7 +157,11 @@ export class LinearTicketPanel {
     // Note: WebviewPanel iconPath only supports Uri (file paths), not ThemeIcon
     // To add icons, we would need to bundle SVG/PNG files in the extension
 
-    LinearTicketPanel.currentPanel = new LinearTicketPanel(panel, extensionUri);
+    LinearTicketPanel.currentPanel = new LinearTicketPanel(
+      panel,
+      extensionUri,
+      context
+    );
     LinearTicketPanel.currentPanel._issue = issue;
     await LinearTicketPanel.currentPanel._update();
   }
@@ -110,7 +174,8 @@ export class LinearTicketPanel {
       return;
     }
 
-    const updatedIssue = await this._linearClient.getIssue(this._issue.id);
+    const client = await this.getClient();
+    const updatedIssue = await client.getIssue(this._issue.id);
     if (updatedIssue) {
       this._issue = updatedIssue;
       await this._update();
@@ -123,7 +188,8 @@ export class LinearTicketPanel {
    */
   private async handleOpenIssue(issueId: string): Promise<void> {
     try {
-      const issue = await this._linearClient.getIssue(issueId);
+      const client = await this.getClient();
+      const issue = await client.getIssue(issueId);
       if (issue) {
         this._issue = issue;
         this._panel.title = `${issue.identifier}: ${issue.title}`;
@@ -145,7 +211,8 @@ export class LinearTicketPanel {
       return;
     }
 
-    const success = await this._linearClient.updateIssueStatus(
+    const client = await this.getClient();
+    const success = await client.updateIssueStatus(
       this._issue.id,
       stateId
     );
@@ -154,7 +221,7 @@ export class LinearTicketPanel {
       vscode.window.showInformationMessage("Status updated!");
       await this.refresh();
       // Refresh the sidebar
-      vscode.commands.executeCommand("monorepoTools.refreshTickets");
+      vscode.commands.executeCommand("linearBuddy.refreshTickets");
     } else {
       vscode.window.showErrorMessage("Failed to update status");
     }
@@ -168,7 +235,8 @@ export class LinearTicketPanel {
       return;
     }
 
-    const success = await this._linearClient.addComment(this._issue.id, body);
+    const client = await this.getClient();
+    const success = await client.addComment(this._issue.id, body);
 
     if (success) {
       vscode.window.showInformationMessage("Comment added!");
@@ -186,7 +254,8 @@ export class LinearTicketPanel {
       return;
     }
 
-    const success = await this._linearClient.updateIssueTitle(
+    const client = await this.getClient();
+    const success = await client.updateIssueTitle(
       this._issue.id,
       title
     );
@@ -195,7 +264,7 @@ export class LinearTicketPanel {
       vscode.window.showInformationMessage("Title updated!");
       await this.refresh();
       // Refresh the sidebar
-      vscode.commands.executeCommand("monorepoTools.refreshTickets");
+      vscode.commands.executeCommand("linearBuddy.refreshTickets");
     } else {
       vscode.window.showErrorMessage("Failed to update title");
     }
@@ -209,7 +278,8 @@ export class LinearTicketPanel {
       return;
     }
 
-    const success = await this._linearClient.updateIssueDescription(
+    const client = await this.getClient();
+    const success = await client.updateIssueDescription(
       this._issue.id,
       description
     );
@@ -230,7 +300,8 @@ export class LinearTicketPanel {
       return;
     }
 
-    const success = await this._linearClient.updateIssueAssignee(
+    const client = await this.getClient();
+    const success = await client.updateIssueAssignee(
       this._issue.id,
       assigneeId
     );
@@ -239,7 +310,7 @@ export class LinearTicketPanel {
       vscode.window.showInformationMessage("Assignee updated!");
       await this.refresh();
       // Refresh the sidebar
-      vscode.commands.executeCommand("monorepoTools.refreshTickets");
+      vscode.commands.executeCommand("linearBuddy.refreshTickets");
     } else {
       vscode.window.showErrorMessage("Failed to update assignee");
     }
@@ -249,16 +320,17 @@ export class LinearTicketPanel {
    * Handle loading users
    */
   private async handleLoadUsers(teamId?: string): Promise<void> {
+    const client = await this.getClient();
     let users;
 
     if (teamId) {
-      users = await this._linearClient.getTeamMembers(teamId);
+      users = await client.getTeamMembers(teamId);
     } else if (this._issue?.team) {
       // Try to load team members first
-      users = await this._linearClient.getTeamMembers(this._issue.team.id);
+      users = await client.getTeamMembers(this._issue.team.id);
     } else {
       // Fall back to organization users
-      users = await this._linearClient.getOrganizationUsers();
+      users = await client.getOrganizationUsers();
     }
 
     this._panel.webview.postMessage({
@@ -271,12 +343,112 @@ export class LinearTicketPanel {
    * Handle searching users
    */
   private async handleSearchUsers(searchTerm: string): Promise<void> {
-    const users = await this._linearClient.searchUsers(searchTerm);
+    const client = await this.getClient();
+    const users = await client.searchUsers(searchTerm);
 
     this._panel.webview.postMessage({
       command: "usersLoaded",
       users,
     });
+  }
+
+  /**
+   * Handle checkout branch
+   */
+  private async handleCheckoutBranch(ticketId: string): Promise<void> {
+    const success = await this._branchManager.checkoutBranch(ticketId);
+    if (success) {
+      // Refresh to show updated state
+      await this.handleLoadBranchInfo(ticketId);
+    }
+  }
+
+  /**
+   * Handle associate branch
+   */
+  private async handleAssociateBranch(
+    ticketId: string,
+    branchName: string
+  ): Promise<void> {
+    const success = await this._branchManager.associateBranch(
+      ticketId,
+      branchName
+    );
+    if (success) {
+      vscode.window.showInformationMessage(
+        `Branch '${branchName}' associated with ${ticketId}`
+      );
+      await this.handleLoadBranchInfo(ticketId);
+    } else {
+      vscode.window.showErrorMessage("Failed to associate branch");
+    }
+  }
+
+  /**
+   * Handle remove association
+   */
+  private async handleRemoveAssociation(ticketId: string): Promise<void> {
+    const success = await this._branchManager.removeAssociation(ticketId);
+    if (success) {
+      vscode.window.showInformationMessage(
+        `Branch association removed for ${ticketId}`
+      );
+      await this.handleLoadBranchInfo(ticketId);
+    } else {
+      vscode.window.showErrorMessage("Failed to remove association");
+    }
+  }
+
+  /**
+   * Handle load branch info
+   */
+  private async handleLoadBranchInfo(ticketId: string): Promise<void> {
+    const branchName = this._branchManager.getBranchForTicket(ticketId);
+    let exists = false;
+
+    if (branchName) {
+      exists = await this._branchManager.verifyBranchExists(branchName);
+    }
+
+    // Send branch info back to webview
+    this._panel.webview.postMessage({
+      command: "branchInfo",
+      branchName,
+      exists,
+    });
+  }
+
+  /**
+   * Handle load all branches
+   */
+  private async handleLoadAllBranches(): Promise<void> {
+    try {
+      const allBranches = await this._branchManager.getAllLocalBranches();
+      const currentBranch = await this._branchManager.getCurrentBranch();
+      
+      // Get suggestions if we have an issue loaded
+      let suggestions: string[] = [];
+      if (this._issue) {
+        suggestions = await this._branchManager.suggestAssociationsForTicket(
+          this._issue.identifier
+        );
+      }
+
+      this._panel.webview.postMessage({
+        command: "allBranchesLoaded",
+        branches: allBranches,
+        currentBranch,
+        suggestions,
+      });
+    } catch (error) {
+      console.error("[Linear Buddy] Failed to load branches:", error);
+      this._panel.webview.postMessage({
+        command: "allBranchesLoaded",
+        branches: [],
+        currentBranch: null,
+        suggestions: [],
+      });
+    }
   }
 
   /**
@@ -329,17 +501,18 @@ export class LinearTicketPanel {
 
     // Get workflow states for the status dropdown
     // Filter by team to get a reasonable set of states
-    console.log(
-      `[Linear Buddy] Webview: Issue ${this._issue.identifier} team:`,
-      this._issue
+    const logger = getLogger();
+    logger.debug(
+      `Webview: Issue ${this._issue.identifier} team: ${this._issue.team?.name || this._issue.team?.id || "default"}`
     );
 
-    const workflowStates = await this._linearClient.getWorkflowStates(
+    const client = await this.getClient();
+    const workflowStates = await client.getWorkflowStates(
       this._issue.team?.id
     );
 
-    console.log(
-      `[Linear Buddy] Webview: Loaded ${
+    logger.debug(
+      `Webview: Loaded ${
         workflowStates.length
       } workflow states for team ${
         this._issue.team?.name || this._issue.team?.id || "default"

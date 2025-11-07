@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { getLogger } from "./logger";
 
 export interface LinearIssue {
   id: string;
@@ -110,16 +111,73 @@ export interface LinearTeam {
   key: string;
 }
 
+export interface LinearTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  templateData: {
+    title?: string;
+    description?: string;
+    priority?: number;
+    labelIds?: string[];
+    projectId?: string;
+    stateId?: string;
+  };
+}
+
 export class LinearClient {
   private apiToken: string;
   private baseUrl = "https://api.linear.app/graphql";
+  private static secretStorage: vscode.SecretStorage | undefined;
 
   constructor(apiToken?: string) {
-    this.apiToken =
-      apiToken ||
-      vscode.workspace
-        .getConfiguration("monorepoTools")
-        .get("linearApiToken", "");
+    this.apiToken = apiToken || "";
+  }
+
+  /**
+   * Initialize the secret storage (should be called from extension activation)
+   */
+  static initializeSecretStorage(secretStorage: vscode.SecretStorage) {
+    LinearClient.secretStorage = secretStorage;
+  }
+
+  /**
+   * Get the Linear API token from secure storage
+   */
+  static async getApiToken(): Promise<string> {
+    if (!LinearClient.secretStorage) {
+      console.error("[Linear Buddy] Secret storage not initialized");
+      return "";
+    }
+    return (await LinearClient.secretStorage.get("linearApiToken")) || "";
+  }
+
+  /**
+   * Set the Linear API token in secure storage
+   */
+  static async setApiToken(token: string): Promise<void> {
+    if (!LinearClient.secretStorage) {
+      throw new Error("Secret storage not initialized");
+    }
+    await LinearClient.secretStorage.store("linearApiToken", token);
+  }
+
+  /**
+   * Delete the Linear API token from secure storage
+   */
+  static async deleteApiToken(): Promise<void> {
+    if (!LinearClient.secretStorage) {
+      throw new Error("Secret storage not initialized");
+    }
+    await LinearClient.secretStorage.delete("linearApiToken");
+  }
+
+  /**
+   * Initialize client with token from secure storage
+   */
+  static async create(): Promise<LinearClient> {
+    const token = await LinearClient.getApiToken();
+    return new LinearClient(token);
   }
 
   /**
@@ -267,16 +325,12 @@ export class LinearClient {
 
       // Debug: Log attachments for the first issue
       if (issues.length > 0 && issues[0].attachments) {
-        console.log(
-          "[Linear Buddy] Sample issue attachments:",
-          JSON.stringify(issues[0].attachments, null, 2)
+        const logger = getLogger();
+        logger.debug(
+          `Sample issue attachments: ${JSON.stringify(issues[0].attachments, null, 2)}`
         );
-        console.log(
-          "[Linear Buddy] Sample issue:",
-          issues[0].identifier,
-          "has",
-          issues[0].attachments?.nodes?.length || 0,
-          "attachments"
+        logger.debug(
+          `Sample issue: ${issues[0].identifier} has ${issues[0].attachments?.nodes?.length || 0} attachments`
         );
       }
 
@@ -683,6 +737,9 @@ export class LinearClient {
     description?: string;
     priority?: number;
     assigneeId?: string;
+    projectId?: string;
+    labelIds?: string[];
+    stateId?: string;
   }): Promise<LinearIssue | null> {
     if (!this.isConfigured()) {
       return null;
@@ -701,6 +758,13 @@ export class LinearClient {
             }
             ${input.priority !== undefined ? `priority: ${input.priority}` : ""}
             ${input.assigneeId ? `assigneeId: "${input.assigneeId}"` : ""}
+            ${input.projectId ? `projectId: "${input.projectId}"` : ""}
+            ${input.stateId ? `stateId: "${input.stateId}"` : ""}
+            ${
+              input.labelIds && input.labelIds.length > 0
+                ? `labelIds: [${input.labelIds.map((id) => `"${id}"`).join(", ")}]`
+                : ""
+            }
           }
         ) {
           success
@@ -738,6 +802,71 @@ export class LinearClient {
   }
 
   /**
+   * Get templates for a team
+   */
+  async getTeamTemplates(teamId: string): Promise<LinearTemplate[]> {
+    if (!this.isConfigured()) {
+      return [];
+    }
+
+    const query = `
+      query {
+        team(id: "${teamId}") {
+          templates {
+            nodes {
+              id
+              name
+              description
+              templateData
+            }
+          }
+        }
+      }
+    `;
+
+    try {
+      const response = await this.executeQuery(query);
+      return response.data.team.templates.nodes;
+    } catch (error) {
+      console.error(`[Linear Buddy] Failed to fetch templates:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Get labels for a team
+   */
+  async getTeamLabels(
+    teamId: string
+  ): Promise<Array<{ id: string; name: string; color: string }>> {
+    if (!this.isConfigured()) {
+      return [];
+    }
+
+    const query = `
+      query {
+        team(id: "${teamId}") {
+          labels {
+            nodes {
+              id
+              name
+              color
+            }
+          }
+        }
+      }
+    `;
+
+    try {
+      const response = await this.executeQuery(query);
+      return response.data.team.labels.nodes;
+    } catch (error) {
+      console.error(`[Linear Buddy] Failed to fetch labels:`, error);
+      return [];
+    }
+  }
+
+  /**
    * Get all organization users (for populating the assignee list)
    */
   async getOrganizationUsers(): Promise<LinearUser[]> {
@@ -760,14 +889,11 @@ export class LinearClient {
     `;
 
     try {
-      console.log("Executing query:", query);
+      getLogger().debug(`Executing query: ${query}`);
       const response = await this.executeQuery(query);
       return response.data.users.nodes;
     } catch (error) {
-      console.error(
-        `[Linear Buddy] Failed to fetch organization users:`,
-        error
-      );
+      getLogger().error("Failed to fetch organization users", error);
       return [];
     }
   }

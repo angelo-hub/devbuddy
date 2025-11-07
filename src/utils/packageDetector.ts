@@ -12,7 +12,7 @@ export class PackageDetector {
   private maxPackageScope: number;
 
   constructor() {
-    const config = vscode.workspace.getConfiguration('monorepoTools');
+    const config = vscode.workspace.getConfiguration('linearBuddy');
     this.packagesPaths = config.get<string[]>('packagesPaths', ['packages/', 'apps/']);
     this.maxPackageScope = config.get<number>('maxPackageScope', 2);
   }
@@ -76,6 +76,7 @@ export class PackageDetector {
     return analysis.packages.map(pkg => pkg.name);
   }
 }
+
 
 
 

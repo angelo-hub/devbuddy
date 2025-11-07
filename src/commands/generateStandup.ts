@@ -29,7 +29,7 @@ export async function generateStandupCommand() {
     }
 
     // Get config
-    const config = vscode.workspace.getConfiguration("monorepoTools");
+    const config = vscode.workspace.getConfiguration("linearBuddy");
     const standupTimeWindow = config.get<string>(
       "standupTimeWindow",
       "24 hours ago"

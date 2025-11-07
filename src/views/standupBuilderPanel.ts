@@ -3,6 +3,7 @@ import * as path from "path";
 import { GitAnalyzer } from "../utils/gitAnalyzer";
 import { AISummarizer } from "../utils/aiSummarizer";
 import { LinearClient } from "../utils/linearClient";
+import { formatTicketReferencesInText } from "../utils/linkFormatter";
 
 export class StandupBuilderPanel {
   public static currentPanel: StandupBuilderPanel | undefined;
@@ -11,13 +12,13 @@ export class StandupBuilderPanel {
   private _disposables: vscode.Disposable[] = [];
   private _gitAnalyzer: GitAnalyzer | null = null;
   private _aiSummarizer: AISummarizer;
-  private _linearClient: LinearClient;
+  private _linearClient: LinearClient | null = null;
 
   private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
     this._panel = panel;
     this._extensionUri = extensionUri;
     this._aiSummarizer = new AISummarizer();
-    this._linearClient = new LinearClient();
+    this.initializeClient();
 
     // Set up message handling
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
@@ -38,7 +39,7 @@ export class StandupBuilderPanel {
           case "openSettings":
             vscode.commands.executeCommand(
               "workbench.action.openSettings",
-              "monorepoTools"
+              "linearBuddy"
             );
             break;
         }
@@ -49,11 +50,29 @@ export class StandupBuilderPanel {
   }
 
   /**
+   * Initialize the Linear client asynchronously
+   */
+  private async initializeClient(): Promise<void> {
+    this._linearClient = await LinearClient.create();
+  }
+
+  /**
+   * Get the Linear client, ensuring it's initialized
+   */
+  private async getClient(): Promise<LinearClient> {
+    if (!this._linearClient) {
+      this._linearClient = await LinearClient.create();
+    }
+    return this._linearClient;
+  }
+
+  /**
    * Load Linear tickets for the dropdown
    */
   private async handleLoadTickets(): Promise<void> {
     try {
-      if (!this._linearClient.isConfigured()) {
+      const client = await this.getClient();
+      if (!client.isConfigured()) {
         this._panel.webview.postMessage({
           command: "ticketsLoaded",
           tickets: [],
@@ -62,7 +81,7 @@ export class StandupBuilderPanel {
         return;
       }
 
-      const issues = await this._linearClient.getMyIssues({
+      const issues = await client.getMyIssues({
         state: ["unstarted", "started"],
       });
 
@@ -246,7 +265,23 @@ export class StandupBuilderPanel {
    * Handle copying to clipboard
    */
   private async handleCopy(text: string): Promise<void> {
-    await vscode.env.clipboard.writeText(text);
+    // Get Linear organization for generating ticket URLs
+    const config = vscode.workspace.getConfiguration("linearBuddy");
+    const linearOrg = config.get<string>("linearOrganization", "");
+
+    // Format ticket references in the text
+    const formattedText = formatTicketReferencesInText(
+      text,
+      (ticketId) => {
+        if (linearOrg) {
+          return `https://linear.app/${linearOrg}/issue/${ticketId}`;
+        }
+        // Fallback to just the ticket ID if no org configured
+        return ticketId;
+      }
+    );
+
+    await vscode.env.clipboard.writeText(formattedText);
     vscode.window.showInformationMessage("Copied to clipboard!");
   }
 

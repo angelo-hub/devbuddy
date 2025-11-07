@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { LinearClient, LinearTeam } from "../utils/linearClient";
+import { GitPermalinkGenerator } from "../utils/gitPermalinkGenerator";
 
 /**
  * Command to convert a TODO comment in code to a Linear ticket
@@ -7,7 +8,7 @@ import { LinearClient, LinearTeam } from "../utils/linearClient";
  */
 export async function convertTodoToTicket() {
   // Check if Linear is configured
-  const linearClient = new LinearClient();
+  const linearClient = await LinearClient.create();
   if (!linearClient.isConfigured()) {
     const configure = await vscode.window.showErrorMessage(
       "Linear API not configured. Configure now?",
@@ -15,7 +16,7 @@ export async function convertTodoToTicket() {
       "Cancel"
     );
     if (configure === "Configure") {
-      vscode.commands.executeCommand("monorepoTools.configureLinear");
+      vscode.commands.executeCommand("linearBuddy.configureLinear");
     }
     return;
   }
@@ -33,6 +34,35 @@ export async function convertTodoToTicket() {
       "No TODO found. Please select a TODO comment or place cursor on a TODO line."
     );
     return;
+  }
+
+  // Generate permalink and code context
+  const workspaceFolders = vscode.workspace.workspaceFolders;
+  let permalinkInfo = null;
+  let codeContext = null;
+  let permalinkGenerator: GitPermalinkGenerator | null = null;
+
+  if (workspaceFolders && workspaceFolders.length > 0) {
+    const workspaceRoot = workspaceFolders[0].uri.fsPath;
+    permalinkGenerator = new GitPermalinkGenerator(workspaceRoot);
+
+    try {
+      // Generate permalink
+      permalinkInfo = await permalinkGenerator.generatePermalink(
+        editor.document.fileName,
+        todoInfo.lineNumber - 1 // Convert to 0-based
+      );
+
+      // Get code context
+      codeContext = await permalinkGenerator.getCodeContext(
+        editor.document,
+        todoInfo.lineNumber - 1, // Convert to 0-based
+        5 // 5 lines of context
+      );
+    } catch (error) {
+      console.warn("[Linear Buddy] Could not generate permalink:", error);
+      // Continue without permalink - it's optional
+    }
   }
 
   try {
@@ -61,9 +91,39 @@ export async function convertTodoToTicket() {
 
         // Step 2: Get description
         progress.report({ message: "Enter description..." });
+
+        // Build description with permalink and code context
+        let defaultDescription = "";
+
+        if (permalinkInfo && codeContext && permalinkGenerator) {
+          const language = permalinkGenerator.getLanguageFromExtension(
+            todoInfo.fileName.split(".").pop() || ""
+          );
+
+          defaultDescription = `📍 **Location:** \`${todoInfo.fileName}:${todoInfo.lineNumber}\`\n`;
+          defaultDescription += `🔗 **View in code:** [${
+            permalinkInfo.provider === "github"
+              ? "GitHub"
+              : permalinkInfo.provider
+          }](${permalinkInfo.url})\n`;
+          defaultDescription += `🌿 **Branch:** \`${permalinkInfo.branch}\`\n`;
+          defaultDescription += `📝 **Commit:** \`${permalinkInfo.commitSha.substring(
+            0,
+            7
+          )}\`\n\n`;
+          defaultDescription += `**Code context:**\n\n`;
+          defaultDescription += permalinkGenerator.formatCodeContextForMarkdown(
+            codeContext,
+            language
+          );
+        } else {
+          // Fallback if no permalink available
+          defaultDescription = `Found in: ${todoInfo.fileName}:${todoInfo.lineNumber}\n\n${todoInfo.context}`;
+        }
+
         const description = await vscode.window.showInputBox({
           prompt: "Ticket Description (optional)",
-          value: `Found in: ${todoInfo.fileName}:${todoInfo.lineNumber}\n\n${todoInfo.context}`,
+          value: defaultDescription,
           placeHolder: "Add additional context or details",
           // Upgrade to multiline after updating vscode engine
           // multiline: true,
@@ -85,7 +145,7 @@ export async function convertTodoToTicket() {
         }
 
         // Check for saved team preference
-        const config = vscode.workspace.getConfiguration("monorepoTools");
+        const config = vscode.workspace.getConfiguration("linearBuddy");
         let savedTeamId = config.get<string>("linearDefaultTeamId");
         let selectedTeam: LinearTeam | undefined;
 
@@ -182,8 +242,9 @@ export async function convertTodoToTicket() {
         const action = await vscode.window.showInformationMessage(
           `✅ Created ticket ${issue.identifier}: ${issue.title}`,
           "Replace TODO",
-          "Open Ticket",
-          "Copy URL"
+          "Add More TODOs",
+          "Link Existing TODOs",
+          "Open Ticket"
         );
 
         if (action === "Replace TODO") {
@@ -193,8 +254,28 @@ export async function convertTodoToTicket() {
             issue.identifier,
             issue.url
           );
+        } else if (action === "Add More TODOs") {
+          // Replace current TODO first
+          replaceTodoWithTicketReference(
+            editor,
+            todoInfo,
+            issue.identifier,
+            issue.url
+          );
+          // Then help user add new TODOs
+          await addMoreTodosWorkflow(issue.identifier, issue.url, issue.title);
+        } else if (action === "Link Existing TODOs") {
+          // Replace current TODO first
+          replaceTodoWithTicketReference(
+            editor,
+            todoInfo,
+            issue.identifier,
+            issue.url
+          );
+          // Then offer to link additional TODOs
+          await linkAdditionalTodos(issue.identifier, issue.url, issue.title);
         } else if (action === "Open Ticket") {
-          vscode.commands.executeCommand("monorepoTools.openTicket", issue);
+          vscode.commands.executeCommand("linearBuddy.openTicket", issue);
         } else if (action === "Copy URL") {
           vscode.env.clipboard.writeText(issue.url);
           vscode.window.showInformationMessage(
@@ -203,7 +284,7 @@ export async function convertTodoToTicket() {
         }
 
         // Refresh the tickets sidebar
-        vscode.commands.executeCommand("monorepoTools.refreshTickets");
+        vscode.commands.executeCommand("linearBuddy.refreshTickets");
       }
     );
   } catch (error) {
@@ -348,4 +429,268 @@ function replaceTodoWithTicketReference(
   editor.edit((editBuilder) => {
     editBuilder.replace(line.range, indent + replacement);
   });
+}
+
+/**
+ * Interactive workflow to add new TODOs in other locations
+ */
+async function addMoreTodosWorkflow(
+  ticketId: string,
+  ticketUrl: string,
+  ticketTitle: string
+): Promise<void> {
+  const ticketReference = `${ticketId}: Track at ${ticketUrl}`;
+
+  // Copy the ticket reference to clipboard for easy pasting
+  await vscode.env.clipboard.writeText(`// ${ticketReference}`);
+
+  const guide = await vscode.window.showInformationMessage(
+    `📋 Ticket reference copied to clipboard!\n\nWorkflow:\n1. Navigate to where you need another TODO\n2. Paste the comment (Cmd/Ctrl+V)\n3. Click "Ready" when done, or "Add Another" to continue`,
+    { modal: true },
+    "Add Another Location",
+    "Open File...",
+    "Done"
+  );
+
+  if (guide === "Add Another Location") {
+    // Recursive: keep going until they're done
+    await continueAddingTodos(ticketId, ticketUrl, ticketTitle);
+  } else if (guide === "Open File...") {
+    // Let them quick-open a file
+    await vscode.commands.executeCommand("workbench.action.quickOpen");
+    // Then continue the workflow
+    await continueAddingTodos(ticketId, ticketUrl, ticketTitle);
+  } else if (guide === "Done") {
+    vscode.window.showInformationMessage(
+      `✅ Finished adding TODOs to ${ticketId}`
+    );
+  }
+}
+
+/**
+ * Continue the workflow of adding more TODOs
+ */
+async function continueAddingTodos(
+  ticketId: string,
+  ticketUrl: string,
+  ticketTitle: string
+): Promise<void> {
+  const ticketReference = `${ticketId}: Track at ${ticketUrl}`;
+
+  // Refresh clipboard
+  await vscode.env.clipboard.writeText(`// ${ticketReference}`);
+
+  const action = await vscode.window.showInformationMessage(
+    `📋 Ticket reference in clipboard: ${ticketId}\n\nNavigate to the next location and paste, or use Quick Open to find a file.`,
+    "Add Another",
+    "Open File...",
+    "Search Files...",
+    "Done"
+  );
+
+  if (action === "Add Another") {
+    await continueAddingTodos(ticketId, ticketUrl, ticketTitle);
+  } else if (action === "Open File...") {
+    await vscode.commands.executeCommand("workbench.action.quickOpen");
+    await continueAddingTodos(ticketId, ticketUrl, ticketTitle);
+  } else if (action === "Search Files...") {
+    await vscode.commands.executeCommand("workbench.action.findInFiles");
+    await continueAddingTodos(ticketId, ticketUrl, ticketTitle);
+  } else if (action === "Done") {
+    vscode.window.showInformationMessage(
+      `✅ Finished adding TODOs to ${ticketId}`
+    );
+  }
+}
+
+/**
+ * Find and link additional TODOs to the same ticket
+ */
+async function linkAdditionalTodos(
+  ticketId: string,
+  ticketUrl: string,
+  ticketTitle: string
+): Promise<void> {
+  try {
+    // Search for all TODO comments in the workspace
+    const todos = await findAllTodosInWorkspace();
+
+    if (todos.length === 0) {
+      vscode.window.showInformationMessage("No other TODOs found in workspace");
+      return;
+    }
+
+    // Let user select which TODOs to link
+    const selectedTodos = await vscode.window.showQuickPick(
+      todos.map((todo) => ({
+        label: todo.preview,
+        description: `${todo.file}:${todo.line}`,
+        detail: todo.context,
+        todo: todo,
+      })),
+      {
+        canPickMany: true,
+        placeHolder: `Select TODOs to link to ${ticketId}: ${ticketTitle}`,
+        title: "Link Additional TODOs",
+      }
+    );
+
+    if (!selectedTodos || selectedTodos.length === 0) {
+      return;
+    }
+
+    // Replace selected TODOs with ticket references
+    let linkedCount = 0;
+    for (const selected of selectedTodos) {
+      const success = await replaceTodoInFile(
+        selected.todo,
+        ticketId,
+        ticketUrl
+      );
+      if (success) {
+        linkedCount++;
+      }
+    }
+
+    vscode.window.showInformationMessage(
+      `✅ Linked ${linkedCount} additional TODO${
+        linkedCount !== 1 ? "s" : ""
+      } to ${ticketId}`
+    );
+  } catch (error) {
+    console.error("[Linear Buddy] Failed to link additional TODOs:", error);
+    vscode.window.showWarningMessage(
+      `Could not link additional TODOs: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
+  }
+}
+
+/**
+ * Find all TODO comments in the workspace
+ */
+async function findAllTodosInWorkspace(): Promise<
+  Array<{
+    file: string;
+    line: number;
+    preview: string;
+    context: string;
+    uri: vscode.Uri;
+  }>
+> {
+  const todos: Array<{
+    file: string;
+    line: number;
+    preview: string;
+    context: string;
+    uri: vscode.Uri;
+  }> = [];
+
+  // Use VS Code's search API to find TODOs
+  const todoPattern =
+    /(?:\/\/|\/\*|#|\*|<!--|;)\s*TODO:?\s*(.+?)(?:\*\/|-->)?$/i;
+
+  // Get all files in workspace
+  const files = await vscode.workspace.findFiles(
+    "**/*.{ts,tsx,js,jsx,py,rb,go,rs,java,c,cpp,cs,php,swift,kt,scala,sh,yml,yaml}",
+    "**/node_modules/**",
+    1000 // Limit to 1000 files for performance
+  );
+
+  for (const file of files) {
+    try {
+      const document = await vscode.workspace.openTextDocument(file);
+      const text = document.getText();
+      const lines = text.split("\n");
+
+      lines.forEach((line, index) => {
+        const match = line.match(todoPattern);
+        if (match) {
+          const todoText = match[1].trim();
+          const relativePath = vscode.workspace.asRelativePath(file);
+
+          todos.push({
+            file: relativePath,
+            line: index + 1,
+            preview:
+              todoText.substring(0, 60) + (todoText.length > 60 ? "..." : ""),
+            context: line.trim(),
+            uri: file,
+          });
+        }
+      });
+    } catch (error) {
+      // Skip files that can't be read
+      continue;
+    }
+  }
+
+  return todos;
+}
+
+/**
+ * Replace a TODO in a specific file with ticket reference
+ */
+async function replaceTodoInFile(
+  todo: {
+    file: string;
+    line: number;
+    preview: string;
+    context: string;
+    uri: vscode.Uri;
+  },
+  ticketId: string,
+  ticketUrl: string
+): Promise<boolean> {
+  try {
+    const document = await vscode.workspace.openTextDocument(todo.uri);
+    const lineIndex = todo.line - 1;
+
+    if (lineIndex >= document.lineCount) {
+      return false;
+    }
+
+    const line = document.lineAt(lineIndex);
+
+    // Determine comment style from original line
+    let commentPrefix = "//";
+    if (line.text.includes("/*")) {
+      commentPrefix = "/*";
+    } else if (line.text.includes("#")) {
+      commentPrefix = "#";
+    } else if (line.text.includes("<!--")) {
+      commentPrefix = "<!--";
+    }
+
+    // Create the replacement text
+    let replacement = `${commentPrefix} ${ticketId}: Track at ${ticketUrl}`;
+    if (commentPrefix === "/*") {
+      replacement += " */";
+    } else if (commentPrefix === "<!--") {
+      replacement += " -->";
+    }
+
+    // Get the indentation from the original line
+    const indentMatch = line.text.match(/^(\s*)/);
+    const indent = indentMatch ? indentMatch[1] : "";
+
+    // Open the document in an editor and make the edit
+    const editor = await vscode.window.showTextDocument(document, {
+      preview: false,
+      preserveFocus: true,
+    });
+
+    const success = await editor.edit((editBuilder) => {
+      editBuilder.replace(line.range, indent + replacement);
+    });
+
+    return success;
+  } catch (error) {
+    console.error(
+      `[Linear Buddy] Failed to replace TODO in ${todo.file}:`,
+      error
+    );
+    return false;
+  }
 }

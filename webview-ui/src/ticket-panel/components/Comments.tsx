@@ -53,24 +53,38 @@ export const Comments: React.FC<CommentsProps> = ({ comments }) => {
         <div className={styles.commentsList}>
           {comments!.nodes.map((comment) => (
             <div key={comment.id} className={styles.commentItem}>
-              <div className={styles.commentHeader}>
-                <div className={styles.userInfo}>
-                  {comment.user?.avatarUrl && (
-                    <img
-                      src={comment.user.avatarUrl}
-                      alt={comment.user.name}
-                      className={styles.avatar}
-                    />
-                  )}
-                  <span className={styles.userName}>
-                    {comment.user?.name || "Unknown User"}
-                  </span>
-                  <span className={styles.timestamp}>
-                    {formatRelativeTime(comment.createdAt)}
-                  </span>
+              {comment.user?.avatarUrl ? (
+                <img
+                  src={comment.user.avatarUrl}
+                  alt={comment.user.name}
+                  className={styles.avatar}
+                />
+              ) : (
+                <div className={styles.avatar} title={comment.user?.name || "Unknown User"}>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    style={{ margin: '6px' }}
+                  >
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                  </svg>
                 </div>
+              )}
+              <div className={styles.commentContent}>
+                <div className={styles.commentHeader}>
+                  <div className={styles.userInfo}>
+                    <span className={styles.userName}>
+                      {comment.user?.name || "Unknown User"}
+                    </span>
+                    <span className={styles.timestamp}>
+                      {formatRelativeTime(comment.createdAt)}
+                    </span>
+                  </div>
+                </div>
+                <div className={styles.commentBody}>{comment.body}</div>
               </div>
-              <div className={styles.commentBody}>{comment.body}</div>
             </div>
           ))}
         </div>

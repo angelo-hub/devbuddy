@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5B7FE8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#10B981;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Rounded square background -->
+  <rect x="8" y="8" width="112" height="112" rx="24" fill="url(#gradient)" opacity="0.15"/>
+  
+  <!-- Network/workflow pattern -->
+  <g transform="translate(24, 24) scale(3.2)">
+    <circle cx="12" cy="5" r="3" fill="none" stroke="#5B7FE8" stroke-width="2"/>
+    <circle cx="5" cy="12" r="3" fill="none" stroke="#5B7FE8" stroke-width="2"/>
+    <circle cx="19" cy="12" r="3" fill="none" stroke="#5B7FE8" stroke-width="2"/>
+    <circle cx="12" cy="19" r="3" fill="none" stroke="#10B981" stroke-width="2"/>
+    <line x1="12" y1="8" x2="12" y2="16" stroke="#5B7FE8" stroke-width="1.5"/>
+    <line x1="10.5" y1="6.5" x2="6.5" y2="10.5" stroke="#5B7FE8" stroke-width="1.5"/>
+    <line x1="13.5" y1="6.5" x2="17.5" y2="10.5" stroke="#5B7FE8" stroke-width="1.5"/>
+    <line x1="6.5" y1="13.5" x2="10.5" y2="17.5" stroke="#10B981" stroke-width="1.5"/>
+    <line x1="17.5" y1="13.5" x2="13.5" y2="17.5" stroke="#10B981" stroke-width="1.5"/>
+  </g>
+</svg>

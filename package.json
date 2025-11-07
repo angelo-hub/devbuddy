@@ -1,11 +1,14 @@
 {
-  "name": "cursor-monorepo-tools",
-  "displayName": "Linear Buddy - Monorepo Tools",
+  "name": "linear-buddy",
+  "displayName": "Linear Buddy",
   "description": "AI-powered Linear integration with workflow automation for monorepo PRs and standups",
   "version": "0.1.0",
   "publisher": "personal",
+  "license": "SEE LICENSE IN LICENSE",
+  "packageManager": "yarn@3.7.0",
+  "icon": "resources/icon.png",
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.90.0"
   },
   "categories": [
     "Other",
@@ -18,62 +21,99 @@
   "contributes": {
     "commands": [
       {
-        "command": "monorepoTools.generatePRSummary",
+        "command": "linearBuddy.generatePRSummary",
         "title": "Linear Buddy: Generate PR Summary"
       },
       {
-        "command": "monorepoTools.generateStandup",
+        "command": "linearBuddy.generateStandup",
         "title": "Linear Buddy: Generate Standup Update"
       },
       {
-        "command": "monorepoTools.openStandupBuilder",
+        "command": "linearBuddy.openStandupBuilder",
         "title": "Linear Buddy: Open Standup Builder",
         "icon": "$(notebook)",
         "category": "Linear Buddy"
       },
       {
-        "command": "monorepoTools.refreshTickets",
+        "command": "linearBuddy.refreshTickets",
         "title": "Linear Buddy: Refresh Tickets",
         "icon": "$(refresh)"
       },
       {
-        "command": "monorepoTools.openTicket",
+        "command": "linearBuddy.openTicket",
         "title": "Linear Buddy: Open Ticket"
       },
       {
-        "command": "monorepoTools.startWork",
+        "command": "linearBuddy.startWork",
         "title": "Linear Buddy: Start Work on Ticket",
         "icon": "$(play)"
       },
       {
-        "command": "monorepoTools.completeTicket",
+        "command": "linearBuddy.completeTicket",
         "title": "Linear Buddy: Complete Ticket",
         "icon": "$(check)"
       },
       {
-        "command": "monorepoTools.configureLinearToken",
+        "command": "linearBuddy.configureLinearToken",
         "title": "Linear Buddy: Update Linear API Key"
       },
       {
-        "command": "monorepoTools.startBranch",
+        "command": "linearBuddy.startBranch",
         "title": "Linear Buddy: Start Branch for Ticket",
         "icon": "$(git-branch)"
       },
       {
-        "command": "monorepoTools.openPR",
+        "command": "linearBuddy.openPR",
         "title": "Linear Buddy: Open Pull Request",
         "icon": "$(git-pull-request)"
       },
       {
-        "command": "monorepoTools.changeTicketStatus",
+        "command": "linearBuddy.changeTicketStatus",
         "title": "Linear Buddy: Change Ticket Status",
         "icon": "$(edit)"
       },
       {
-        "command": "monorepoTools.convertTodoToTicket",
+        "command": "linearBuddy.convertTodoToTicket",
         "title": "Linear Buddy: Convert TODO to Ticket",
         "icon": "$(add)",
         "category": "Linear Buddy"
+      },
+      {
+        "command": "linearBuddy.checkoutBranch",
+        "title": "Linear Buddy: Checkout Branch",
+        "icon": "$(git-branch-checkout)"
+      },
+      {
+        "command": "linearBuddy.associateBranchFromSidebar",
+        "title": "Linear Buddy: Associate Branch",
+        "icon": "$(link)"
+      },
+      {
+        "command": "linearBuddy.autoDetectBranches",
+        "title": "Linear Buddy: Auto-Detect Branch Associations",
+        "icon": "$(search)"
+      },
+      {
+        "command": "linearBuddy.showBranchAnalytics",
+        "title": "Linear Buddy: Show Branch Analytics",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "linearBuddy.cleanupBranchAssociations",
+        "title": "Linear Buddy: Cleanup Branch Associations",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "linearBuddy.createTicket",
+        "title": "Linear Buddy: Create New Ticket",
+        "icon": "$(add)",
+        "category": "Linear Buddy"
+      },
+      {
+        "command": "linearBuddy.showHelp",
+        "title": "Linear Buddy: Show Help & Tutorials",
+        "icon": "$(question)",
+        "category": "Help"
       }
     ],
     "viewsContainers": {
@@ -96,48 +136,68 @@
     "menus": {
       "editor/context": [
         {
-          "command": "monorepoTools.convertTodoToTicket",
+          "command": "linearBuddy.convertTodoToTicket",
           "when": "editorTextFocus && editorHasSelection || editorTextFocus",
           "group": "linear@1"
         }
       ],
       "view/title": [
         {
-          "command": "monorepoTools.refreshTickets",
+          "command": "linearBuddy.createTicket",
           "when": "view == linearTickets",
-          "group": "navigation"
+          "group": "navigation@1"
         },
         {
-          "command": "monorepoTools.openStandupBuilder",
+          "command": "linearBuddy.refreshTickets",
           "when": "view == linearTickets",
-          "group": "navigation"
+          "group": "navigation@2"
+        },
+        {
+          "command": "linearBuddy.openStandupBuilder",
+          "when": "view == linearTickets",
+          "group": "navigation@3"
+        },
+        {
+          "command": "linearBuddy.showHelp",
+          "when": "view == linearTickets",
+          "group": "navigation@4"
         }
       ],
       "view/item/context": [
         {
-          "command": "monorepoTools.startBranch",
+          "command": "linearBuddy.startBranch",
           "when": "view == linearTickets && viewItem == linearTicket:unstarted",
           "group": "inline@1"
         },
         {
-          "command": "monorepoTools.openPR",
-          "when": "view == linearTickets && viewItem =~ /linearTicket.*:withPR/",
+          "command": "linearBuddy.checkoutBranch",
+          "when": "view == linearTickets && viewItem =~ /linearTicket:started:withBranch/",
           "group": "inline@1"
         },
         {
-          "command": "monorepoTools.changeTicketStatus",
+          "command": "linearBuddy.openPR",
+          "when": "view == linearTickets && viewItem =~ /linearTicket.*:withPR/",
+          "group": "inline@2"
+        },
+        {
+          "command": "linearBuddy.changeTicketStatus",
           "when": "view == linearTickets && viewItem =~ /linearTicket.*/",
           "group": "status@1"
         },
         {
-          "command": "monorepoTools.startWork",
-          "when": "view == linearTickets && viewItem == linearTicket",
-          "group": "inline@2"
+          "command": "linearBuddy.associateBranchFromSidebar",
+          "when": "view == linearTickets && viewItem =~ /linearTicket.*/",
+          "group": "branch@1"
         },
         {
-          "command": "monorepoTools.completeTicket",
+          "command": "linearBuddy.startWork",
           "when": "view == linearTickets && viewItem == linearTicket",
           "group": "inline@3"
+        },
+        {
+          "command": "linearBuddy.completeTicket",
+          "when": "view == linearTickets && viewItem == linearTicket",
+          "group": "inline@4"
         }
       ]
     },
@@ -167,20 +227,120 @@
         ]
       }
     ],
+    "walkthroughs": [
+      {
+        "id": "linearBuddy.gettingStarted",
+        "title": "Getting Started with Linear Buddy",
+        "description": "Learn how to use Linear Buddy to manage your Linear tickets and workflow directly from VS Code",
+        "steps": [
+          {
+            "id": "setup.welcome",
+            "title": "Welcome to Linear Buddy! 👋",
+            "description": "Linear Buddy brings your Linear workflow into VS Code. You can view tickets, create branches, update statuses, and more—all without leaving your editor.\n\n**This tutorial uses example explanations** to show you around without affecting your real Linear workspace.\n\nLet's get started!",
+            "media": {
+              "markdown": "media/walkthrough/welcome.md"
+            }
+          },
+          {
+            "id": "setup.apikey",
+            "title": "Connect Your Linear Workspace",
+            "description": "To get started, you'll need to connect your Linear workspace with an API key. This is stored securely and never shared.\n\n[Configure Linear API Key](command:linearBuddy.configureLinearToken)\n\nOnce configured, you'll see your assigned tickets in the sidebar.",
+            "media": {
+              "markdown": "media/walkthrough/setup-apikey.md"
+            },
+            "completionEvents": [
+              "onCommand:linearBuddy.configureLinearToken"
+            ]
+          },
+          {
+            "id": "explore.sidebar",
+            "title": "Explore Your Tickets",
+            "description": "The **Linear Buddy sidebar** shows all your assigned tickets organized by status.\n\n[Open Linear Buddy Sidebar](command:workbench.view.extension.linear-buddy)\n\nClick any ticket to see details, comments, and take actions like updating status or creating a branch.",
+            "media": {
+              "markdown": "media/walkthrough/sidebar.md"
+            }
+          },
+          {
+            "id": "feature.branches",
+            "title": "Create Branches from Tickets",
+            "description": "**Start a branch** directly from any ticket. Linear Buddy automatically generates branch names following your preferred convention (conventional commits, simple, or custom).\n\n• Click the branch icon next to any ticket\n• Choose your source branch\n• Review the auto-generated name or customize it\n• Linear Buddy creates and checks out the branch",
+            "media": {
+              "markdown": "media/walkthrough/branches.md"
+            }
+          },
+          {
+            "id": "feature.status",
+            "title": "Update Ticket Status",
+            "description": "Change ticket status without leaving VS Code:\n\n• Right-click any ticket and select **Change Status**\n• Or use the edit icon in the sidebar\n• See your team's workflow states with visual indicators\n\nLinear Buddy will ask if you want to update status when you create a branch!",
+            "media": {
+              "markdown": "media/walkthrough/status.md"
+            }
+          },
+          {
+            "id": "feature.createticket",
+            "title": "Create New Tickets",
+            "description": "Create Linear tickets directly from VS Code:\n\n[Create New Ticket](command:linearBuddy.createTicket)\n\n• Rich editor with all Linear fields\n• Select team, project, labels, and priority\n• Assign to team members\n• Set estimates and due dates",
+            "media": {
+              "markdown": "media/walkthrough/create-ticket.md"
+            }
+          },
+          {
+            "id": "feature.todoconverter",
+            "title": "Convert TODOs to Tickets with Permalinks",
+            "description": "Found a TODO in your code? Convert it to a Linear ticket with automatic permalinks to the exact line of code!\n\n**What you get:**\n• TODO → Linear ticket in one click\n• Automatic GitHub/GitLab/Bitbucket permalink\n• Code context (5 lines before/after)\n• Branch and commit info\n• Link multiple related TODOs\n\n**Try it:**\n1. Select a TODO comment or place cursor on TODO line\n2. Right-click → **\"Convert TODO to Linear Ticket\"**\n3. Choose what to do next:\n   - **Replace TODO** - Just this one\n   - **Add More TODOs** - Navigate & paste in other spots\n   - **Link Existing TODOs** - Find & link TODOs you already wrote\n\n[Try Converting a TODO](command:linearBuddy.convertTodoToTicket)",
+            "media": {
+              "markdown": "media/walkthrough/todo-converter.md"
+            }
+          },
+          {
+            "id": "feature.standup",
+            "title": "Generate Standup Updates",
+            "description": "Let AI generate your standup update from your recent commits and Linear activity!\n\n[Open Standup Builder](command:linearBuddy.openStandupBuilder)\n\n• AI analyzes your commits and tickets\n• Generates a summary in your preferred tone\n• Copy and share with your team",
+            "media": {
+              "markdown": "media/walkthrough/standup.md"
+            }
+          },
+          {
+            "id": "feature.prsummary",
+            "title": "AI-Powered PR Summaries",
+            "description": "Generate comprehensive PR summaries for your monorepo changes:\n\n[Generate PR Summary](command:linearBuddy.generatePRSummary)\n\n• Detects affected packages in your monorepo\n• Analyzes git changes and commits\n• Generates description using your PR template\n• Customizable writing tone",
+            "media": {
+              "markdown": "media/walkthrough/pr-summary.md"
+            }
+          },
+          {
+            "id": "feature.chat",
+            "title": "Use the AI Chat Assistant",
+            "description": "Talk to Linear Buddy using the chat interface!\n\nOpen VS Code Chat and type `@linear` to:\n\n• `/tickets` - See your current tickets\n• `/standup` - Generate standup update\n• `/pr` - Generate PR summary\n• `/status` - Update ticket status\n\nOr just ask questions naturally!",
+            "media": {
+              "markdown": "media/walkthrough/chat.md"
+            }
+          },
+          {
+            "id": "next.help",
+            "title": "Get Help Anytime",
+            "description": "**Need help?** Click the **Help** button (question icon) at the top of the Linear Buddy sidebar.\n\n**Customize your experience:**\n• Open Settings (Cmd/Ctrl + ,)\n• Search for \"Linear Buddy\"\n• Configure AI model, writing tone, branch naming, and more\n\n[Open Settings](command:workbench.action.openSettings?%5B%22linearBuddy%22%5D)\n\nYou're all set! 🎉",
+            "media": {
+              "markdown": "media/walkthrough/help.md"
+            }
+          }
+        ]
+      }
+    ],
     "configuration": {
-      "title": "Monorepo Tools",
+      "title": "Linear Buddy",
       "properties": {
-        "monorepoTools.baseBranch": {
+        "linearBuddy.baseBranch": {
           "type": "string",
           "default": "main",
           "description": "Default base branch for comparing changes (with fallback to 'master')"
         },
-        "monorepoTools.maxPackageScope": {
+        "linearBuddy.maxPackageScope": {
           "type": "number",
           "default": 2,
           "description": "Maximum number of packages that should be modified in a single PR"
         },
-        "monorepoTools.packagesPaths": {
+        "linearBuddy.packagesPaths": {
           "type": "array",
           "items": {
             "type": "string"
@@ -191,22 +351,52 @@
           ],
           "description": "Array of directory paths to scan for package changes (e.g., ['packages/', 'apps/', 'domains/'])"
         },
-        "monorepoTools.prTemplatePath": {
+        "linearBuddy.prTemplatePath": {
           "type": "string",
           "default": ".github/pull_request_template.md",
           "description": "Path to the PR template file in the workspace"
         },
-        "monorepoTools.standupTimeWindow": {
+        "linearBuddy.standupTimeWindow": {
           "type": "string",
           "default": "24 hours ago",
           "description": "Time window for standup commits (e.g., '24 hours ago', '2 days ago')"
         },
-        "monorepoTools.enableAISummarization": {
+        "linearBuddy.enableAISummarization": {
           "type": "boolean",
           "default": true,
-          "description": "Enable AI-powered summarization for PR summaries and standups (requires Cursor/Copilot)"
+          "description": "Enable AI-powered summarization for PR summaries and standups"
         },
-        "monorepoTools.aiModel": {
+        "linearBuddy.ai.disabled": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "**Completely disable AI features** and use rule-based summarization instead.\n\n⚠️ **For sensitive organizations:** Enable this setting if you cannot use external AI services. The extension will use intelligent rule-based analysis instead.\n\n**When to enable:**\n- Working in a highly regulated environment\n- Security policies prohibit external AI\n- GitHub Copilot is not available"
+        },
+        "linearBuddy.ai.model": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "copilot:gpt-4o",
+            "copilot:gpt-4.1",
+            "copilot:gpt-4-turbo",
+            "copilot:gpt-4",
+            "copilot:gpt-4o-mini",
+            "copilot:gpt-3.5-turbo",
+            "copilot:gemini-2.0-flash"
+          ],
+          "default": "auto",
+          "enumDescriptions": [
+            "Automatically select the best available model",
+            "GitHub Copilot: GPT-4o (OpenAI's latest)",
+            "GitHub Copilot: GPT-4.1 (Reliable and proven)",
+            "GitHub Copilot: GPT-4 Turbo (Fast and powerful)",
+            "GitHub Copilot: GPT-4 (Classic)",
+            "GitHub Copilot: GPT-4o Mini (Faster)",
+            "GitHub Copilot: GPT-3.5 Turbo (Most available)",
+            "GitHub Copilot: Gemini 2.0 Flash (Google)"
+          ],
+          "description": "AI model to use for summarization. Uses VS Code's Language Model API (GitHub Copilot)."
+        },
+        "linearBuddy.aiModel": {
           "type": "string",
           "enum": [
             "gpt-4o",
@@ -218,9 +408,10 @@
             "gemini-2.0-flash"
           ],
           "default": "gpt-4o",
-          "description": "AI model to use for summarization (verified working Copilot models)"
+          "description": "⚠️ Deprecated: Use 'linearBuddy.ai.model' instead. This setting will be removed in a future version.",
+          "deprecationMessage": "Use 'linearBuddy.ai.model' instead"
         },
-        "monorepoTools.writingTone": {
+        "linearBuddy.writingTone": {
           "type": "string",
           "enum": [
             "casual",
@@ -231,32 +422,32 @@
           "default": "professional",
           "description": "Writing tone for AI-generated summaries"
         },
-        "monorepoTools.firstTimeSetupComplete": {
+        "linearBuddy.debugMode": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "**Enable debug logging** for troubleshooting.\n\n✅ **When enabled:**\n- Shows detailed logs in the \"Linear Buddy\" Output channel\n- Automatically opens the Output panel\n- Logs all API calls, AI operations, and git commands\n\n💡 **Use this when:**\n- Reporting bugs or issues\n- Understanding what the extension is doing\n- Debugging AI summarization\n- Troubleshooting Linear API issues"
+        },
+        "linearBuddy.firstTimeSetupComplete": {
           "type": "boolean",
           "default": false,
           "description": "Whether first-time setup has been completed"
         },
-        "monorepoTools.linearApiToken": {
-          "type": "string",
-          "default": "",
-          "description": "Linear API token for fetching tickets (get from linear.app/settings/api)"
-        },
-        "monorepoTools.linearTeamId": {
+        "linearBuddy.linearTeamId": {
           "type": "string",
           "default": "",
           "description": "Linear team ID to filter tickets (optional)"
         },
-        "monorepoTools.linearDefaultTeamId": {
+        "linearBuddy.linearDefaultTeamId": {
           "type": "string",
           "default": "",
           "description": "Default Linear team ID for creating tickets (saved from TODO converter)"
         },
-        "monorepoTools.autoRefreshInterval": {
+        "linearBuddy.autoRefreshInterval": {
           "type": "number",
           "default": 5,
           "description": "Auto-refresh interval for Linear tickets in minutes (0 to disable)"
         },
-        "monorepoTools.branchNamingConvention": {
+        "linearBuddy.branchNamingConvention": {
           "type": "string",
           "enum": [
             "conventional",
@@ -266,10 +457,35 @@
           "default": "conventional",
           "description": "Branch naming convention: conventional (feat/fix/etc), simple (identifier-only), or custom"
         },
-        "monorepoTools.customBranchTemplate": {
+        "linearBuddy.customBranchTemplate": {
           "type": "string",
           "default": "{type}/{identifier}-{slug}",
           "description": "Custom branch template. Available placeholders: {type}, {identifier}, {slug}, {username}"
+        },
+        "linearBuddy.linearOrganization": {
+          "type": "string",
+          "default": "",
+          "description": "Linear organization slug (e.g., 'acme' from linear.app/acme/...)"
+        },
+        "linearBuddy.preferDesktopApp": {
+          "type": "boolean",
+          "default": false,
+          "description": "Open Linear issues in the desktop app instead of the web browser"
+        },
+        "linearBuddy.linkFormat": {
+          "type": "string",
+          "enum": [
+            "slack",
+            "markdown",
+            "plain"
+          ],
+          "default": "markdown",
+          "enumDescriptions": [
+            "Slack format: <url|TICKET-123>",
+            "Markdown format: [TICKET-123](url) - for Teams, GitHub, etc.",
+            "Plain text: TICKET-123"
+          ],
+          "description": "Format for copying ticket links (for standup updates & sharing)"
         }
       }
     }
@@ -281,20 +497,26 @@
     "watch": "tsc -watch -p ./",
     "watch:webview": "node webview-ui/build.js --watch",
     "pretest": "npm run compile",
-    "package": "vsce package --allow-missing-repository"
+    "package": "vsce package --allow-missing-repository",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/**/*.ts",
+    "generate:logo": "node scripts/generate-logo.js",
+    "generate:png": "node scripts/generate-png.js",
+    "logo": "npm run generate:logo && npm run generate:png"
   },
   "devDependencies": {
     "@types/node": "^20.x",
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",
-    "@types/vscode": "^1.85.0",
-    "@vscode/vsce": "^2.22.0",
-    "esbuild": "^0.19.11",
-    "typescript": "^5.3.3"
+    "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "^3.6.2",
+    "esbuild": "^0.25.12",
+    "sharp": "^0.34.5",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "simple-git": "^3.21.0"
+    "simple-git": "^3.30.0"
   }
 }

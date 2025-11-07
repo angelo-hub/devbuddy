@@ -2,6 +2,8 @@
 
 **Transform your Linear workflow with AI assistance, sidebar ticket management, and chat integration!**
 
+> **🔒 Privacy-First:** Works with or without AI! Organizations with strict security policies can disable external AI and use intelligent rule-based analysis instead.
+
 ## ✨ Features
 
 ### 💬 Chat Participant
@@ -15,10 +17,11 @@
 - One-click to open in Linear
 - Quick actions: Start Work (▶️), Complete (✓)
 
-### 🤖 AI-Powered Summaries
+### 🤖 AI-Powered Summaries (with Privacy-First Fallback)
 - **Standup Generator**: AI analyzes your commits and generates standup updates
 - **PR Summary**: Auto-generates PR descriptions from your changes
 - **Smart Suggestions**: Next steps and blocker detection
+- **🔒 Rule-Based Fallback**: Works without AI for sensitive organizations
 
 ### ⚡ Quick Actions
 - Start work on tickets
@@ -53,6 +56,7 @@
 - **Complete Guide** (`LINEAR_BUDDY_GUIDE.md`) - Full documentation
 - **Quick Start** (`QUICKSTART.md`) - Get started quickly
 - **AI Features** (`AI_FEATURES_GUIDE.md`) - AI model configuration
+- **🔒 AI Fallback Strategy** (`AI_FALLBACK_QUICK_REFERENCE.md`) - Privacy-first mode
 - **Multi-Ticket Guide** (`MULTI_TICKET_GUIDE.md`) - Work across multiple tickets
 
 ## 💬 Chat Examples
@@ -66,19 +70,28 @@
 
 ## ⚙️ Configuration
 
+### Standard Configuration
 ```json
 {
   // Linear API (required)
-  "monorepoTools.linearApiToken": "lin_api_...",
+  "linearBuddy.linearApiToken": "lin_api_...",
   
-  // AI Model (recommended: gpt-4o)
-  "monorepoTools.aiModel": "gpt-4o",
+  // AI Model (optional - auto-selects best available)
+  "linearBuddy.ai.model": "auto",
   
   // Writing Tone
-  "monorepoTools.writingTone": "professional",
+  "linearBuddy.writingTone": "professional",
   
   // Monorepo paths
-  "monorepoTools.packagesPaths": ["packages/", "apps/"]
+  "linearBuddy.packagesPaths": ["packages/", "apps/"]
+}
+```
+
+### 🔒 For Sensitive Organizations
+```json
+{
+  // Disable external AI - use rule-based analysis only
+  "linearBuddy.ai.disabled": true
 }
 ```
 
@@ -92,6 +105,7 @@
 | **PR Summary** | Smart PR descriptions with validation |
 | **Multi-Ticket** | Work across multiple tickets/branches |
 | **AI Models** | GPT-4o, GPT-4.1, GPT-4 Turbo, Gemini 2.0 |
+| **🔒 Privacy Mode** | Rule-based analysis for sensitive orgs |
 
 ## 🤖 AI Models
 
@@ -99,10 +113,13 @@
 - GPT-4o ⭐ (recommended)
 - GPT-4.1
 - GPT-4 Turbo
-- GPT-4
-- GPT-4o Mini
-- GPT-3.5 Turbo
 - Gemini 2.0 Flash
+
+**Privacy-First Option:**
+- 🔒 Rule-Based Analysis (no external AI)
+  - Perfect for regulated industries
+  - 100% local processing
+  - Works offline
 
 **Auto-fallback:** If preferred model unavailable, automatically uses best available.
 
