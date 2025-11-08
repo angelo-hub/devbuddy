@@ -1151,6 +1151,152 @@ export class LinearClient {
   }
 
   /**
+   * Get unassigned issues for a team
+   */
+  async getTeamUnassignedIssues(teamId: string): Promise<LinearIssue[]> {
+    if (!this.isConfigured()) {
+      return [];
+    }
+
+    const query = `
+      query {
+        team(id: "${teamId}") {
+          issues(
+            filter: { 
+              assignee: { null: true }
+              state: { type: { in: ["unstarted", "backlog"] } }
+            }
+            orderBy: updatedAt
+            first: 50
+          ) {
+            nodes {
+              id
+              identifier
+              title
+              description
+              url
+              createdAt
+              updatedAt
+              priority
+              branchName
+              state {
+                id
+                name
+                type
+              }
+              assignee {
+                id
+                name
+                email
+                avatarUrl
+              }
+              labels {
+                nodes {
+                  id
+                  name
+                  color
+                }
+              }
+              project {
+                id
+                name
+              }
+              team {
+                id
+                name
+                key
+              }
+              attachments {
+                nodes {
+                  id
+                  url
+                  title
+                  subtitle
+                  sourceType
+                }
+              }
+              children {
+                nodes {
+                  id
+                  identifier
+                  title
+                  url
+                  priority
+                  state {
+                    id
+                    name
+                    type
+                  }
+                  assignee {
+                    id
+                    name
+                    avatarUrl
+                  }
+                }
+              }
+              parent {
+                id
+                identifier
+                title
+                url
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    try {
+      const response = await this.executeQuery(query);
+      return response.data.team.issues.nodes;
+    } catch (error) {
+      console.error(
+        "[Linear Buddy] Failed to fetch unassigned team issues:",
+        error
+      );
+      return [];
+    }
+  }
+
+  /**
+   * Get team projects (projects that belong to a specific team)
+   */
+  async getTeamProjects(teamId: string): Promise<LinearProject[]> {
+    if (!this.isConfigured()) {
+      return [];
+    }
+
+    const query = `
+      query {
+        team(id: "${teamId}") {
+          projects(
+            filter: { 
+              state: { eq: "started" }
+            }
+            orderBy: updatedAt
+            first: 50
+          ) {
+            nodes {
+              id
+              name
+              url
+              state
+            }
+          }
+        }
+      }
+    `;
+
+    try {
+      const response = await this.executeQuery(query);
+      return response.data.team.projects.nodes;
+    } catch (error) {
+      console.error("[Linear Buddy] Failed to fetch team projects:", error);
+      return [];
+    }
+  }
+
+  /**
    * Execute a GraphQL query
    */
   private async executeQuery(query: string): Promise<any> {

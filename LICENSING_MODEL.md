@@ -163,7 +163,7 @@ We will **never take away features** that are currently free. If a feature is fr
 
 ### Pro Users
 - All free user channels
-- Priority email support: angelo.girardi@onebrief.com
+- Priority email support: angelo@cooked.mx
 - Faster response times
 - Direct feature influence
 
@@ -193,7 +193,7 @@ A: Yes, absolutely. Features that are free today will remain free forever.
 A: Contributors get free Pro licenses as a thank you!
 
 **Q: What if I can't afford Pro?**  
-A: We offer free Pro licenses for students, open-source maintainers, and non-profits. Contact us!
+A: We offer free Pro licenses for students, open-source maintainers, and non-profits. Contact angelo@cooked.mx!
 
 **Q: Can I see the Pro feature code?**  
 A: Yes, it's all in the repository for transparency and security review.
@@ -219,5 +219,5 @@ This licensing model may evolve based on community feedback and project needs. W
 
 **Last Updated:** November 7, 2025  
 **Version:** 1.0  
-**Questions?** Open an issue or email angelo.girardi@onebrief.com
+**Questions?** Open an issue or email angelo@cooked.mx
 

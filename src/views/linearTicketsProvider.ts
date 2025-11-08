@@ -322,6 +322,12 @@ export class LinearTicketsProvider
         case "team":
           return this.getTeamIssuesChildren(element.issue.id);
 
+        case "myTeamIssues":
+        case "unassignedTeamIssues":
+        case "teamProjects":
+          // These are subsection headers (non-collapsible labels)
+          return [];
+
         case "statusHeader":
           const status = element.issue.state.name;
           const statusIssues = this.issues.filter(
@@ -516,24 +522,67 @@ export class LinearTicketsProvider
   ): Promise<LinearTicketTreeItem[]> {
     try {
       const client = await this.getClient();
-      const teamIssues = await client.getMyIssues({
-        state: ["unstarted", "started"],
-        teamId: teamId,
-      });
+      
+      // Get both assigned and unassigned issues for this team
+      const [myTeamIssues, unassignedIssues, teamProjects] = await Promise.all([
+        client.getMyIssues({
+          state: ["unstarted", "started"],
+          teamId: teamId,
+        }),
+        client.getTeamUnassignedIssues(teamId),
+        client.getTeamProjects(teamId),
+      ]);
 
-      if (teamIssues.length === 0) {
+      const items: LinearTicketTreeItem[] = [];
+
+      // Section 1: My Issues in this team
+      if (myTeamIssues.length > 0) {
+        items.push(this.createSubSection("myTeamIssues", `My Issues (${myTeamIssues.length})`));
+        
+        // Group by status
+        const grouped = this.groupByStatus(myTeamIssues);
+        for (const [status, statusIssues] of Object.entries(grouped)) {
+          items.push(
+            this.createStatusHeader(
+              status,
+              statusIssues.length,
+              statusIssues[0]?.state.type || ""
+            )
+          );
+        }
+      }
+
+      // Section 2: Unassigned Tickets
+      if (unassignedIssues.length > 0) {
+        items.push(this.createSubSection("unassignedTeamIssues", `Unassigned (${unassignedIssues.length})`));
+        
+        // Add unassigned issues
+        items.push(...unassignedIssues.slice(0, 20).map(
+          (issue) =>
+            new LinearTicketTreeItem(
+              issue,
+              vscode.TreeItemCollapsibleState.None,
+              "ticket",
+              this.branchManager
+            )
+        ));
+        
+        if (unassignedIssues.length > 20) {
+          items.push(this.createMoreIssuesItem(unassignedIssues.length - 20));
+        }
+      }
+
+      // Section 3: Team Projects
+      if (teamProjects.length > 0) {
+        items.push(this.createSubSection("teamProjects", `Team Projects (${teamProjects.length})`));
+        items.push(...teamProjects.map((project) => this.createProjectItem(project)));
+      }
+
+      if (items.length === 0) {
         return [this.createNoIssuesItem()];
       }
 
-      return teamIssues.map(
-        (issue) =>
-          new LinearTicketTreeItem(
-            issue,
-            vscode.TreeItemCollapsibleState.None,
-            "ticket",
-            this.branchManager
-          )
-      );
+      return items;
     } catch (error) {
       console.error("[Linear Buddy] Failed to fetch team issues:", error);
       return [this.createErrorItem()];
@@ -546,6 +595,8 @@ export class LinearTicketsProvider
   private async getProjectsChildren(): Promise<LinearTicketTreeItem[]> {
     try {
       const client = await this.getClient();
+      
+      // Get projects from the user's teams
       this.projects = await client.getUserProjects();
 
       if (this.projects.length === 0) {
@@ -616,6 +667,37 @@ export class LinearTicketsProvider
     }
 
     item.iconPath = new vscode.ThemeIcon(icon, iconColor);
+    item.contextValue = contextValue;
+    item.command = undefined;
+    return item;
+  }
+
+  /**
+   * Create subsection header (non-collapsible label)
+   */
+  private createSubSection(
+    contextValue: string,
+    title: string
+  ): LinearTicketTreeItem {
+    const item = new LinearTicketTreeItem(
+      {
+        id: contextValue,
+        identifier: "",
+        title: `  ${title}`,
+        state: { id: "", name: "", type: "" },
+        priority: 0,
+        url: "",
+        createdAt: "",
+        updatedAt: "",
+      } as LinearIssue,
+      vscode.TreeItemCollapsibleState.None,
+      "section"
+    );
+
+    item.iconPath = new vscode.ThemeIcon(
+      "symbol-field",
+      new vscode.ThemeColor("descriptionForeground")
+    );
     item.contextValue = contextValue;
     item.command = undefined;
     return item;
@@ -914,6 +996,34 @@ export class LinearTicketsProvider
     item.iconPath = new vscode.ThemeIcon("info");
     item.command = undefined;
     item.contextValue = "no-unassigned-issues";
+    return item;
+  }
+
+  /**
+   * Create "More issues" item
+   */
+  private createMoreIssuesItem(count: number): LinearTicketTreeItem {
+    const item = new LinearTicketTreeItem(
+      {
+        id: "more-issues",
+        identifier: "",
+        title: `    ... and ${count} more`,
+        state: { id: "", name: "", type: "" },
+        priority: 0,
+        url: "",
+        createdAt: "",
+        updatedAt: "",
+      } as LinearIssue,
+      vscode.TreeItemCollapsibleState.None,
+      "section"
+    );
+    item.iconPath = new vscode.ThemeIcon(
+      "ellipsis",
+      new vscode.ThemeColor("descriptionForeground")
+    );
+    item.command = undefined;
+    item.contextValue = "more-issues";
+    item.tooltip = `View more in Linear`;
     return item;
   }
 

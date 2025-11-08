@@ -10,24 +10,33 @@ I've set up a complete **dual licensing structure** for Linear Buddy, similar to
    - Covers all core/free features
    - Fully open source
    - Commercial use allowed
-   - Includes notice about dual licensing
+   - Includes clear notice about dual licensing structure
 
-2. **`LICENSE.pro`** (Commercial License)
-   - Covers Pro features in `src/pro/` and `webview-ui/src/pro/`
-   - Requires paid license after 30-day trial
-   - Source code visible but not freely usable
-   - Includes evaluation period and restrictions
+2. **`LICENSE.pro`** (Commercial License - GitLens Style)
+   - Professional, legally robust commercial license
+   - Covers Pro features in `src/pro/` directory only
+   - Requires valid subscription and EULA compliance
+   - Allows modification but retains IP rights
+   - Modeled after GitLens's proven license structure
+
+3. **`EULA.md`** (End User License Agreement)
+   - Comprehensive terms and conditions
+   - Defines subscription types and payment terms
+   - Privacy and data protection
+   - Warranties, limitations of liability
+   - Termination and dispute resolution
+   - Referenced by LICENSE.pro
 
 ### 📚 Documentation Created
 
-3. **`LICENSING_MODEL.md`**
+4. **`LICENSING_MODEL.md`**
    - Complete overview of licensing approach
    - Feature comparison (free vs pro)
    - Pricing structure
    - FAQ and roadmap
    - Legal details and support channels
 
-4. **`PRO_IMPLEMENTATION_GUIDE.md`**
+5. **`PRO_IMPLEMENTATION_GUIDE.md`**
    - Technical implementation guide
    - Complete TypeScript code examples
    - License Manager class
@@ -35,7 +44,7 @@ I've set up a complete **dual licensing structure** for Linear Buddy, similar to
    - Backend API options
    - Testing strategy
 
-5. **`LICENSING_QUICK_REFERENCE.md`**
+6. **`LICENSING_QUICK_REFERENCE.md`**
    - Quick comparison table
    - Command reference
    - Common questions

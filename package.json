@@ -5,7 +5,6 @@
   "version": "0.1.0",
   "publisher": "personal",
   "license": "SEE LICENSE IN LICENSE",
-  "packageManager": "yarn@3.7.0",
   "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.90.0"
@@ -114,6 +113,24 @@
         "title": "Linear Buddy: Show Help & Tutorials",
         "icon": "$(question)",
         "category": "Help"
+      },
+      {
+        "command": "linearBuddy.manageTelemetry",
+        "title": "Linear Buddy: Manage Telemetry Settings",
+        "icon": "$(graph)",
+        "category": "Settings"
+      },
+      {
+        "command": "linearBuddy.exportTelemetryData",
+        "title": "Linear Buddy: Export My Telemetry Data",
+        "icon": "$(export)",
+        "category": "Settings"
+      },
+      {
+        "command": "linearBuddy.deleteTelemetryData",
+        "title": "Linear Buddy: Delete My Telemetry Data",
+        "icon": "$(trash)",
+        "category": "Settings"
       }
     ],
     "viewsContainers": {
@@ -486,6 +503,16 @@
             "Plain text: TICKET-123"
           ],
           "description": "Format for copying ticket links (for standup updates & sharing)"
+        },
+        "linearBuddy.telemetry.enabled": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "**Share anonymous usage data to help improve Linear Buddy**\n\n✅ **Benefits:**\n- Help us prioritize features\n- Improve stability and performance\n- Get 14 extra days of Pro trial!\n\n🔒 **Privacy:**\n- 100% anonymous (no personal data)\n- No code or file names tracked\n- No content collection\n- Easy opt-out anytime\n\n💡 **What we collect:**\n- Feature usage patterns\n- Error types (not content)\n- Performance metrics\n- Extension version & platform\n\n[Learn more about our telemetry](https://github.com/yourusername/linear-buddy#telemetry)"
+        },
+        "linearBuddy.telemetry.showPrompt": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show telemetry opt-in prompt on first use (disable if you've already made your choice)"
         }
       }
     }
@@ -515,8 +542,10 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@vscode/extension-telemetry": "^1.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "simple-git": "^3.30.0"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

@@ -63,7 +63,7 @@ We offer free Pro licenses to:
 - 💚 **Non-profit organizations** - Provide documentation
 - 🤝 **Contributors** - Contribute code to get free access!
 
-Contact angelo.girardi@onebrief.com to apply.
+Contact angelo@cooked.mx to apply.
 
 ## 🏢 For Organizations
 
@@ -110,7 +110,7 @@ Contact angelo.girardi@onebrief.com to apply.
 - 📚 Documentation
 
 ### Pro Users
-- 📧 **Priority Email**: angelo.girardi@onebrief.com
+- 📧 **Priority Email**: angelo@cooked.mx
 - 🎫 **Support Portal**: [URL]
 - ⚡ **Response Time**: < 24 hours
 - All free user channels
@@ -189,7 +189,7 @@ A: Unlimited devices with same email address.
 ---
 
 **Need help?** 
-- 📧 Email: angelo.girardi@onebrief.com
+- 📧 Email: angelo@cooked.mx
 - 🐛 Issues: GitHub Issues
 - 📖 Docs: [Documentation URL]
 

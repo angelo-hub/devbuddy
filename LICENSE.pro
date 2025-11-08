@@ -10,7 +10,7 @@ to the extent the Software is a required component of the Extension;
 provided, however, that the Software and its functionality may only be used if
 you (and any entity that you represent) have agreed to, and are in compliance
 with, the Linear Buddy End User License Agreement, available at
-https://github.com/[your-username]/linear-buddy/blob/main/EULA.md (the "EULA"),
+https://github.com/angelo-hub/linear-buddy/blob/main/EULA.md (the "EULA"),
 or other agreement governing the use of the Software, as agreed by you and
 Licensor, and otherwise have a valid subscription for the correct number of
 user seats for the applicable version of the Software (e.g., Linear Buddy Pro,

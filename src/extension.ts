@@ -12,14 +12,33 @@ import { CreateTicketPanel } from "./views/createTicketPanel";
 import { StandupBuilderPanel } from "./views/standupBuilderPanel";
 import { BranchAssociationManager } from "./utils/branchAssociationManager";
 import { getLogger } from "./utils/logger";
+import { getTelemetryManager } from "./utils/telemetryManager";
 
 export function activate(context: vscode.ExtensionContext) {
   // Initialize logger first
   const logger = getLogger();
   logger.info("Linear Buddy extension is now active");
-  
+
   // Add output channel to disposables
   context.subscriptions.push(logger.getOutputChannel());
+
+  // Initialize telemetry manager
+  const telemetryManager = getTelemetryManager();
+  telemetryManager.initialize(context);
+
+  // Show telemetry opt-in prompt after first-time setup
+  // Give user a chance to use the extension first before asking
+  setTimeout(async () => {
+    const config = vscode.workspace.getConfiguration("linearBuddy");
+    const showPrompt = config.get<boolean>("telemetry.showPrompt", true);
+
+    if (showPrompt && !(await telemetryManager.hasBeenAsked())) {
+      await telemetryManager.showOptInPrompt();
+    }
+  }, 10000); // Wait 10 seconds after activation
+
+  // Track activation
+  telemetryManager.trackEvent("extension_activated");
 
   // Initialize secure storage for Linear API token
   LinearClient.initializeSecretStorage(context.secrets);
@@ -214,7 +233,9 @@ export function activate(context: vscode.ExtensionContext) {
           : "No token found";
 
         vscode.window.showInformationMessage(
-          `Token Status: ${hasToken ? "✅ Found" : "❌ Not Found"}\n${tokenPreview}`,
+          `Token Status: ${
+            hasToken ? "✅ Found" : "❌ Not Found"
+          }\n${tokenPreview}`,
           {
             modal: true,
             detail: `Token length: ${token.length} characters`,
@@ -222,7 +243,9 @@ export function activate(context: vscode.ExtensionContext) {
         );
       } catch (error) {
         vscode.window.showErrorMessage(
-          `Debug error: ${error instanceof Error ? error.message : "Unknown error"}`
+          `Debug error: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`
         );
       }
     }),
@@ -344,11 +367,9 @@ export function activate(context: vscode.ExtensionContext) {
           }
 
           logger.debug(
-            `Showing ${
-              availableStates.length
-            } workflow states for ${fullIssue.identifier} (team: ${
-              fullIssue.team?.name || "default"
-            })`
+            `Showing ${availableStates.length} workflow states for ${
+              fullIssue.identifier
+            } (team: ${fullIssue.team?.name || "default"})`
           );
 
           // Create QuickPick items with icons based on state type
@@ -618,10 +639,7 @@ export function activate(context: vscode.ExtensionContext) {
                 `Checked out existing branch: ${branchName}`
               );
               // Associate the branch with the ticket
-              await branchManager.associateBranch(
-                issue.identifier,
-                branchName
-              );
+              await branchManager.associateBranch(issue.identifier, branchName);
             }
             return;
           }
@@ -695,68 +713,63 @@ export function activate(context: vscode.ExtensionContext) {
       }
     ),
 
-    vscode.commands.registerCommand(
-      "linearBuddy.openPR",
-      async (item: any) => {
-        const issue = item.issue as LinearIssue;
-        if (!issue) return;
+    vscode.commands.registerCommand("linearBuddy.openPR", async (item: any) => {
+      const issue = item.issue as LinearIssue;
+      if (!issue) return;
 
-        try {
-          // Find PR attachments (GitHub, GitLab, etc.)
-          const attachmentNodes = issue.attachments?.nodes || [];
-          const prAttachments = attachmentNodes.filter(
-            (att) =>
-              att.sourceType &&
-              (att.sourceType.toLowerCase().includes("github") ||
-                att.sourceType.toLowerCase().includes("gitlab") ||
-                att.sourceType.toLowerCase().includes("bitbucket"))
+      try {
+        // Find PR attachments (GitHub, GitLab, etc.)
+        const attachmentNodes = issue.attachments?.nodes || [];
+        const prAttachments = attachmentNodes.filter(
+          (att) =>
+            att.sourceType &&
+            (att.sourceType.toLowerCase().includes("github") ||
+              att.sourceType.toLowerCase().includes("gitlab") ||
+              att.sourceType.toLowerCase().includes("bitbucket"))
+        );
+
+        if (!prAttachments || prAttachments.length === 0) {
+          vscode.window.showInformationMessage(
+            `No pull requests found for ${issue.identifier}`
           );
-
-          if (!prAttachments || prAttachments.length === 0) {
-            vscode.window.showInformationMessage(
-              `No pull requests found for ${issue.identifier}`
-            );
-            return;
-          }
-
-          // If there's only one PR, open it directly
-          if (prAttachments.length === 1) {
-            const prUrl = prAttachments[0].url;
-            await vscode.env.openExternal(vscode.Uri.parse(prUrl));
-            vscode.window.showInformationMessage(
-              `Opening PR for ${issue.identifier}`
-            );
-            return;
-          }
-
-          // If there are multiple PRs, let user choose
-          const prOptions = prAttachments.map((pr) => ({
-            label: pr.title || "Pull Request",
-            description: pr.subtitle || pr.url,
-            url: pr.url,
-          }));
-
-          const selected = await vscode.window.showQuickPick(prOptions, {
-            placeHolder: "Select a pull request to open",
-            ignoreFocusOut: true,
-          });
-
-          if (selected) {
-            await vscode.env.openExternal(vscode.Uri.parse(selected.url));
-            vscode.window.showInformationMessage(
-              `Opening PR: ${selected.label}`
-            );
-          }
-        } catch (error) {
-          console.error("[Linear Buddy] Failed to open PR:", error);
-          vscode.window.showErrorMessage(
-            `Failed to open PR: ${
-              error instanceof Error ? error.message : "Unknown error"
-            }`
-          );
+          return;
         }
+
+        // If there's only one PR, open it directly
+        if (prAttachments.length === 1) {
+          const prUrl = prAttachments[0].url;
+          await vscode.env.openExternal(vscode.Uri.parse(prUrl));
+          vscode.window.showInformationMessage(
+            `Opening PR for ${issue.identifier}`
+          );
+          return;
+        }
+
+        // If there are multiple PRs, let user choose
+        const prOptions = prAttachments.map((pr) => ({
+          label: pr.title || "Pull Request",
+          description: pr.subtitle || pr.url,
+          url: pr.url,
+        }));
+
+        const selected = await vscode.window.showQuickPick(prOptions, {
+          placeHolder: "Select a pull request to open",
+          ignoreFocusOut: true,
+        });
+
+        if (selected) {
+          await vscode.env.openExternal(vscode.Uri.parse(selected.url));
+          vscode.window.showInformationMessage(`Opening PR: ${selected.label}`);
+        }
+      } catch (error) {
+        console.error("[Linear Buddy] Failed to open PR:", error);
+        vscode.window.showErrorMessage(
+          `Failed to open PR: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`
+        );
       }
-    ),
+    }),
 
     vscode.commands.registerCommand(
       "linearBuddy.checkoutBranch",
@@ -787,7 +800,7 @@ export function activate(context: vscode.ExtensionContext) {
         try {
           // Get all local branches
           const allBranches = await branchManager.getAllLocalBranches();
-          
+
           if (allBranches.length === 0) {
             vscode.window.showWarningMessage("No local branches found");
             return;
@@ -832,9 +845,15 @@ export function activate(context: vscode.ExtensionContext) {
           items.sort((a, b) => {
             if (a.branch === currentBranch) return -1;
             if (b.branch === currentBranch) return 1;
-            if (suggestions.includes(a.branch) && !suggestions.includes(b.branch))
+            if (
+              suggestions.includes(a.branch) &&
+              !suggestions.includes(b.branch)
+            )
               return -1;
-            if (suggestions.includes(b.branch) && !suggestions.includes(a.branch))
+            if (
+              suggestions.includes(b.branch) &&
+              !suggestions.includes(a.branch)
+            )
               return 1;
             return a.branch.localeCompare(b.branch);
           });
@@ -888,8 +907,9 @@ export function activate(context: vscode.ExtensionContext) {
       "linearBuddy.autoDetectBranches",
       async () => {
         try {
-          const detected = await branchManager.autoDetectAllBranchAssociations();
-          
+          const detected =
+            await branchManager.autoDetectAllBranchAssociations();
+
           if (detected.length === 0) {
             vscode.window.showInformationMessage(
               "No unassociated branches found matching ticket patterns."
@@ -902,11 +922,14 @@ export function activate(context: vscode.ExtensionContext) {
             message,
             {
               modal: true,
-              detail: detected
-                .slice(0, 5)
-                .map((d) => `${d.ticketId} → ${d.branchName}`)
-                .join("\n") +
-                (detected.length > 5 ? `\n... and ${detected.length - 5} more` : ""),
+              detail:
+                detected
+                  .slice(0, 5)
+                  .map((d) => `${d.ticketId} → ${d.branchName}`)
+                  .join("\n") +
+                (detected.length > 5
+                  ? `\n... and ${detected.length - 5} more`
+                  : ""),
             },
             "Associate All",
             "Review Each",
@@ -946,7 +969,10 @@ export function activate(context: vscode.ExtensionContext) {
             }
           }
         } catch (error) {
-          console.error("[Linear Buddy] Failed to auto-detect branches:", error);
+          console.error(
+            "[Linear Buddy] Failed to auto-detect branches:",
+            error
+          );
           vscode.window.showErrorMessage(
             `Failed to auto-detect branches: ${
               error instanceof Error ? error.message : "Unknown error"
@@ -1079,10 +1105,13 @@ export function activate(context: vscode.ExtensionContext) {
             });
           }
 
-          const choice = await vscode.window.showQuickPick(["Clean Up Stale", "View Details", "Cancel"], {
-            placeHolder: `Found ${totalSuggestions} issue(s). What would you like to do?`,
-            ignoreFocusOut: true,
-          });
+          const choice = await vscode.window.showQuickPick(
+            ["Clean Up Stale", "View Details", "Cancel"],
+            {
+              placeHolder: `Found ${totalSuggestions} issue(s). What would you like to do?`,
+              ignoreFocusOut: true,
+            }
+          );
 
           if (choice === "Clean Up Stale") {
             const removed = await branchManager.cleanupStaleAssociations();
@@ -1179,7 +1208,200 @@ export function activate(context: vscode.ExtensionContext) {
             break;
         }
       }
-    })
+    }),
+
+    // Telemetry Management Commands
+    vscode.commands.registerCommand("linearBuddy.manageTelemetry", async () => {
+      const stats = await telemetryManager.getTelemetryStats();
+      const isEnabled = telemetryManager.isEnabled();
+
+      const choice = await vscode.window.showQuickPick(
+        [
+          {
+            label: `$(${isEnabled ? "check" : "circle-slash"}) Telemetry: ${
+              isEnabled ? "Enabled" : "Disabled"
+            }`,
+            description: isEnabled
+              ? `Sending anonymous usage data • ${stats.trialExtensionDays} days Pro extension granted`
+              : "Not sharing usage data",
+            value: "toggle",
+          },
+          {
+            label: "$(info) What Data Do We Collect?",
+            description: "See exactly what telemetry data we collect",
+            value: "info",
+          },
+          {
+            label: "$(export) Export My Data",
+            description: "Download all your telemetry data (GDPR compliant)",
+            value: "export",
+          },
+          {
+            label: "$(trash) Delete My Data",
+            description: "Permanently delete all telemetry data",
+            value: "delete",
+          },
+          {
+            label: "$(graph) View Statistics",
+            description: `Events sent: ${stats.eventsSent} • Since: ${
+              stats.optInDate
+                ? new Date(stats.optInDate).toLocaleDateString()
+                : "N/A"
+            }`,
+            value: "stats",
+          },
+        ],
+        {
+          placeHolder: "Manage Telemetry Settings",
+          ignoreFocusOut: true,
+        }
+      );
+
+      if (choice) {
+        switch (choice.value) {
+          case "toggle":
+            if (isEnabled) {
+              await telemetryManager.disableTelemetry();
+            } else {
+              const confirm = await vscode.window.showInformationMessage(
+                "Enable telemetry to help improve Linear Buddy?\n\n" +
+                  "✓ Get 14 extra days of Pro features\n" +
+                  "✓ 100% anonymous data collection\n" +
+                  "✓ Helps us prioritize features",
+                { modal: true },
+                "Enable",
+                "Learn More"
+              );
+
+              if (confirm === "Enable") {
+                await telemetryManager.enableTelemetry(
+                  !stats.trialExtensionDays
+                );
+              } else if (confirm === "Learn More") {
+                await vscode.env.openExternal(
+                  vscode.Uri.parse(
+                    "https://github.com/yourusername/linear-buddy#telemetry"
+                  )
+                );
+              }
+            }
+            break;
+
+          case "info":
+            await vscode.window.showInformationMessage(
+              "Linear Buddy Telemetry Collection",
+              {
+                modal: true,
+                detail:
+                  "What we DO collect:\n" +
+                  "• Feature usage (which commands you use)\n" +
+                  "• Error types and counts\n" +
+                  "• Performance metrics (operation duration)\n" +
+                  "• Extension version and platform\n" +
+                  "• Anonymous user ID (random UUID)\n\n" +
+                  "What we DON'T collect:\n" +
+                  "• Your code or file contents\n" +
+                  "• File names or paths\n" +
+                  "• Personal information\n" +
+                  "• Linear API tokens\n" +
+                  "• Ticket content or descriptions\n" +
+                  "• Git commit messages or diffs\n\n" +
+                  "All data is anonymous and helps us build a better extension!",
+              },
+              "Got it"
+            );
+            break;
+
+          case "export":
+            await vscode.commands.executeCommand(
+              "linearBuddy.exportTelemetryData"
+            );
+            break;
+
+          case "delete":
+            await vscode.commands.executeCommand(
+              "linearBuddy.deleteTelemetryData"
+            );
+            break;
+
+          case "stats":
+            await vscode.window.showInformationMessage(
+              "Telemetry Statistics",
+              {
+                modal: true,
+                detail:
+                  `Status: ${stats.enabled ? "✅ Enabled" : "⭕ Disabled"}\n` +
+                  `Events Sent: ${stats.eventsSent}\n` +
+                  `Opt-in Date: ${
+                    stats.optInDate
+                      ? new Date(stats.optInDate).toLocaleString()
+                      : "N/A"
+                  }\n` +
+                  `Trial Extension: ${stats.trialExtensionDays} days granted\n\n` +
+                  `Thank you for helping us improve Linear Buddy! 🙏`,
+              },
+              "Close"
+            );
+            break;
+        }
+      }
+    }),
+
+    vscode.commands.registerCommand(
+      "linearBuddy.exportTelemetryData",
+      async () => {
+        try {
+          const data = await telemetryManager.exportUserData();
+
+          const uri = await vscode.window.showSaveDialog({
+            defaultUri: vscode.Uri.file("linear-buddy-telemetry-data.json"),
+            filters: {
+              "JSON Files": ["json"],
+              "All Files": ["*"],
+            },
+          });
+
+          if (uri) {
+            await vscode.workspace.fs.writeFile(uri, Buffer.from(data, "utf8"));
+
+            vscode.window.showInformationMessage(
+              `Telemetry data exported to ${uri.fsPath}`
+            );
+          }
+        } catch (error) {
+          logger.error("Failed to export telemetry data", error);
+          vscode.window.showErrorMessage(
+            `Failed to export telemetry data: ${
+              error instanceof Error ? error.message : "Unknown error"
+            }`
+          );
+        }
+      }
+    ),
+
+    vscode.commands.registerCommand(
+      "linearBuddy.deleteTelemetryData",
+      async () => {
+        const confirm = await vscode.window.showWarningMessage(
+          "Delete all your telemetry data?",
+          {
+            modal: true,
+            detail:
+              "This will:\n" +
+              "• Delete all local telemetry data\n" +
+              "• Reset your anonymous user ID\n" +
+              "• Disable telemetry collection\n\n" +
+              "Note: You'll need to contact support to delete data from our backend.",
+          },
+          "Delete All Data",
+          "Cancel"
+        );
+
+        if (confirm === "Delete All Data") {
+          await telemetryManager.deleteUserData();
+        }
+      }
+    )
   );
 
   logger.success("All features registered successfully");
@@ -1316,7 +1538,9 @@ async function showFAQ() {
 /**
  * Migrate API token from workspace configuration to secure storage
  */
-async function migrateApiTokenToSecureStorage(context: vscode.ExtensionContext) {
+async function migrateApiTokenToSecureStorage(
+  context: vscode.ExtensionContext
+) {
   const config = vscode.workspace.getConfiguration("linearBuddy");
   const oldToken = config.get<string>("linearApiToken", "");
 
@@ -1324,24 +1548,32 @@ async function migrateApiTokenToSecureStorage(context: vscode.ExtensionContext) 
   if (oldToken && oldToken.length > 0) {
     const logger = getLogger();
     logger.info("Migrating API token to secure storage");
-    
+
     // Check if token already exists in secure storage
     const existingToken = await LinearClient.getApiToken();
-    
+
     if (!existingToken) {
       // Migrate to secure storage
       await LinearClient.setApiToken(oldToken);
       logger.success("API token migrated successfully");
-      
+
       // Remove from old location
-      await config.update("linearApiToken", undefined, vscode.ConfigurationTarget.Global);
-      
+      await config.update(
+        "linearApiToken",
+        undefined,
+        vscode.ConfigurationTarget.Global
+      );
+
       vscode.window.showInformationMessage(
         "Linear API token has been migrated to secure storage for better security 🔐"
       );
     } else {
       // Token already exists in secure storage, just remove from old location
-      await config.update("linearApiToken", undefined, vscode.ConfigurationTarget.Global);
+      await config.update(
+        "linearApiToken",
+        undefined,
+        vscode.ConfigurationTarget.Global
+      );
     }
   }
 }
