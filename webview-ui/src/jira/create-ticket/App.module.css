@@ -1,0 +1,85 @@
+.container {
+  padding: 24px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 24px 0;
+  color: var(--vscode-foreground);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-weight: 500;
+  color: var(--vscode-foreground);
+  font-size: 13px;
+}
+
+.required {
+  color: var(--vscode-errorForeground);
+}
+
+.input,
+.select,
+.textarea {
+  padding: 8px;
+  background: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border);
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: var(--vscode-font-family);
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--vscode-focusBorder);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 12px;
+}
+
+.createButton {
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.createButton:hover:not(:disabled) {
+  background: var(--vscode-button-hoverBackground);
+}
+
+.createButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+

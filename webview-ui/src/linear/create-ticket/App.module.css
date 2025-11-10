@@ -1,0 +1,19 @@
+.container {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+  padding-bottom: 16px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--vscode-foreground);
+}
+

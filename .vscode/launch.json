@@ -14,6 +14,45 @@
       "preLaunchTask": "${defaultBuildTask}"
     },
     {
+      "name": "Run Extension (Linear Dev Mode)",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/out/**/*.js"
+      ],
+      "preLaunchTask": "${defaultBuildTask}",
+      "env": {
+        "DEV_MODE": "true",
+        "DEV_PROVIDER": "linear",
+        "DEV_LINEAR_API_TOKEN": "${env:DEV_LINEAR_API_TOKEN}",
+        "DEV_LINEAR_ORGANIZATION": "${env:DEV_LINEAR_ORGANIZATION}",
+        "DEV_DEBUG_MODE": "true"
+      }
+    },
+    {
+      "name": "Run Extension (Jira Dev Mode)",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/out/**/*.js"
+      ],
+      "preLaunchTask": "${defaultBuildTask}",
+      "env": {
+        "DEV_MODE": "true",
+        "DEV_PROVIDER": "jira",
+        "DEV_JIRA_SITE_URL": "${env:DEV_JIRA_SITE_URL}",
+        "DEV_JIRA_EMAIL": "${env:DEV_JIRA_EMAIL}",
+        "DEV_JIRA_API_TOKEN": "${env:DEV_JIRA_API_TOKEN}",
+        "DEV_DEBUG_MODE": "true"
+      }
+    },
+    {
       "name": "Run Extension (Fresh Install)",
       "type": "extensionHost",
       "request": "launch",
@@ -24,7 +63,7 @@
       "outFiles": [
         "${workspaceFolder}/out/**/*.js"
       ],
-      "preLaunchTask": "${defaultBuildTask}"
+      "preLaunchTask": "Build and Clean for Fresh Install"
     },
     {
       "name": "Run Extension with Walkthrough",

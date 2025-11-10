@@ -3,24 +3,49 @@ import { generatePRSummaryCommand } from "./commands/generatePRSummary";
 import { generateStandupCommand } from "./commands/generateStandup";
 import { convertTodoToTicket } from "./commands/convertTodoToTicket";
 import { TodoToTicketCodeActionProvider } from "./utils/todoCodeActionProvider";
-import { showFirstTimeSetup } from "./utils/firstTimeSetup";
-import { LinearTicketsProvider } from "./views/linearTicketsProvider";
-import { LinearBuddyChatParticipant } from "./chat/linearBuddyParticipant";
-import { LinearClient, LinearIssue } from "./utils/linearClient";
-import { LinearTicketPanel } from "./views/linearTicketPanel";
-import { CreateTicketPanel } from "./views/createTicketPanel";
-import { StandupBuilderPanel } from "./views/standupBuilderPanel";
-import { BranchAssociationManager } from "./utils/branchAssociationManager";
-import { getLogger } from "./utils/logger";
-import { getTelemetryManager } from "./utils/telemetryManager";
+import { showFirstTimeSetup } from "./providers/linear/firstTimeSetup";
+import { UniversalTicketsProvider } from "./shared/views/UniversalTicketsProvider";
+import { DevBuddyChatParticipant } from "./chat/devBuddyParticipant";
+import { LinearClient } from "./providers/linear/LinearClient";
+import { LinearIssue } from "./providers/linear/types";
+import { LinearTicketPanel } from "./providers/linear/LinearTicketPanel";
+import { CreateTicketPanel } from "./providers/linear/CreateTicketPanel";
+import { StandupBuilderPanel } from "./providers/linear/StandupBuilderPanel";
+import { BranchAssociationManager } from "./providers/linear/branchAssociationManager";
+import { getLogger } from "./shared/utils/logger";
+import { getTelemetryManager } from "./shared/utils/telemetryManager";
+import { loadDevCredentials, showDevModeWarning } from "./shared/utils/devEnvLoader";
+
+// Jira imports
+import { runJiraCloudSetup, testJiraCloudConnection, resetJiraCloudConfig, updateJiraCloudApiToken } from "./providers/jira/cloud/firstTimeSetup";
+import {
+  openJiraIssue,
+  refreshJiraIssues,
+  updateJiraIssueStatus,
+  assignJiraIssue,
+  addJiraComment,
+  copyJiraIssueUrl,
+  copyJiraIssueKey,
+  viewJiraIssueDetails,
+} from "./commands/jira/issueCommands";
+import { JiraIssue } from "./providers/jira/common/types";
+import { JiraTicketPanel } from "./providers/jira/cloud/JiraTicketPanel";
+import { JiraCreateTicketPanel } from "./providers/jira/cloud/JiraCreateTicketPanel";
+import { getCurrentPlatform } from "./shared/utils/platformDetector";
 
 export function activate(context: vscode.ExtensionContext) {
   // Initialize logger first
   const logger = getLogger();
-  logger.info("Linear Buddy extension is now active");
+  logger.info("DevBuddy extension is now active");
 
   // Add output channel to disposables
   context.subscriptions.push(logger.getOutputChannel());
+
+  // Load development credentials if in dev mode (before anything else)
+  loadDevCredentials(context).then(() => {
+    // Show dev mode warning banner
+    showDevModeWarning();
+  });
 
   // Initialize telemetry manager
   const telemetryManager = getTelemetryManager();
@@ -29,7 +54,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Show telemetry opt-in prompt after first-time setup
   // Give user a chance to use the extension first before asking
   setTimeout(async () => {
-    const config = vscode.workspace.getConfiguration("linearBuddy");
+    const config = vscode.workspace.getConfiguration("devBuddy");
     const showPrompt = config.get<boolean>("telemetry.showPrompt", true);
 
     if (showPrompt && !(await telemetryManager.hasBeenAsked())) {
@@ -43,42 +68,11 @@ export function activate(context: vscode.ExtensionContext) {
   // Initialize secure storage for Linear API token
   LinearClient.initializeSecretStorage(context.secrets);
 
-  // Migrate existing API token from settings to secure storage
-  migrateApiTokenToSecureStorage(context);
-
   // Initialize Branch Association Manager
   const branchManager = new BranchAssociationManager(context);
 
-  // Initialize Linear Tickets Tree View
-  const ticketsProvider = new LinearTicketsProvider(context);
-  const treeView = vscode.window.createTreeView("linearTickets", {
-    treeDataProvider: ticketsProvider,
-    showCollapseAll: false,
-  });
-  context.subscriptions.push(treeView);
-
-  // Trigger background refresh when the tree view becomes visible
-  treeView.onDidChangeVisibility((e) => {
-    if (e.visible) {
-      logger.debug("Tree view became visible, triggering background refresh");
-      ticketsProvider.refreshInBackground();
-    }
-  });
-
-  // Also trigger background refresh when tree view gains focus
-  context.subscriptions.push(
-    vscode.window.onDidChangeActiveTextEditor(() => {
-      // Check if tree view is visible and trigger refresh
-      if (treeView.visible) {
-        ticketsProvider.refreshInBackground();
-      }
-    })
-  );
-
-  // Show first-time setup if needed (with callback to refresh tree view)
-  showFirstTimeSetup(() => {
-    ticketsProvider.refresh();
-  });
+  // Show first-time setup if needed
+  showFirstTimeSetup();
 
   // Development mode: Auto-open walkthrough or help menu
   if (process.env.LINEARBUDDY_OPEN_WALKTHROUGH === "true") {
@@ -86,26 +80,39 @@ export function activate(context: vscode.ExtensionContext) {
     setTimeout(() => {
       vscode.commands.executeCommand(
         "workbench.action.openWalkthrough",
-        "personal.linear-buddy#linearBuddy.gettingStarted",
+        "personal.dev-buddy#devBuddy.gettingStarted",
         false
       );
     }, 1000);
   } else if (process.env.LINEARBUDDY_OPEN_HELP === "true") {
     // Give extension time to fully activate
     setTimeout(() => {
-      vscode.commands.executeCommand("linearBuddy.showHelp");
+      vscode.commands.executeCommand("devBuddy.showHelp");
     }, 1000);
   }
 
-  // Ensure provider is disposed
-  context.subscriptions.push({
-    dispose: () => {
-      ticketsProvider.dispose();
-    },
+  // ==================== Store Context Globally ====================
+  // Store globally so firstTimeSetup and clients can access it
+  (global as any).devBuddyContext = context;
+
+  // ==================== Initialize Universal Tickets Tree View ====================
+  const ticketsProvider = new UniversalTicketsProvider(context);
+  const treeView = vscode.window.createTreeView("myTickets", {
+    treeDataProvider: ticketsProvider,
+    showCollapseAll: true,
+  });
+  context.subscriptions.push(treeView);
+
+  // Trigger refresh when the tree view becomes visible
+  treeView.onDidChangeVisibility((e) => {
+    if (e.visible) {
+      logger.debug("Universal tree view became visible, triggering refresh");
+      ticketsProvider.refresh();
+    }
   });
 
   // Initialize Chat Participant
-  const chatParticipant = new LinearBuddyChatParticipant();
+  const chatParticipant = new DevBuddyChatParticipant();
   context.subscriptions.push(chatParticipant.register(context));
 
   // Register Code Action Provider for TODOs (lightbulb suggestions)
@@ -122,35 +129,35 @@ export function activate(context: vscode.ExtensionContext) {
   // Register existing commands
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "linearBuddy.generatePRSummary",
+      "devBuddy.generatePRSummary",
       generatePRSummaryCommand
     ),
     vscode.commands.registerCommand(
-      "linearBuddy.generateStandup",
+      "devBuddy.generateStandup",
       generateStandupCommand
     ),
-    vscode.commands.registerCommand("linearBuddy.openStandupBuilder", () => {
+    vscode.commands.registerCommand("devBuddy.openStandupBuilder", () => {
       StandupBuilderPanel.createOrShow(context.extensionUri);
     }),
-    vscode.commands.registerCommand("linearBuddy.createTicket", () => {
+    vscode.commands.registerCommand("devBuddy.createTicket", () => {
       CreateTicketPanel.createOrShow(context.extensionUri);
     }),
 
     // Beta: Convert TODO to Linear Ticket
     vscode.commands.registerCommand(
-      "linearBuddy.convertTodoToTicket",
+      "devBuddy.convertTodoToTicket",
       convertTodoToTicket
     )
   );
 
   // Register new Linear commands
   context.subscriptions.push(
-    vscode.commands.registerCommand("linearBuddy.refreshTickets", () => {
+    vscode.commands.registerCommand("devBuddy.refreshTickets", () => {
       ticketsProvider.refresh();
     }),
 
     vscode.commands.registerCommand(
-      "linearBuddy.openTicket",
+      "devBuddy.openTicket",
       async (issue: LinearIssue) => {
         if (issue && issue.id) {
           // Open in webview panel instead of browser
@@ -164,7 +171,7 @@ export function activate(context: vscode.ExtensionContext) {
     ),
 
     vscode.commands.registerCommand(
-      "linearBuddy.startWork",
+      "devBuddy.startWork",
       async (item: any) => {
         const issue = item.issue as LinearIssue;
         if (!issue) return;
@@ -196,7 +203,7 @@ export function activate(context: vscode.ExtensionContext) {
     ),
 
     vscode.commands.registerCommand(
-      "linearBuddy.completeTicket",
+      "devBuddy.completeTicket",
       async (item: any) => {
         const issue = item.issue as LinearIssue;
         if (!issue) return;
@@ -224,7 +231,7 @@ export function activate(context: vscode.ExtensionContext) {
       }
     ),
 
-    vscode.commands.registerCommand("linearBuddy.debugToken", async () => {
+    vscode.commands.registerCommand("devBuddy.debugToken", async () => {
       try {
         const token = await LinearClient.getApiToken();
         const hasToken = token && token.length > 0;
@@ -251,9 +258,9 @@ export function activate(context: vscode.ExtensionContext) {
     }),
 
     vscode.commands.registerCommand(
-      "linearBuddy.configureLinearToken",
+      "devBuddy.configureLinearToken",
       async () => {
-        const config = vscode.workspace.getConfiguration("linearBuddy");
+        const config = vscode.workspace.getConfiguration("devBuddy");
         let org = config.get<string>("linearOrganization");
 
         // If no organization stored, ask for a Linear URL first
@@ -340,7 +347,7 @@ export function activate(context: vscode.ExtensionContext) {
     ),
 
     vscode.commands.registerCommand(
-      "linearBuddy.changeTicketStatus",
+      "devBuddy.changeTicketStatus",
       async (item: any) => {
         const issue = item.issue as LinearIssue;
         if (!issue) return;
@@ -441,7 +448,7 @@ export function activate(context: vscode.ExtensionContext) {
             );
           }
         } catch (error) {
-          console.error("[Linear Buddy] Failed to change status:", error);
+          console.error("[DevBuddy] Failed to change status:", error);
           vscode.window.showErrorMessage(
             `Failed to change status: ${
               error instanceof Error ? error.message : "Unknown error"
@@ -452,7 +459,7 @@ export function activate(context: vscode.ExtensionContext) {
     ),
 
     vscode.commands.registerCommand(
-      "linearBuddy.startBranch",
+      "devBuddy.startBranch",
       async (item: any) => {
         const issue = item.issue as LinearIssue;
         if (!issue) return;
@@ -537,7 +544,7 @@ export function activate(context: vscode.ExtensionContext) {
           }
 
           // Generate default branch name based on convention
-          const config = vscode.workspace.getConfiguration("linearBuddy");
+          const config = vscode.workspace.getConfiguration("devBuddy");
           const convention = config.get<string>(
             "branchNamingConvention",
             "conventional"
@@ -703,7 +710,7 @@ export function activate(context: vscode.ExtensionContext) {
             }
           }
         } catch (error) {
-          console.error("[Linear Buddy] Failed to create branch:", error);
+          console.error("[DevBuddy] Failed to create branch:", error);
           vscode.window.showErrorMessage(
             `Failed to create branch: ${
               error instanceof Error ? error.message : "Unknown error"
@@ -713,7 +720,7 @@ export function activate(context: vscode.ExtensionContext) {
       }
     ),
 
-    vscode.commands.registerCommand("linearBuddy.openPR", async (item: any) => {
+    vscode.commands.registerCommand("devBuddy.openPR", async (item: any) => {
       const issue = item.issue as LinearIssue;
       if (!issue) return;
 
@@ -762,7 +769,7 @@ export function activate(context: vscode.ExtensionContext) {
           vscode.window.showInformationMessage(`Opening PR: ${selected.label}`);
         }
       } catch (error) {
-        console.error("[Linear Buddy] Failed to open PR:", error);
+        console.error("[DevBuddy] Failed to open PR:", error);
         vscode.window.showErrorMessage(
           `Failed to open PR: ${
             error instanceof Error ? error.message : "Unknown error"
@@ -772,7 +779,7 @@ export function activate(context: vscode.ExtensionContext) {
     }),
 
     vscode.commands.registerCommand(
-      "linearBuddy.checkoutBranch",
+      "devBuddy.checkoutBranch",
       async (item: any) => {
         const issue = item.issue as LinearIssue;
         if (!issue) return;
@@ -781,7 +788,7 @@ export function activate(context: vscode.ExtensionContext) {
           await branchManager.checkoutBranch(issue.identifier);
           ticketsProvider.refresh();
         } catch (error) {
-          console.error("[Linear Buddy] Failed to checkout branch:", error);
+          console.error("[DevBuddy] Failed to checkout branch:", error);
           vscode.window.showErrorMessage(
             `Failed to checkout branch: ${
               error instanceof Error ? error.message : "Unknown error"
@@ -792,7 +799,7 @@ export function activate(context: vscode.ExtensionContext) {
     ),
 
     vscode.commands.registerCommand(
-      "linearBuddy.associateBranchFromSidebar",
+      "devBuddy.associateBranchFromSidebar",
       async (item: any) => {
         const issue = item.issue as LinearIssue;
         if (!issue) return;
@@ -893,7 +900,7 @@ export function activate(context: vscode.ExtensionContext) {
           quickPick.onDidHide(() => quickPick.dispose());
           quickPick.show();
         } catch (error) {
-          console.error("[Linear Buddy] Failed to associate branch:", error);
+          console.error("[DevBuddy] Failed to associate branch:", error);
           vscode.window.showErrorMessage(
             `Failed to associate branch: ${
               error instanceof Error ? error.message : "Unknown error"
@@ -904,7 +911,7 @@ export function activate(context: vscode.ExtensionContext) {
     ),
 
     vscode.commands.registerCommand(
-      "linearBuddy.autoDetectBranches",
+      "devBuddy.autoDetectBranches",
       async () => {
         try {
           const detected =
@@ -970,7 +977,7 @@ export function activate(context: vscode.ExtensionContext) {
           }
         } catch (error) {
           console.error(
-            "[Linear Buddy] Failed to auto-detect branches:",
+            "[DevBuddy] Failed to auto-detect branches:",
             error
           );
           vscode.window.showErrorMessage(
@@ -983,7 +990,7 @@ export function activate(context: vscode.ExtensionContext) {
     ),
 
     vscode.commands.registerCommand(
-      "linearBuddy.showBranchAnalytics",
+      "devBuddy.showBranchAnalytics",
       async () => {
         try {
           const analytics = await branchManager.getBranchAnalytics();
@@ -1034,7 +1041,7 @@ export function activate(context: vscode.ExtensionContext) {
             ignoreFocusOut: true,
           });
         } catch (error) {
-          console.error("[Linear Buddy] Failed to show analytics:", error);
+          console.error("[DevBuddy] Failed to show analytics:", error);
           vscode.window.showErrorMessage(
             `Failed to show analytics: ${
               error instanceof Error ? error.message : "Unknown error"
@@ -1045,7 +1052,7 @@ export function activate(context: vscode.ExtensionContext) {
     ),
 
     vscode.commands.registerCommand(
-      "linearBuddy.cleanupBranchAssociations",
+      "devBuddy.cleanupBranchAssociations",
       async () => {
         try {
           const suggestions = await branchManager.getCleanupSuggestions();
@@ -1126,7 +1133,7 @@ export function activate(context: vscode.ExtensionContext) {
             });
           }
         } catch (error) {
-          console.error("[Linear Buddy] Failed to cleanup:", error);
+          console.error("[DevBuddy] Failed to cleanup:", error);
           vscode.window.showErrorMessage(
             `Failed to cleanup: ${
               error instanceof Error ? error.message : "Unknown error"
@@ -1136,7 +1143,7 @@ export function activate(context: vscode.ExtensionContext) {
       }
     ),
 
-    vscode.commands.registerCommand("linearBuddy.showHelp", async () => {
+    vscode.commands.registerCommand("devBuddy.showHelp", async () => {
       const choice = await vscode.window.showQuickPick(
         [
           {
@@ -1176,7 +1183,7 @@ export function activate(context: vscode.ExtensionContext) {
           case "walkthrough":
             await vscode.commands.executeCommand(
               "workbench.action.openWalkthrough",
-              "personal.linear-buddy#linearBuddy.gettingStarted",
+              "personal.dev-buddy#devBuddy.gettingStarted",
               false
             );
             break;
@@ -1195,7 +1202,7 @@ export function activate(context: vscode.ExtensionContext) {
           case "config":
             await vscode.commands.executeCommand(
               "workbench.action.openSettings",
-              "linearBuddy"
+              "devBuddy"
             );
             break;
 
@@ -1211,7 +1218,7 @@ export function activate(context: vscode.ExtensionContext) {
     }),
 
     // Telemetry Management Commands
-    vscode.commands.registerCommand("linearBuddy.manageTelemetry", async () => {
+    vscode.commands.registerCommand("devBuddy.manageTelemetry", async () => {
       const stats = await telemetryManager.getTelemetryStats();
       const isEnabled = telemetryManager.isEnabled();
 
@@ -1264,7 +1271,7 @@ export function activate(context: vscode.ExtensionContext) {
               await telemetryManager.disableTelemetry();
             } else {
               const confirm = await vscode.window.showInformationMessage(
-                "Enable telemetry to help improve Linear Buddy?\n\n" +
+                "Enable telemetry to help improve DevBuddy?\n\n" +
                   "✓ Get 14 extra days of Pro features\n" +
                   "✓ 100% anonymous data collection\n" +
                   "✓ Helps us prioritize features",
@@ -1289,7 +1296,7 @@ export function activate(context: vscode.ExtensionContext) {
 
           case "info":
             await vscode.window.showInformationMessage(
-              "Linear Buddy Telemetry Collection",
+              "DevBuddy Telemetry Collection",
               {
                 modal: true,
                 detail:
@@ -1314,13 +1321,13 @@ export function activate(context: vscode.ExtensionContext) {
 
           case "export":
             await vscode.commands.executeCommand(
-              "linearBuddy.exportTelemetryData"
+              "devBuddy.exportTelemetryData"
             );
             break;
 
           case "delete":
             await vscode.commands.executeCommand(
-              "linearBuddy.deleteTelemetryData"
+              "devBuddy.deleteTelemetryData"
             );
             break;
 
@@ -1338,7 +1345,7 @@ export function activate(context: vscode.ExtensionContext) {
                       : "N/A"
                   }\n` +
                   `Trial Extension: ${stats.trialExtensionDays} days granted\n\n` +
-                  `Thank you for helping us improve Linear Buddy! 🙏`,
+                  `Thank you for helping us improve DevBuddy! 🙏`,
               },
               "Close"
             );
@@ -1348,7 +1355,7 @@ export function activate(context: vscode.ExtensionContext) {
     }),
 
     vscode.commands.registerCommand(
-      "linearBuddy.exportTelemetryData",
+      "devBuddy.exportTelemetryData",
       async () => {
         try {
           const data = await telemetryManager.exportUserData();
@@ -1380,7 +1387,7 @@ export function activate(context: vscode.ExtensionContext) {
     ),
 
     vscode.commands.registerCommand(
-      "linearBuddy.deleteTelemetryData",
+      "devBuddy.deleteTelemetryData",
       async () => {
         const confirm = await vscode.window.showWarningMessage(
           "Delete all your telemetry data?",
@@ -1404,6 +1411,94 @@ export function activate(context: vscode.ExtensionContext) {
     )
   );
 
+  // ==================== Register Jira Commands ====================
+  context.subscriptions.push(
+    // Jira Configuration Commands
+    vscode.commands.registerCommand("devBuddy.jira.setup", async () => {
+      // Alias for setupCloud - provides a simpler command name for first-time setup
+      const success = await runJiraCloudSetup(context);
+      if (success) {
+        ticketsProvider.refresh();
+      }
+    }),
+
+    vscode.commands.registerCommand("devBuddy.jira.setupCloud", async () => {
+      const success = await runJiraCloudSetup(context);
+      if (success) {
+        ticketsProvider.refresh();
+      }
+    }),
+
+    vscode.commands.registerCommand("devBuddy.jira.testConnection", async () => {
+      await testJiraCloudConnection(context);
+    }),
+
+    vscode.commands.registerCommand("devBuddy.jira.resetConfig", async () => {
+      await resetJiraCloudConfig(context);
+      ticketsProvider.refresh();
+    }),
+
+    vscode.commands.registerCommand("devBuddy.jira.updateToken", async () => {
+      await updateJiraCloudApiToken(context);
+    }),
+
+    // Jira Issue Commands
+    vscode.commands.registerCommand("devBuddy.jira.refreshIssues", () => {
+      ticketsProvider.refresh();
+    }),
+
+    vscode.commands.registerCommand("devBuddy.jira.openIssue", async (issue?: JiraIssue) => {
+      await openJiraIssue(issue);
+    }),
+
+    vscode.commands.registerCommand("devBuddy.jira.viewIssueDetails", async (item: any) => {
+      const issue = item?.issue as JiraIssue;
+      if (issue) {
+        // Open in webview panel
+        await JiraTicketPanel.createOrShow(context.extensionUri, context, issue);
+      }
+    }),
+
+    vscode.commands.registerCommand("devBuddy.jira.createIssue", async () => {
+      await JiraCreateTicketPanel.createOrShow(context.extensionUri);
+    }),
+
+    vscode.commands.registerCommand("devBuddy.jira.updateStatus", async (item: any) => {
+      const issue = item?.issue as JiraIssue;
+      if (issue) {
+        await updateJiraIssueStatus(issue);
+      }
+    }),
+
+    vscode.commands.registerCommand("devBuddy.jira.assignIssue", async (item: any) => {
+      const issue = item?.issue as JiraIssue;
+      if (issue) {
+        await assignJiraIssue(issue);
+      }
+    }),
+
+    vscode.commands.registerCommand("devBuddy.jira.addComment", async (item: any) => {
+      const issue = item?.issue as JiraIssue;
+      if (issue) {
+        await addJiraComment(issue);
+      }
+    }),
+
+    vscode.commands.registerCommand("devBuddy.jira.copyUrl", async (item: any) => {
+      const issue = item?.issue as JiraIssue;
+      if (issue) {
+        await copyJiraIssueUrl(issue);
+      }
+    }),
+
+    vscode.commands.registerCommand("devBuddy.jira.copyKey", async (item: any) => {
+      const issue = item?.issue as JiraIssue;
+      if (issue) {
+        await copyJiraIssueKey(issue);
+      }
+    })
+  );
+
   logger.success("All features registered successfully");
 }
 
@@ -1417,19 +1512,19 @@ async function showKeyboardShortcuts() {
       kind: vscode.QuickPickItemKind.Separator,
     },
     {
-      label: "Linear Buddy: Generate PR Summary",
+      label: "DevBuddy: Generate PR Summary",
       description: "Cmd/Ctrl+Shift+P → type 'PR Summary'",
     },
     {
-      label: "Linear Buddy: Generate Standup",
+      label: "DevBuddy: Generate Standup",
       description: "Cmd/Ctrl+Shift+P → type 'Standup'",
     },
     {
-      label: "Linear Buddy: Create New Ticket",
+      label: "DevBuddy: Create New Ticket",
       description: "Cmd/Ctrl+Shift+P → type 'Create Ticket'",
     },
     {
-      label: "Linear Buddy: Convert TODO to Ticket",
+      label: "DevBuddy: Convert TODO to Ticket",
       description: "Select TODO → Right-click or Lightbulb",
     },
     {
@@ -1481,7 +1576,7 @@ async function showFAQ() {
       label: "$(question) How do I get a Linear API key?",
       description: "Click to see answer",
       detail:
-        "Run 'Linear Buddy: Configure Linear Token' from the command palette. We'll guide you through getting your API key from Linear's settings.",
+        "Run 'DevBuddy: Configure Linear Token' from the command palette. We'll guide you through getting your API key from Linear's settings.",
     },
     {
       label: "$(question) Why aren't my tickets showing up?",
@@ -1493,13 +1588,13 @@ async function showFAQ() {
       label: "$(question) Can I use this with multiple Linear workspaces?",
       description: "Click to see answer",
       detail:
-        "Currently, Linear Buddy supports one workspace at a time. You can switch workspaces by updating your API key in settings.",
+        "Currently, DevBuddy supports one workspace at a time. You can switch workspaces by updating your API key in settings.",
     },
     {
       label: "$(question) How do I customize branch naming?",
       description: "Click to see answer",
       detail:
-        "Go to Settings → Linear Buddy → Branch Naming Convention. Choose from:\n- Conventional (feat/eng-123-title)\n- Simple (eng-123-title)\n- Custom (define your own template)",
+        "Go to Settings → DevBuddy → Branch Naming Convention. Choose from:\n- Conventional (feat/eng-123-title)\n- Simple (eng-123-title)\n- Custom (define your own template)",
     },
     {
       label: "$(question) Is my API key secure?",
@@ -1511,7 +1606,7 @@ async function showFAQ() {
       label: "$(question) Can I change the AI model used for summaries?",
       description: "Click to see answer",
       detail:
-        "Yes! Go to Settings → Linear Buddy → AI Model. You can choose from various GitHub Copilot models including GPT-4, GPT-4 Turbo, and more. The 'auto' setting automatically uses the best available model.",
+        "Yes! Go to Settings → DevBuddy → AI Model. You can choose from various GitHub Copilot models including GPT-4, GPT-4 Turbo, and more. The 'auto' setting automatically uses the best available model.",
     },
     {
       label: "$(question) How do I report a bug or request a feature?",
@@ -1532,49 +1627,6 @@ async function showFAQ() {
       modal: true,
       detail: selected.detail,
     });
-  }
-}
-
-/**
- * Migrate API token from workspace configuration to secure storage
- */
-async function migrateApiTokenToSecureStorage(
-  context: vscode.ExtensionContext
-) {
-  const config = vscode.workspace.getConfiguration("linearBuddy");
-  const oldToken = config.get<string>("linearApiToken", "");
-
-  // Check if there's a token in the old storage location
-  if (oldToken && oldToken.length > 0) {
-    const logger = getLogger();
-    logger.info("Migrating API token to secure storage");
-
-    // Check if token already exists in secure storage
-    const existingToken = await LinearClient.getApiToken();
-
-    if (!existingToken) {
-      // Migrate to secure storage
-      await LinearClient.setApiToken(oldToken);
-      logger.success("API token migrated successfully");
-
-      // Remove from old location
-      await config.update(
-        "linearApiToken",
-        undefined,
-        vscode.ConfigurationTarget.Global
-      );
-
-      vscode.window.showInformationMessage(
-        "Linear API token has been migrated to secure storage for better security 🔐"
-      );
-    } else {
-      // Token already exists in secure storage, just remove from old location
-      await config.update(
-        "linearApiToken",
-        undefined,
-        vscode.ConfigurationTarget.Global
-      );
-    }
   }
 }
 

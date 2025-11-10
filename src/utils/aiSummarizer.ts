@@ -31,7 +31,7 @@ export class AISummarizer {
   }
 
   private loadConfiguration() {
-    const config = vscode.workspace.getConfiguration("linearBuddy");
+    const config = vscode.workspace.getConfiguration("devBuddy");
     
     // Check if AI is completely disabled (for sensitive organizations)
     this.aiDisabled = config.get<boolean>("ai.disabled", false);
@@ -384,7 +384,7 @@ Provide only the next steps, no explanations.`;
   }
 
   private buildPRSummaryPrompt(request: AISummaryRequest): string {
-    const config = vscode.workspace.getConfiguration("linearBuddy");
+    const config = vscode.workspace.getConfiguration("devBuddy");
     const tone = config.get<string>("writingTone", "professional");
 
     const toneInstructions = this.getToneInstructions(tone);
@@ -434,7 +434,7 @@ Output ONLY the bullets, starting with "-" or a relevant emoji. No preamble or c
   }
 
   private buildStandupSummaryPrompt(request: AISummaryRequest): string {
-    const config = vscode.workspace.getConfiguration("linearBuddy");
+    const config = vscode.workspace.getConfiguration("devBuddy");
     const tone = config.get<string>("writingTone", "professional");
 
     const toneInstructions = this.getToneInstructions(tone, true);

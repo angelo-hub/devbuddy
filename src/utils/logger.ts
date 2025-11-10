@@ -15,7 +15,7 @@ export class Logger {
 
     // Listen for configuration changes
     vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration("linearBuddy.debugMode")) {
+      if (e.affectsConfiguration("devBuddy.debugMode")) {
         this.loadDebugMode();
       }
     });
@@ -35,7 +35,7 @@ export class Logger {
    * Load debug mode setting from configuration
    */
   private loadDebugMode() {
-    const config = vscode.workspace.getConfiguration("linearBuddy");
+    const config = vscode.workspace.getConfiguration("devBuddy");
     this.debugMode = config.get<boolean>("debugMode", false);
     
     if (this.debugMode) {

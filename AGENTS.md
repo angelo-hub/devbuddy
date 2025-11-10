@@ -62,24 +62,36 @@ src/
 │   ├── generatePRSummary.ts        # PR summary generation with monorepo support
 │   ├── generateStandup.ts          # Standup update generation
 │   └── convertTodoToTicket.ts      # TODO to Linear ticket with permalinks
-├── utils/                          # Utility modules
-│   ├── aiSummarizer.ts             # AI summarization via VS Code LM API
-│   ├── fallbackSummarizer.ts       # Rule-based analysis (no AI required)
-│   ├── linearClient.ts             # Linear GraphQL API client
-│   ├── gitAnalyzer.ts              # Git operations and commit analysis
-│   ├── gitPermalinkGenerator.ts    # GitHub/GitLab/Bitbucket permalink generation
-│   ├── packageDetector.ts          # Monorepo package detection
-│   ├── branchAssociationManager.ts # Ticket-branch association tracking
-│   ├── templateParser.ts           # PR template parsing
-│   ├── linkFormatter.ts            # Link format (Slack/Markdown/Plain)
-│   ├── todoCodeActionProvider.ts   # Code actions for TODO comments
-│   ├── firstTimeSetup.ts           # Onboarding flow
-│   └── logger.ts                   # Centralized logging with debug mode
-├── views/                          # Tree view providers (sidebar)
-│   ├── linearTicketsProvider.ts    # Main tickets tree view provider
-│   ├── linearTicketPanel.ts        # Webview panel for ticket details
-│   ├── createTicketPanel.ts        # Webview panel for creating tickets
-│   └── standupBuilderPanel.ts      # Webview panel for standup builder
+├── shared/                         # Shared utilities across all platforms
+│   ├── base/                       # Base abstractions for multi-platform support
+│   │   ├── BaseTicketProvider.ts   # Abstract ticket provider interface
+│   │   ├── BaseTreeViewProvider.ts # Abstract tree view pattern
+│   │   └── BaseTicketPanel.ts      # Abstract webview panel pattern
+│   ├── git/                        # Git-related utilities
+│   │   ├── gitAnalyzer.ts          # Git operations and commit analysis
+│   │   └── gitPermalinkGenerator.ts # GitHub/GitLab/Bitbucket permalink generation
+│   ├── ai/                         # AI-related utilities
+│   │   ├── aiSummarizer.ts         # AI summarization via VS Code LM API
+│   │   └── fallbackSummarizer.ts   # Rule-based analysis (no AI required)
+│   └── utils/                      # General utilities
+│       ├── logger.ts               # Centralized logging with debug mode
+│       ├── packageDetector.ts      # Monorepo package detection
+│       ├── templateParser.ts       # PR template parsing
+│       ├── linkFormatter.ts        # Link format (Slack/Markdown/Plain)
+│       ├── telemetryManager.ts     # Telemetry management
+│       └── platformDetector.ts     # Platform detection utility
+├── providers/                      # Platform-specific implementations
+│   └── linear/                     # Linear provider implementation
+│       ├── LinearClient.ts         # Linear GraphQL API client (extends BaseTicketProvider)
+│       ├── types.ts                # Linear-specific type definitions
+│       ├── LinearTicketsProvider.ts # Linear tickets tree view provider
+│       ├── LinearTicketPanel.ts    # Linear ticket detail webview panel
+│       ├── CreateTicketPanel.ts    # Linear ticket creation panel
+│       ├── StandupBuilderPanel.ts  # Linear standup builder panel
+│       ├── branchAssociationManager.ts # Branch-ticket association tracking
+│       └── firstTimeSetup.ts       # Linear onboarding flow
+├── utils/                          # Legacy utilities (being phased out)
+│   └── todoCodeActionProvider.ts   # Code actions for TODO comments
 └── chat/
     └── linearBuddyParticipant.ts   # Chat participant (@linear)
 
@@ -98,38 +110,39 @@ webview-ui/
     │   │   └── useVSCode.ts        # Hook for VS Code API communication
     │   └── types/
     │       └── messages.ts         # Message protocol types
-    ├── standup-builder/            # Standup builder webview app
-    │   ├── App.tsx                 # Main app component
-    │   ├── components/             # Feature components
-    │   │   ├── ModeSelector.tsx    # Mode selection (Single/Multi/Custom)
-    │   │   ├── TicketSelector.tsx  # Ticket picker
-    │   │   ├── StandupForm.tsx     # Standup options form
-    │   │   ├── CommitsAndFiles.tsx # Git changes viewer
-    │   │   ├── ProgressIndicator.tsx # Loading/progress state
-    │   │   └── ResultsDisplay.tsx  # Generated standup display
-    │   └── index.tsx               # Entry point
-    ├── ticket-panel/               # Ticket detail webview app
-    │   ├── App.tsx                 # Main app component
-    │   ├── components/             # Feature components
-    │   │   ├── TicketHeader.tsx    # Ticket identifier and title
-    │   │   ├── TicketDescription.tsx # Ticket description with markdown
-    │   │   ├── TicketMetadata.tsx  # Priority, estimate, dates
-    │   │   ├── TicketLabels.tsx    # Labels/tags
-    │   │   ├── StatusSelector.tsx  # Status dropdown
-    │   │   ├── AssigneeSelector.tsx # Assignee picker
-    │   │   ├── Comments.tsx        # Comment thread
-    │   │   ├── CommentForm.tsx     # Add comment form
-    │   │   ├── SubIssues.tsx       # Sub-issues list
-    │   │   ├── AttachedPRs.tsx     # Linked pull requests
-    │   │   ├── BranchManager.tsx   # Branch associations
-    │   │   ├── ActionButtons.tsx   # Primary actions
-    │   │   └── ShareButton.tsx     # Copy link functionality
-    │   └── index.tsx               # Entry point
-    └── create-ticket/              # Create ticket webview app
-        ├── App.tsx                 # Main app component
-        ├── components/
-        │   └── TicketForm.tsx      # Ticket creation form
-        └── index.tsx               # Entry point
+    └── linear/                     # Linear platform webview apps
+        ├── standup-builder/        # Standup builder webview app
+        │   ├── App.tsx             # Main app component
+        │   ├── components/         # Feature components
+        │   │   ├── ModeSelector.tsx # Mode selection (Single/Multi/Custom)
+        │   │   ├── TicketSelector.tsx # Ticket picker
+        │   │   ├── StandupForm.tsx # Standup options form
+        │   │   ├── CommitsAndFiles.tsx # Git changes viewer
+        │   │   ├── ProgressIndicator.tsx # Loading/progress state
+        │   │   └── ResultsDisplay.tsx # Generated standup display
+        │   └── index.tsx           # Entry point
+        ├── ticket-panel/           # Ticket detail webview app
+        │   ├── App.tsx             # Main app component
+        │   ├── components/         # Feature components
+        │   │   ├── TicketHeader.tsx # Ticket identifier and title
+        │   │   ├── TicketDescription.tsx # Ticket description with markdown
+        │   │   ├── TicketMetadata.tsx # Priority, estimate, dates
+        │   │   ├── TicketLabels.tsx # Labels/tags
+        │   │   ├── StatusSelector.tsx # Status dropdown
+        │   │   ├── AssigneeSelector.tsx # Assignee picker
+        │   │   ├── Comments.tsx    # Comment thread
+        │   │   ├── CommentForm.tsx # Add comment form
+        │   │   ├── SubIssues.tsx   # Sub-issues list
+        │   │   ├── AttachedPRs.tsx # Linked pull requests
+        │   │   ├── BranchManager.tsx # Branch associations
+        │   │   ├── ActionButtons.tsx # Primary actions
+        │   │   └── ShareButton.tsx # Copy link functionality
+        │   └── index.tsx           # Entry point
+        └── create-ticket/          # Create ticket webview app
+            ├── App.tsx             # Main app component
+            ├── components/
+            │   └── TicketForm.tsx  # Ticket creation form
+            └── index.tsx           # Entry point
 
 docs/                               # Documentation
 ├── features/                       # Feature-specific docs
@@ -151,7 +164,27 @@ docs/                               # Documentation
 
 ### Core Architectural Patterns
 
-**1. Extension Activation Pattern**
+**1. Multi-Platform Architecture (Phase 1 Complete)**
+
+Linear Buddy has been refactored to support multiple ticketing platforms in the future. The architecture follows these principles:
+
+- **Shared Infrastructure**: Common utilities (git, AI, logging) are platform-agnostic
+- **Base Abstractions**: `BaseTicketProvider`, `BaseTreeViewProvider`, and `BaseTicketPanel` define the contract for any platform
+- **Platform-Specific Implementations**: Each platform (currently only Linear) implements the base abstractions
+- **Platform Detection**: `platformDetector.ts` utility enables future multi-platform switching
+- **Separated Concerns**: Linear-specific code is isolated in `src/providers/linear/`
+
+**Current State (Phase 1)**:
+- Linear is fully functional with all existing features preserved
+- Architecture ready for Jira support (Phase 2)
+- Zero regressions from the refactor
+
+**Future Expansion (Phase 2+)**:
+- Jira support via `src/providers/jira/`
+- Platform selection via configuration
+- Shared components reused across platforms
+
+**2. Extension Activation Pattern**
 
 - Single activation point in `src/extension.ts`
 - All services initialized on `onStartupFinished` activation event
@@ -228,7 +261,6 @@ fallbackSummarizer.ts → No external AI
   - Create issues with all metadata
   - Add comments
   - Fetch teams, projects, labels, users
-- Automatic token migration from old config storage
 - GraphQL queries with efficient field selection
 
 **6. Branch Association Pattern**

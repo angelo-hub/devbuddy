@@ -1,21 +1,46 @@
-# Linear Buddy - AI-Powered Linear Integration
+# DevBuddy - Multi-Platform Ticket Management for Developers
 
-**Transform your Linear workflow with AI assistance, sidebar ticket management, and chat integration!**
+[![Version](https://img.shields.io/github/v/release/angelogirardi/developer-buddy?label=version)](https://github.com/angelogirardi/developer-buddy/releases)
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/personal.dev-buddy)](https://marketplace.visualstudio.com/items?itemName=personal.dev-buddy)
+[![Downloads](https://img.shields.io/visual-studio-marketplace/d/personal.dev-buddy)](https://marketplace.visualstudio.com/items?itemName=personal.dev-buddy)
+[![License](https://img.shields.io/github/license/angelogirardi/developer-buddy)](./LICENSE)
+
+**Transform your development workflow with AI-powered ticket management, supporting Linear, Jira, and more!**
 
 > **🔒 Privacy-First:** Works with or without AI! Organizations with strict security policies can disable external AI and use intelligent rule-based analysis instead.
 
+> **🌐 Multi-Platform:** Seamlessly switch between Linear, Jira Cloud, and other platforms (more coming soon).
+
+## 🎯 Supported Platforms
+
+| Platform | Status | Features |
+|----------|--------|----------|
+| **Linear** | ✅ Full Support | Complete feature set with AI integration |
+| **Jira Cloud** | ✅ Core Features | CRUD operations, search, workflows |
+| **Jira Server** | ⏳ Coming Soon | Self-hosted Jira support |
+| **Monday.com** | ⏳ Planned | Future release |
+| **ClickUp** | ⏳ Planned | Future release |
+
 ## ✨ Features
 
+### 🌐 Multi-Platform Support
+- **Single Interface**: Manage tickets from any platform
+- **Easy Switching**: Change platforms via settings
+- **Consistent UX**: Same commands work across platforms
+- **Platform-Specific Features**: Optimized for each platform
+
 ### 💬 Chat Participant
-- Ask `@linear` questions in chat
+- Ask `@devbuddy` questions in chat
 - Commands: `/tickets`, `/standup`, `/pr`, `/status`
-- Natural language queries: "show me ENG-123"
+- Natural language queries: "show me my open tickets"
+- Works with Linear and Jira (more coming)
 
 ### 📊 Sidebar Ticket View
-- See all your Linear tickets in the sidebar
+- See all your tickets in the sidebar
 - Priority indicators (🔴 Urgent, 🟠 High, 🟡 Medium, 🟢 Low)
-- One-click to open in Linear
-- Quick actions: Start Work (▶️), Complete (✓)
+- One-click to open tickets
+- Quick actions: Update status, assign, comment
+- Filter by status, project, assignee
 
 ### 🤖 AI-Powered Summaries (with Privacy-First Fallback)
 - **Standup Generator**: AI analyzes your commits and generates standup updates
@@ -24,95 +49,150 @@
 - **🔒 Rule-Based Fallback**: Works without AI for sensitive organizations
 
 ### ⚡ Quick Actions
-- Start work on tickets
-- Mark tickets complete
-- Update ticket status
+- Create, update, and manage tickets
+- Update status and assignments
+- Add comments
+- Search and filter
 - All from VS Code!
 
-### 🔗 Monorepo Support
+### 🔗 Git & Monorepo Support
+- Branch creation from tickets (Linear)
 - Package detection and validation
 - Multi-ticket/branch support
 - PR scope validation
 
 ## 🚀 Quick Start
 
-1. **Install Extension:**
-   ```bash
-   ./reinstall.sh
-   ```
+### 1. Install Extension
+```bash
+./reinstall.sh
+# Or: code --install-extension dev-buddy-0.1.0.vsix
+```
 
-2. **Configure Linear API Token:**
-   - Get token: [linear.app/settings/api](https://linear.app/settings/api)
-   - `Cmd+Shift+P` → `Linear Buddy: Configure API Token`
+### 2. Choose Your Platform
 
-3. **Open Sidebar:**
-   - Click checklist icon (☑️) in Activity Bar
+**Settings → DevBuddy → Provider**
+```json
+{
+  "devBuddy.provider": "linear"  // or "jira"
+}
+```
 
-4. **Start Chatting:**
-   - Open chat → Type `@linear what am I working on?`
+### 3. Configure Authentication
+
+#### For Linear:
+1. Get token: [linear.app/settings/api](https://linear.app/settings/api)
+2. `Cmd+Shift+P` → `DevBuddy: Update Linear API Key`
+
+#### For Jira Cloud:
+1. `Cmd+Shift+P` → `DevBuddy: Setup Jira Cloud`
+2. Enter your Jira site URL (e.g., `yourcompany.atlassian.net`)
+3. Enter your email
+4. Create API token: [id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens)
+
+### 4. Start Using DevBuddy
+- **Open Sidebar**: Click checklist icon (☑️) in Activity Bar
+- **Use Chat**: Open chat → Type `@devbuddy what am I working on?`
+- **Command Palette**: `Cmd+Shift+P` → `DevBuddy: ...`
 
 ## 📚 Documentation
 
-- **Complete Guide** (`LINEAR_BUDDY_GUIDE.md`) - Full documentation
+- **Feature Matrix** (`FEATURE_COMPATIBILITY_MATRIX.md`) - Platform comparison
+- **Complete Guide** (`LINEAR_BUDDY_GUIDE.md`) - Full Linear documentation  
+- **Jira Guide** (`JIRA_CLOUD_IMPLEMENTATION_SUMMARY.md`) - Jira setup & features
 - **Quick Start** (`QUICKSTART.md`) - Get started quickly
 - **AI Features** (`AI_FEATURES_GUIDE.md`) - AI model configuration
-- **🔒 AI Fallback Strategy** (`AI_FALLBACK_QUICK_REFERENCE.md`) - Privacy-first mode
+- **🔒 Privacy Mode** (`AI_FALLBACK_QUICK_REFERENCE.md`) - No external AI
 - **Multi-Ticket Guide** (`MULTI_TICKET_GUIDE.md`) - Work across multiple tickets
 
 ## 💬 Chat Examples
 
 ```
-@linear /tickets                    # Show your active tickets
-@linear /standup                    # Generate standup update
-@linear show me ENG-123             # Get ticket details
-@linear what am I working on?       # Natural language query
+@devbuddy /tickets                    # Show your active tickets
+@devbuddy /standup                    # Generate standup update  
+@devbuddy show me ENG-123             # Get ticket details
+@devbuddy what am I working on?       # Natural language query
+@devbuddy create a ticket             # Create new ticket
 ```
 
 ## ⚙️ Configuration
 
-### Standard Configuration
+### Platform Selection
 ```json
 {
-  // Linear API (required)
-  "linearBuddy.linearApiToken": "lin_api_...",
+  // Choose your platform
+  "devBuddy.provider": "linear",  // "linear" or "jira"
   
-  // AI Model (optional - auto-selects best available)
-  "linearBuddy.ai.model": "auto",
+  // Platform-specific settings
+  "devBuddy.linear.teamId": "...",
+  "devBuddy.linear.organization": "yourorg",
+  
+  "devBuddy.jira.cloud.siteUrl": "yourcompany.atlassian.net",
+  "devBuddy.jira.cloud.email": "you@company.com",
+  "devBuddy.jira.defaultProject": "ENG"
+}
+```
+
+### AI Configuration
+```json
+{
+  // AI Model (auto-selects best available)
+  "devBuddy.ai.model": "auto",
   
   // Writing Tone
-  "linearBuddy.writingTone": "professional",
+  "devBuddy.writingTone": "professional",
   
-  // Monorepo paths
-  "linearBuddy.packagesPaths": ["packages/", "apps/"]
+  // 🔒 Disable external AI (use rule-based analysis)
+  "devBuddy.ai.disabled": false
 }
 ```
 
-### 🔒 For Sensitive Organizations
+### Monorepo & Git
 ```json
 {
-  // Disable external AI - use rule-based analysis only
-  "linearBuddy.ai.disabled": true
+  // Base branch for PRs
+  "devBuddy.baseBranch": "main",
+  
+  // Monorepo package paths
+  "devBuddy.packagesPaths": ["packages/", "apps/"],
+  
+  // Branch naming
+  "devBuddy.branchNamingConvention": "conventional"
 }
 ```
 
-## 🎯 Key Features
+## 🎯 Key Features by Platform
 
-| Feature | Description |
-|---------|-------------|
-| **Sidebar** | View tickets, start work, mark complete |
-| **Chat** | Ask questions, get AI summaries |
-| **Standup** | Auto-generate from git commits + Linear context |
-| **PR Summary** | Smart PR descriptions with validation |
-| **Multi-Ticket** | Work across multiple tickets/branches |
-| **AI Models** | GPT-4o, GPT-4.1, GPT-4 Turbo, Gemini 2.0 |
-| **🔒 Privacy Mode** | Rule-based analysis for sensitive orgs |
+### Linear Features ✅
+| Feature | Status |
+|---------|--------|
+| View Tickets | ✅ |
+| Create/Edit Tickets | ✅ |
+| Status Management | ✅ |
+| Branch Creation | ✅ |
+| AI Standup/PR | ✅ |
+| Chat Participant | ✅ |
+| TODO Converter | ✅ |
+
+### Jira Cloud Features ✅
+| Feature | Status |
+|---------|--------|
+| View Issues | ✅ |
+| Create/Edit Issues | ✅ |
+| Status Transitions | ✅ |
+| JQL Search | ✅ |
+| Comments | ✅ |
+| Sprints & Boards | ✅ |
+| Runtime Validation | ✅ (Zod v4) |
+
+See **`FEATURE_COMPATIBILITY_MATRIX.md`** for complete comparison.
 
 ## 🤖 AI Models
 
 **Verified Working Models:**
 - GPT-4o ⭐ (recommended)
 - GPT-4.1
-- GPT-4 Turbo
+- GPT-4 Turbo  
 - Gemini 2.0 Flash
 
 **Privacy-First Option:**
@@ -125,28 +205,107 @@
 
 ## 🔧 Commands
 
-- `Linear Buddy: Generate Standup Update`
-- `Linear Buddy: Generate PR Summary`
-- `Linear Buddy: Configure API Token`
-- `Linear Buddy: Refresh Tickets`
+### Universal Commands (Work with any platform)
+- `DevBuddy: Refresh Tickets`
+- `DevBuddy: Create Ticket`
+- `DevBuddy: Generate Standup Update`
+- `DevBuddy: Generate PR Summary`
 
-## 📦 Installation
+### Linear-Specific
+- `DevBuddy: Update Linear API Key`
+- `DevBuddy: Start Branch for Ticket`
+- `DevBuddy: Convert TODO to Ticket`
 
-```bash
-# From VSIX file
-./reinstall.sh
-
-# Or manually
-code --install-extension cursor-monorepo-tools-0.1.0.vsix
-```
+### Jira-Specific
+- `DevBuddy: Setup Jira Cloud`
+- `DevBuddy: Test Jira Connection`
+- `DevBuddy: Update Jira Issue Status`
 
 ## 🎉 What's New in v0.1.0
 
-- ✨ Chat participant with `@linear` support
-- 📊 Sidebar ticket view with quick actions
-- 🤖 Enhanced AI with actual code diffs
-- ⚡ One-click ticket management
-- 🔗 Full Linear API integration
+### 🌐 Multi-Platform Architecture
+- ✨ Support for Linear AND Jira Cloud
+- 🔄 Easy platform switching
+- 📊 Unified sidebar interface
+
+### 🔧 Jira Integration
+- ✅ Full CRUD operations for Jira Cloud
+- ✅ JQL search support
+- ✅ Workflow transitions
+- ✅ Sprint & board management
+- ✅ Production-grade validation (Zod v4)
+
+### 🤖 AI & Chat
+- 💬 Chat participant with `@devbuddy`
+- 🤖 Enhanced AI with code diffs
+- 🔒 Privacy-first fallback mode
+
+### ⚡ Quality Improvements
+- ✅ Runtime validation with Zod
+- ✅ Better error handling
+- ✅ Type-safe throughout
+- ✅ Debug mode for troubleshooting
+
+## 🛣️ Roadmap
+
+### Short-Term
+- ⏳ Jira webview panels (ticket detail, create form)
+- ⏳ Jira branch integration
+- ⏳ Jira AI features (standup, PR summary)
+
+### Medium-Term
+- ⏳ Jira Server/Data Center support
+- ⏳ Custom fields UI
+- ⏳ Offline mode
+
+### Long-Term  
+- ⏳ Monday.com integration
+- ⏳ ClickUp integration
+- ⏳ GitHub/GitLab Issues
+
+## 📦 Installation
+
+### From VS Code Marketplace
+
+Install directly from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=personal.dev-buddy):
+
+1. Open VS Code
+2. Go to Extensions (Cmd/Ctrl + Shift + X)
+3. Search for "DevBuddy"
+4. Click Install
+
+### From GitHub Releases
+
+Download the latest `.vsix` file from [GitHub Releases](https://github.com/angelogirardi/developer-buddy/releases):
+
+```bash
+# Download the latest release
+# Visit: https://github.com/angelogirardi/developer-buddy/releases
+
+# Install the VSIX file
+code --install-extension dev-buddy-x.x.x.vsix
+```
+
+### From Source
+
+```bash
+# Clone and build
+git clone https://github.com/angelogirardi/developer-buddy.git
+cd developer-buddy
+npm install
+npm run package
+code --install-extension dev-buddy-0.1.0.vsix
+
+# Quick reinstall script (for development)
+./reinstall.sh
+```
+
+### For Contributors
+
+See [docs/developer/RELEASE_PROCESS.md](./docs/developer/RELEASE_PROCESS.md) for information about:
+- Release workflow
+- Conventional commits
+- Publishing to marketplace
 
 ## 📄 License
 
@@ -155,4 +314,6 @@ Personal use. Not for commercial distribution.
 ---
 
 **Version:** 0.1.0 | **Status:** ✅ Production Ready | **Date:** November 2025
+
+**Platforms:** Linear (Full) | Jira Cloud (Core) | More Coming Soon!
 

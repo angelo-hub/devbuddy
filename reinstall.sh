@@ -1,5 +1,5 @@
 #!/bin/bash
-# Quick reinstall script for Cursor Monorepo Tools extension
+# Quick reinstall script for DevBuddy extension
 
 set -e
 

@@ -1,0 +1,199 @@
+name: Release Extension
+
+on:
+  workflow_dispatch:
+    inputs:
+      releaseType:
+        description: "Release type"
+        required: true
+        default: "auto"
+        type: choice
+        options:
+          - auto
+          - major
+          - minor
+          - patch
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run type check
+        run: npm run type-check
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Compile extension
+        run: npm run compile
+
+      - name: Compile webviews
+        run: npm run compile:webview
+
+      - name: Determine version bump
+        id: version
+        run: |
+          if [ "${{ github.event.inputs.releaseType }}" = "auto" ]; then
+            echo "Running automatic version detection from commits..."
+            npm run release -- --dry-run 2>&1 | tee version-output.txt
+            NEW_VERSION=$(grep -oP 'tagging release v\K[0-9]+\.[0-9]+\.[0-9]+' version-output.txt || echo "")
+            if [ -z "$NEW_VERSION" ]; then
+              echo "No version bump needed (no feat/fix commits since last release)"
+              echo "bump=false" >> $GITHUB_OUTPUT
+            else
+              echo "bump=true" >> $GITHUB_OUTPUT
+              echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "bump=true" >> $GITHUB_OUTPUT
+            echo "Manual bump type: ${{ github.event.inputs.releaseType }}"
+          fi
+
+      - name: Bump version and generate changelog
+        if: steps.version.outputs.bump == 'true'
+        run: |
+          if [ "${{ github.event.inputs.releaseType }}" = "auto" ]; then
+            npm run release
+          else
+            npm run release:${{ github.event.inputs.releaseType }}
+          fi
+
+      - name: Get new version
+        if: steps.version.outputs.bump == 'true'
+        id: get_version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $VERSION"
+
+      - name: Create .env file with telemetry secrets
+        if: steps.version.outputs.bump == 'true'
+        run: |
+          echo "VSCODE_TELEMETRY_CONNECTION_STRING=${{ secrets.VSCODE_TELEMETRY_CONNECTION_STRING }}" > .env
+
+      - name: Package extension
+        if: steps.version.outputs.bump == 'true'
+        run: npm run package
+        env:
+          VSCODE_TELEMETRY_CONNECTION_STRING: ${{ secrets.VSCODE_TELEMETRY_CONNECTION_STRING }}
+
+      - name: Get VSIX filename
+        if: steps.version.outputs.bump == 'true'
+        id: vsix
+        run: |
+          VSIX_FILE=$(ls *.vsix)
+          echo "filename=$VSIX_FILE" >> $GITHUB_OUTPUT
+          echo "VSIX file: $VSIX_FILE"
+
+      - name: Publish to VS Code Marketplace
+        if: steps.version.outputs.bump == 'true'
+        run: npx @vscode/vsce publish -p ${{ secrets.VSCE_PAT }}
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      - name: Publish to Open VSX
+        if: steps.version.outputs.bump == 'true' && secrets.OVSX_PAT != ''
+        run: npx ovsx publish ${{ steps.vsix.outputs.filename }} -p ${{ secrets.OVSX_PAT }}
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        continue-on-error: true
+
+      - name: Create Git tag
+        if: steps.version.outputs.bump == 'true'
+        run: |
+          git tag v${{ steps.get_version.outputs.version }}
+
+      - name: Push changes and tags
+        if: steps.version.outputs.bump == 'true'
+        run: |
+          git push origin HEAD:${{ github.ref_name }}
+          git push origin v${{ steps.get_version.outputs.version }}
+
+      - name: Extract changelog for this version
+        if: steps.version.outputs.bump == 'true'
+        id: changelog
+        run: |
+          VERSION=${{ steps.get_version.outputs.version }}
+          CHANGELOG=$(awk "/^## \[$VERSION\]/,/^## \[/" CHANGELOG.md | sed '1d;$d' | sed '/^$/d')
+          if [ -z "$CHANGELOG" ]; then
+            CHANGELOG="Release version $VERSION"
+          fi
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        if: steps.version.outputs.bump == 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: DevBuddy v${{ steps.get_version.outputs.version }}
+          body: |
+            ${{ steps.changelog.outputs.content }}
+
+            ---
+
+            ## Installation
+
+            Download the `.vsix` file below and install it in VS Code:
+
+            ```bash
+            code --install-extension ${{ steps.vsix.outputs.filename }}
+            ```
+
+            Or install directly from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=personal.dev-buddy)
+          files: ${{ steps.vsix.outputs.filename }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        if: steps.version.outputs.bump == 'true'
+        run: |
+          echo "## 🎉 Release Successful!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** v${{ steps.get_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**VSIX:** ${{ steps.vsix.outputs.filename }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Published to:" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ VS Code Marketplace" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ GitHub Releases" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next steps:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Check the [release page](https://github.com/${{ github.repository }}/releases/tag/v${{ steps.get_version.outputs.version }})" >> $GITHUB_STEP_SUMMARY
+          echo "2. Verify on [marketplace](https://marketplace.visualstudio.com/items?itemName=personal.dev-buddy)" >> $GITHUB_STEP_SUMMARY
+          echo "3. Announce to your team! 🚀" >> $GITHUB_STEP_SUMMARY
+
+      - name: No bump needed
+        if: steps.version.outputs.bump == 'false'
+        run: |
+          echo "## ℹ️ No Release Needed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "No version bump is required. There are no `feat:` or `fix:` commits since the last release." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "To force a release, run the workflow again and select a specific release type (major/minor/patch)." >> $GITHUB_STEP_SUMMARY
