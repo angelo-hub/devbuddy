@@ -117,7 +117,7 @@ jobs:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
 
       - name: Publish to Open VSX
-        if: steps.version.outputs.bump == 'true' && secrets.OVSX_PAT != ''
+        if: steps.version.outputs.bump == 'true' && env.OVSX_PAT != ''
         run: npx ovsx publish ${{ steps.vsix.outputs.filename }} -p ${{ secrets.OVSX_PAT }}
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
