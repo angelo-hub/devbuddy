@@ -350,9 +350,9 @@ export async function showFirstTimeSetup(onTokenSet?: () => void): Promise<void>
   );
 
   if (action === "Yes, show me around") {
-    await vscode.commands.executeCommand(
+    await     vscode.commands.executeCommand(
       "workbench.action.openWalkthrough",
-      "personal.dev-buddy#devBuddy.gettingStarted",
+      "angelogirardi.dev-buddy#devBuddy.gettingStarted",
       false
     );
   }
