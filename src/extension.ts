@@ -80,7 +80,7 @@ export function activate(context: vscode.ExtensionContext) {
     setTimeout(() => {
       vscode.commands.executeCommand(
         "workbench.action.openWalkthrough",
-        "personal.dev-buddy#devBuddy.gettingStarted",
+        "angelogirardi.dev-buddy#devBuddy.gettingStarted",
         false
       );
     }, 1000);
@@ -1181,9 +1181,9 @@ export function activate(context: vscode.ExtensionContext) {
       if (choice) {
         switch (choice.value) {
           case "walkthrough":
-            await vscode.commands.executeCommand(
+            await             vscode.commands.executeCommand(
               "workbench.action.openWalkthrough",
-              "personal.dev-buddy#devBuddy.gettingStarted",
+              "angelogirardi.dev-buddy#devBuddy.gettingStarted",
               false
             );
             break;

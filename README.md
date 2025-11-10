@@ -267,7 +267,7 @@ See **`FEATURE_COMPATIBILITY_MATRIX.md`** for complete comparison.
 
 ### From VS Code Marketplace
 
-Install directly from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=personal.dev-buddy):
+Install directly from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=angelogirardi.dev-buddy):
 
 1. Open VS Code
 2. Go to Extensions (Cmd/Ctrl + Shift + X)

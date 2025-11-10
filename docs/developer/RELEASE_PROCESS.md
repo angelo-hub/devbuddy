@@ -54,7 +54,7 @@ The workflow will:
 
 Check these locations:
 - [GitHub Releases](https://github.com/angelogirardi/developer-buddy/releases)
-- [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=personal.dev-buddy)
+- [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=angelogirardi.dev-buddy)
 
 ## Conventional Commit Format
 
