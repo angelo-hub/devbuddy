@@ -6,6 +6,18 @@
   "publisher": "personal",
   "license": "SEE LICENSE IN LICENSE",
   "icon": "resources/icon.png",
+  "author": {
+    "name": "Angelo Girardi",
+    "email": "girardi.ang@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/angelo-hub/devbuddy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/angelo-hub/devbuddy/issues"
+  },
+  "homepage": "https://github.com/angelo-hub/devbuddy#readme",
   "engines": {
     "vscode": "^1.90.0"
   },
