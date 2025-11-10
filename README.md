@@ -1,9 +1,9 @@
 # DevBuddy - Multi-Platform Ticket Management for Developers
 
-[![Version](https://img.shields.io/github/v/release/angelogirardi/developer-buddy?label=version)](https://github.com/angelogirardi/developer-buddy/releases)
-[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/personal.dev-buddy)](https://marketplace.visualstudio.com/items?itemName=personal.dev-buddy)
-[![Downloads](https://img.shields.io/visual-studio-marketplace/d/personal.dev-buddy)](https://marketplace.visualstudio.com/items?itemName=personal.dev-buddy)
-[![License](https://img.shields.io/github/license/angelogirardi/developer-buddy)](./LICENSE)
+[![Version](https://img.shields.io/github/v/release/angelo-hub/devbuddy?label=version)](https://github.com/angelo-hub/devbuddy/releases)
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/angelogirardi.dev-buddy)](https://marketplace.visualstudio.com/items?itemName=angelogirardi.dev-buddy)
+[![Downloads](https://img.shields.io/visual-studio-marketplace/d/angelogirardi.dev-buddy)](https://marketplace.visualstudio.com/items?itemName=angelogirardi.dev-buddy)
+[![License](https://img.shields.io/badge/license-MIT%20%2B%20Pro-blue)](./LICENSE)
 
 **Transform your development workflow with AI-powered ticket management, supporting Linear, Jira, and more!**
 
@@ -276,11 +276,11 @@ Install directly from the [VS Code Marketplace](https://marketplace.visualstudio
 
 ### From GitHub Releases
 
-Download the latest `.vsix` file from [GitHub Releases](https://github.com/angelogirardi/developer-buddy/releases):
+Download the latest `.vsix` file from [GitHub Releases](https://github.com/angelo-hub/devbuddy/releases):
 
 ```bash
 # Download the latest release
-# Visit: https://github.com/angelogirardi/developer-buddy/releases
+# Visit: https://github.com/angelo-hub/devbuddy/releases
 
 # Install the VSIX file
 code --install-extension dev-buddy-x.x.x.vsix
@@ -290,8 +290,8 @@ code --install-extension dev-buddy-x.x.x.vsix
 
 ```bash
 # Clone and build
-git clone https://github.com/angelogirardi/developer-buddy.git
-cd developer-buddy
+git clone https://github.com/angelo-hub/devbuddy.git
+cd devbuddy
 npm install
 npm run package
 code --install-extension dev-buddy-0.1.0.vsix
@@ -309,7 +309,11 @@ See [docs/developer/RELEASE_PROCESS.md](./docs/developer/RELEASE_PROCESS.md) for
 
 ## 📄 License
 
-Personal use. Not for commercial distribution.
+**Dual License:**
+- **Core Features**: [MIT License](./LICENSE) - Free and open source
+- **Pro Features**: [Commercial License](./LICENSE.pro) - Requires subscription
+
+The extension is free to use with all core features. Pro features (when available) will require a paid subscription. See [LICENSING_MODEL.md](./LICENSING_MODEL.md) for details.
 
 ---
 
