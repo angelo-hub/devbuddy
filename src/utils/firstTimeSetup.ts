@@ -25,24 +25,32 @@ function parseLinearOrg(url: string): string | null {
 }
 
 export async function showFirstTimeSetup(onTokenSet?: () => void): Promise<void> {
-  const config = vscode.workspace.getConfiguration("linearBuddy");
+  const config = vscode.workspace.getConfiguration("devBuddy");
   const setupComplete = config.get<boolean>("firstTimeSetupComplete", false);
 
   if (setupComplete) {
     return; // Already set up
   }
 
-  // Welcome message
+  // Welcome message - Platform-aware
   const setupChoice = await vscode.window.showInformationMessage(
-    "👋 Welcome to Cursor Monorepo Tools! Would you like to configure your preferences?",
-    "Yes, configure",
+    "👋 Welcome to DevBuddy! Choose your platform to get started.",
+    "Setup Linear",
+    "Setup Jira",
     "Skip for now"
   );
 
-  if (setupChoice !== "Yes, configure") {
+  if (setupChoice === "Skip for now" || !setupChoice) {
     return;
   }
 
+  if (setupChoice === "Setup Jira") {
+    // Redirect to Jira setup
+    await vscode.commands.executeCommand("devBuddy.jira.setup");
+    return;
+  }
+
+  // Continue with Linear setup if "Setup Linear" was chosen
   // 1. Linear Organization Setup
   const linearUrl = await vscode.window.showInputBox({
     prompt: "Enter any URL from your Linear workspace (e.g., a ticket or project URL)",
@@ -341,7 +349,7 @@ export async function showFirstTimeSetup(onTokenSet?: () => void): Promise<void>
   if (action === "Yes, show me around") {
     await vscode.commands.executeCommand(
       "workbench.action.openWalkthrough",
-      "personal.linear-buddy#linearBuddy.gettingStarted",
+      "personal.dev-buddy#devBuddy.gettingStarted",
       false
     );
   }

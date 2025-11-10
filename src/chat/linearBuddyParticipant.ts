@@ -1,13 +1,14 @@
 import * as vscode from "vscode";
-import { LinearClient, LinearIssue } from "../utils/linearClient";
-import { GitAnalyzer } from "../utils/gitAnalyzer";
-import { AISummarizer } from "../utils/aiSummarizer";
+import { LinearClient } from "../providers/linear/LinearClient";
+import { LinearIssue } from "../providers/linear/types";
+import { GitAnalyzer } from "../shared/git/gitAnalyzer";
+import { AISummarizer } from "../shared/ai/aiSummarizer";
 
 /**
  * Convert Linear web URL to desktop app URL if preference is enabled
  */
 function getLinearUrl(webUrl: string): string {
-  const config = vscode.workspace.getConfiguration("linearBuddy");
+  const config = vscode.workspace.getConfiguration("devBuddy");
   const preferDesktop = config.get<boolean>("preferDesktopApp", false);
   
   if (preferDesktop) {
@@ -18,7 +19,7 @@ function getLinearUrl(webUrl: string): string {
   return webUrl;
 }
 
-export class LinearBuddyChatParticipant {
+export class DevBuddyChatParticipant {
   private linearClient: LinearClient | null = null;
   private aiSummarizer: AISummarizer;
 
@@ -146,7 +147,7 @@ export class LinearBuddyChatParticipant {
 
       // Add helpful suggestions
       stream.button({
-        command: "linearBuddy.generateStandup",
+        command: "devBuddy.generateStandup",
         title: "Generate Standup",
       });
 
@@ -173,7 +174,7 @@ export class LinearBuddyChatParticipant {
     }
 
     const gitAnalyzer = new GitAnalyzer(workspaceRoot);
-    const config = vscode.workspace.getConfiguration("linearBuddy");
+    const config = vscode.workspace.getConfiguration("devBuddy");
     const standupTimeWindow = config.get<string>(
       "standupTimeWindow",
       "24 hours ago"
@@ -253,7 +254,7 @@ export class LinearBuddyChatParticipant {
     );
 
     stream.button({
-      command: "linearBuddy.generatePRSummary",
+      command: "devBuddy.generatePRSummary",
       title: "Generate Full PR Summary",
     });
 

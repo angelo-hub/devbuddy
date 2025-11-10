@@ -13,6 +13,25 @@
         "kind": "build",
         "isDefault": true
       }
+    },
+    {
+      "label": "Clean Fresh Install Data",
+      "type": "shell",
+      "command": "rm -rf ${workspaceFolder}/.vscode-test-fresh",
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Build and Clean for Fresh Install",
+      "dependsOn": [
+        "Clean Fresh Install Data",
+        "npm: watch"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
     }
   ]
 }

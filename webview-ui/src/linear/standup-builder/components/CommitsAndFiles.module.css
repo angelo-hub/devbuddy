@@ -1,0 +1,43 @@
+.container {
+  margin-top: 24px;
+}
+
+.section {
+  margin-bottom: 24px;
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--color-foreground);
+}
+
+.commitList,
+.fileList {
+  font-size: 12px;
+  padding-left: 20px;
+  margin-top: 8px;
+}
+
+.commitList li,
+.fileList li {
+  margin-bottom: 4px;
+}
+
+.ticketsList {
+  padding: 12px;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+}
+
+.ticket {
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.ticket:last-child {
+  margin-bottom: 0;
+}
+

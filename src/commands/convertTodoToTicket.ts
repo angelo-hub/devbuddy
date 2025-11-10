@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
-import { LinearClient, LinearTeam } from "../utils/linearClient";
-import { GitPermalinkGenerator } from "../utils/gitPermalinkGenerator";
+import { LinearClient } from "../providers/linear/LinearClient";
+import { LinearTeam } from "../providers/linear/types";
+import { GitPermalinkGenerator } from "../shared/git/gitPermalinkGenerator";
 
 /**
  * Command to convert a TODO comment in code to a Linear ticket
@@ -16,7 +17,7 @@ export async function convertTodoToTicket() {
       "Cancel"
     );
     if (configure === "Configure") {
-      vscode.commands.executeCommand("linearBuddy.configureLinear");
+      vscode.commands.executeCommand("devBuddy.configureLinear");
     }
     return;
   }
@@ -145,7 +146,7 @@ export async function convertTodoToTicket() {
         }
 
         // Check for saved team preference
-        const config = vscode.workspace.getConfiguration("linearBuddy");
+        const config = vscode.workspace.getConfiguration("devBuddy");
         let savedTeamId = config.get<string>("linearDefaultTeamId");
         let selectedTeam: LinearTeam | undefined;
 
@@ -275,7 +276,7 @@ export async function convertTodoToTicket() {
           // Then offer to link additional TODOs
           await linkAdditionalTodos(issue.identifier, issue.url, issue.title);
         } else if (action === "Open Ticket") {
-          vscode.commands.executeCommand("linearBuddy.openTicket", issue);
+          vscode.commands.executeCommand("devBuddy.openTicket", issue);
         } else if (action === "Copy URL") {
           vscode.env.clipboard.writeText(issue.url);
           vscode.window.showInformationMessage(
@@ -284,7 +285,7 @@ export async function convertTodoToTicket() {
         }
 
         // Refresh the tickets sidebar
-        vscode.commands.executeCommand("linearBuddy.refreshTickets");
+        vscode.commands.executeCommand("devBuddy.refreshTickets");
       }
     );
   } catch (error) {

@@ -41,7 +41,7 @@ export class TelemetryManager {
   private eventQueue: TelemetryEvent[] = [];
   private logger = getLogger();
 
-  private readonly TELEMETRY_KEY = "linearBuddy.telemetry";
+  private readonly TELEMETRY_KEY = "devBuddy.telemetry";
   private readonly TRIAL_EXTENSION_DAYS = 14; // Extra days for opting in
   private readonly BATCH_SIZE = 50;
   private readonly FLUSH_INTERVAL = 60000; // 1 minute
@@ -127,7 +127,7 @@ export class TelemetryManager {
   public async hasBeenAsked(): Promise<boolean> {
     if (!this.context) return false;
     return this.context.globalState.get<boolean>(
-      "linearBuddy.telemetryAsked",
+      "devBuddy.telemetryAsked",
       false
     );
   }
@@ -137,7 +137,7 @@ export class TelemetryManager {
    */
   public async markAsAsked(): Promise<void> {
     if (!this.context) return;
-    await this.context.globalState.update("linearBuddy.telemetryAsked", true);
+    await this.context.globalState.update("devBuddy.telemetryAsked", true);
   }
 
   /**
@@ -207,7 +207,7 @@ export class TelemetryManager {
 
       // Store the trial extension date
       await this.context.globalState.update(
-        "linearBuddy.trialExtensionDate",
+        "devBuddy.trialExtensionDate",
         new Date().toISOString()
       );
 
@@ -309,11 +309,11 @@ export class TelemetryManager {
       // Increment event counter
       if (this.context) {
         const currentCount = this.context.globalState.get<number>(
-          "linearBuddy.telemetryEventsSent",
+          "devBuddy.telemetryEventsSent",
           0
         );
         await this.context.globalState.update(
-          "linearBuddy.telemetryEventsSent",
+          "devBuddy.telemetryEventsSent",
           currentCount + 1
         );
       }
@@ -476,7 +476,7 @@ export class TelemetryManager {
     }
 
     const eventsSent = this.context.globalState.get<number>(
-      "linearBuddy.telemetryEventsSent",
+      "devBuddy.telemetryEventsSent",
       0
     );
 
@@ -529,8 +529,8 @@ export class TelemetryManager {
     };
 
     await this.saveConfig();
-    await this.context.globalState.update("linearBuddy.telemetryEventsSent", 0);
-    await this.context.globalState.update("linearBuddy.telemetryAsked", false);
+    await this.context.globalState.update("devBuddy.telemetryEventsSent", 0);
+    await this.context.globalState.update("devBuddy.telemetryAsked", false);
 
     vscode.window.showInformationMessage(
       "All local telemetry data has been deleted. Contact support to delete backend data."

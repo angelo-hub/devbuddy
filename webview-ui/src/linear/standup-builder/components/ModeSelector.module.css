@@ -1,0 +1,35 @@
+.container {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.modeButton {
+  flex: 1;
+  padding: 12px;
+  text-align: center;
+  border: 2px solid var(--color-border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modeButton.active {
+  border-color: #007acc;
+  background-color: var(--list-active-background);
+}
+
+.modeButton:hover {
+  background-color: var(--list-hover-background);
+}
+
+.title {
+  font-weight: 600;
+}
+
+.hint {
+  font-size: 11px;
+  color: var(--color-description);
+  margin-top: 4px;
+}
+

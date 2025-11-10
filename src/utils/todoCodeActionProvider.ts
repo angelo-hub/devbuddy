@@ -31,7 +31,7 @@ export class TodoToTicketCodeActionProvider implements vscode.CodeActionProvider
       vscode.CodeActionKind.QuickFix
     );
     action.command = {
-      command: "linearBuddy.convertTodoToTicket",
+      command: "devBuddy.convertTodoToTicket",
       title: "Convert TODO to Linear Ticket",
     };
     action.isPreferred = true; // Makes this the default action

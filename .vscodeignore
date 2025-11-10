@@ -1,14 +1,74 @@
+# IDE and test files
 .vscode/**
 .vscode-test/**
+.vscode-test-fresh/**
+
+# Source files (only compiled output in out/ should be included)
 src/**
 webview-ui/**
 !out/**
+!out/**/*.js
+
+# Environment files - CRITICAL: Never package credentials!
+.env
+.env.*
+.env.local
+.env.development
+.env.production
+
+# Build configuration
 .gitignore
 tsconfig.json
+webview-ui/tsconfig.json
 **/*.map
 **/*.ts
-!out/**/*.js
+
+# Node modules (only production dependencies needed)
 node_modules/@types/**
 
+# Development scripts and documentation
+scripts/**
+reinstall.sh
+.versionrc.json
 
+# Documentation that shouldn't be in package
+docs/**
+*.md
+!README.md
+!LICENSE
+!LICENSE.pro
+!EULA.md
+
+# Development summary files
+*_SUMMARY.md
+*_COMPLETE.md
+*_IMPLEMENTATION.md
+*_GUIDE.md
+AGENTS.md
+DEVBUDDY_REBRAND_COMPLETE.md
+
+# Media files not needed in package
+media/walkthrough/**/*.md
+!media/walkthrough/videos/**
+
+# Test and CI files
+.github/**
+**/*.test.ts
+**/*.spec.ts
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Old VSIX files
+*.vsix
+
+# Git
+.git/**
+.gitignore
+.gitattributes
 

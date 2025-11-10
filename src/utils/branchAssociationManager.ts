@@ -24,8 +24,8 @@ export interface BranchHistory {
  * Stores them in workspace state for now, with future support for Linear attachments
  */
 export class BranchAssociationManager {
-  private static readonly STORAGE_KEY = "linearBuddy.branchAssociations";
-  private static readonly HISTORY_KEY = "linearBuddy.branchHistory";
+  private static readonly STORAGE_KEY = "devBuddy.branchAssociations";
+  private static readonly HISTORY_KEY = "devBuddy.branchHistory";
   private context: vscode.ExtensionContext;
 
   constructor(context: vscode.ExtensionContext) {

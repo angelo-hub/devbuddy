@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
-import { GitAnalyzer } from "../utils/gitAnalyzer";
-import { PackageDetector } from "../utils/packageDetector";
-import { AISummarizer } from "../utils/aiSummarizer";
+import { GitAnalyzer } from "../shared/git/gitAnalyzer";
+import { PackageDetector } from "../shared/utils/packageDetector";
+import { AISummarizer } from "../shared/ai/aiSummarizer";
 
 export async function generateStandupCommand() {
   try {
@@ -29,7 +29,7 @@ export async function generateStandupCommand() {
     }
 
     // Get config
-    const config = vscode.workspace.getConfiguration("linearBuddy");
+    const config = vscode.workspace.getConfiguration("devBuddy");
     const standupTimeWindow = config.get<string>(
       "standupTimeWindow",
       "24 hours ago"

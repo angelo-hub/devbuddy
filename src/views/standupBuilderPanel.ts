@@ -39,7 +39,7 @@ export class StandupBuilderPanel {
           case "openSettings":
             vscode.commands.executeCommand(
               "workbench.action.openSettings",
-              "linearBuddy"
+              "devBuddy"
             );
             break;
         }
@@ -266,7 +266,7 @@ export class StandupBuilderPanel {
    */
   private async handleCopy(text: string): Promise<void> {
     // Get Linear organization for generating ticket URLs
-    const config = vscode.workspace.getConfiguration("linearBuddy");
+    const config = vscode.workspace.getConfiguration("devBuddy");
     const linearOrg = config.get<string>("linearOrganization", "");
 
     // Format ticket references in the text

@@ -1,11 +1,23 @@
 {
-  "name": "linear-buddy",
-  "displayName": "Linear Buddy",
-  "description": "AI-powered Linear integration with workflow automation for monorepo PRs and standups",
-  "version": "0.1.0",
-  "publisher": "personal",
+  "name": "dev-buddy",
+  "displayName": "DevBuddy",
+  "description": "Multi-platform ticket management for Linear, Jira, and more. AI-powered workflow automation for PRs, standups, and development tasks.",
+  "version": "0.2.0",
+  "publisher": "angelogirardi",
   "license": "SEE LICENSE IN LICENSE",
   "icon": "resources/icon.png",
+  "author": {
+    "name": "Angelo Girardi",
+    "email": "girardi.ang@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/angelo-hub/devbuddy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/angelo-hub/devbuddy/issues"
+  },
+  "homepage": "https://github.com/angelo-hub/devbuddy#readme",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -20,132 +32,204 @@
   "contributes": {
     "commands": [
       {
-        "command": "linearBuddy.generatePRSummary",
-        "title": "Linear Buddy: Generate PR Summary"
+        "command": "devBuddy.generatePRSummary",
+        "title": "DevBuddy: Generate PR Summary"
       },
       {
-        "command": "linearBuddy.generateStandup",
-        "title": "Linear Buddy: Generate Standup Update"
+        "command": "devBuddy.generateStandup",
+        "title": "DevBuddy: Generate Standup Update"
       },
       {
-        "command": "linearBuddy.openStandupBuilder",
-        "title": "Linear Buddy: Open Standup Builder",
+        "command": "devBuddy.openStandupBuilder",
+        "title": "DevBuddy: Open Standup Builder",
         "icon": "$(notebook)",
-        "category": "Linear Buddy"
+        "category": "DevBuddy"
       },
       {
-        "command": "linearBuddy.refreshTickets",
-        "title": "Linear Buddy: Refresh Tickets",
+        "command": "devBuddy.refreshTickets",
+        "title": "DevBuddy: Refresh Tickets",
         "icon": "$(refresh)"
       },
       {
-        "command": "linearBuddy.openTicket",
-        "title": "Linear Buddy: Open Ticket"
+        "command": "devBuddy.openTicket",
+        "title": "DevBuddy: Open Ticket"
       },
       {
-        "command": "linearBuddy.startWork",
-        "title": "Linear Buddy: Start Work on Ticket",
+        "command": "devBuddy.startWork",
+        "title": "DevBuddy: Start Work on Ticket",
         "icon": "$(play)"
       },
       {
-        "command": "linearBuddy.completeTicket",
-        "title": "Linear Buddy: Complete Ticket",
+        "command": "devBuddy.completeTicket",
+        "title": "DevBuddy: Complete Ticket",
         "icon": "$(check)"
       },
       {
-        "command": "linearBuddy.configureLinearToken",
-        "title": "Linear Buddy: Update Linear API Key"
+        "command": "devBuddy.configureLinearToken",
+        "title": "DevBuddy: Update Linear API Key"
       },
       {
-        "command": "linearBuddy.startBranch",
-        "title": "Linear Buddy: Start Branch for Ticket",
+        "command": "devBuddy.startBranch",
+        "title": "DevBuddy: Start Branch for Ticket",
         "icon": "$(git-branch)"
       },
       {
-        "command": "linearBuddy.openPR",
-        "title": "Linear Buddy: Open Pull Request",
+        "command": "devBuddy.openPR",
+        "title": "DevBuddy: Open Pull Request",
         "icon": "$(git-pull-request)"
       },
       {
-        "command": "linearBuddy.changeTicketStatus",
-        "title": "Linear Buddy: Change Ticket Status",
+        "command": "devBuddy.changeTicketStatus",
+        "title": "DevBuddy: Change Ticket Status",
         "icon": "$(edit)"
       },
       {
-        "command": "linearBuddy.convertTodoToTicket",
-        "title": "Linear Buddy: Convert TODO to Ticket",
+        "command": "devBuddy.convertTodoToTicket",
+        "title": "DevBuddy: Convert TODO to Ticket",
         "icon": "$(add)",
-        "category": "Linear Buddy"
+        "category": "DevBuddy"
       },
       {
-        "command": "linearBuddy.checkoutBranch",
-        "title": "Linear Buddy: Checkout Branch",
+        "command": "devBuddy.checkoutBranch",
+        "title": "DevBuddy: Checkout Branch",
         "icon": "$(git-branch-checkout)"
       },
       {
-        "command": "linearBuddy.associateBranchFromSidebar",
-        "title": "Linear Buddy: Associate Branch",
+        "command": "devBuddy.associateBranchFromSidebar",
+        "title": "DevBuddy: Associate Branch",
         "icon": "$(link)"
       },
       {
-        "command": "linearBuddy.autoDetectBranches",
-        "title": "Linear Buddy: Auto-Detect Branch Associations",
+        "command": "devBuddy.autoDetectBranches",
+        "title": "DevBuddy: Auto-Detect Branch Associations",
         "icon": "$(search)"
       },
       {
-        "command": "linearBuddy.showBranchAnalytics",
-        "title": "Linear Buddy: Show Branch Analytics",
+        "command": "devBuddy.showBranchAnalytics",
+        "title": "DevBuddy: Show Branch Analytics",
         "icon": "$(graph)"
       },
       {
-        "command": "linearBuddy.cleanupBranchAssociations",
-        "title": "Linear Buddy: Cleanup Branch Associations",
+        "command": "devBuddy.cleanupBranchAssociations",
+        "title": "DevBuddy: Cleanup Branch Associations",
         "icon": "$(clear-all)"
       },
       {
-        "command": "linearBuddy.createTicket",
-        "title": "Linear Buddy: Create New Ticket",
+        "command": "devBuddy.createTicket",
+        "title": "DevBuddy: Create New Ticket",
         "icon": "$(add)",
-        "category": "Linear Buddy"
+        "category": "DevBuddy"
       },
       {
-        "command": "linearBuddy.showHelp",
-        "title": "Linear Buddy: Show Help & Tutorials",
+        "command": "devBuddy.showHelp",
+        "title": "DevBuddy: Show Help & Tutorials",
         "icon": "$(question)",
         "category": "Help"
       },
       {
-        "command": "linearBuddy.manageTelemetry",
-        "title": "Linear Buddy: Manage Telemetry Settings",
+        "command": "devBuddy.manageTelemetry",
+        "title": "DevBuddy: Manage Telemetry Settings",
         "icon": "$(graph)",
         "category": "Settings"
       },
       {
-        "command": "linearBuddy.exportTelemetryData",
-        "title": "Linear Buddy: Export My Telemetry Data",
+        "command": "devBuddy.exportTelemetryData",
+        "title": "DevBuddy: Export My Telemetry Data",
         "icon": "$(export)",
         "category": "Settings"
       },
       {
-        "command": "linearBuddy.deleteTelemetryData",
-        "title": "Linear Buddy: Delete My Telemetry Data",
+        "command": "devBuddy.deleteTelemetryData",
+        "title": "DevBuddy: Delete My Telemetry Data",
         "icon": "$(trash)",
         "category": "Settings"
+      },
+      {
+        "command": "devBuddy.jira.setup",
+        "title": "DevBuddy: Setup Jira Cloud",
+        "icon": "$(gear)",
+        "category": "Jira"
+      },
+      {
+        "command": "devBuddy.jira.testConnection",
+        "title": "DevBuddy: Test Jira Connection",
+        "icon": "$(debug-disconnect)",
+        "category": "Jira"
+      },
+      {
+        "command": "devBuddy.jira.resetConfig",
+        "title": "DevBuddy: Reset Jira Configuration",
+        "icon": "$(trash)",
+        "category": "Jira"
+      },
+      {
+        "command": "devBuddy.jira.updateApiToken",
+        "title": "DevBuddy: Update Jira API Token",
+        "icon": "$(key)",
+        "category": "Jira"
+      },
+      {
+        "command": "devBuddy.jira.refreshIssues",
+        "title": "DevBuddy: Refresh Jira Issues",
+        "icon": "$(refresh)",
+        "category": "Jira"
+      },
+      {
+        "command": "devBuddy.jira.openIssue",
+        "title": "DevBuddy: Open Jira Issue",
+        "icon": "$(link-external)",
+        "category": "Jira"
+      },
+      {
+        "command": "devBuddy.jira.createIssue",
+        "title": "DevBuddy: Create Jira Issue",
+        "icon": "$(add)",
+        "category": "Jira"
+      },
+      {
+        "command": "devBuddy.jira.updateStatus",
+        "title": "DevBuddy: Update Jira Issue Status",
+        "icon": "$(edit)",
+        "category": "Jira"
+      },
+      {
+        "command": "devBuddy.jira.assignToMe",
+        "title": "DevBuddy: Assign Issue to Me",
+        "icon": "$(person)",
+        "category": "Jira"
+      },
+      {
+        "command": "devBuddy.jira.addComment",
+        "title": "DevBuddy: Add Comment to Issue",
+        "icon": "$(comment)",
+        "category": "Jira"
+      },
+      {
+        "command": "devBuddy.jira.copyIssueKey",
+        "title": "DevBuddy: Copy Issue Key",
+        "icon": "$(copy)",
+        "category": "Jira"
+      },
+      {
+        "command": "devBuddy.jira.copyIssueUrl",
+        "title": "DevBuddy: Copy Issue URL",
+        "icon": "$(link)",
+        "category": "Jira"
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "linear-buddy",
-          "title": "Linear Buddy",
+          "id": "dev-buddy",
+          "title": "DevBuddy",
           "icon": "$(checklist)"
         }
       ]
     },
     "views": {
-      "linear-buddy": [
+      "dev-buddy": [
         {
-          "id": "linearTickets",
+          "id": "myTickets",
           "name": "My Tickets"
         }
       ]
@@ -153,81 +237,121 @@
     "menus": {
       "editor/context": [
         {
-          "command": "linearBuddy.convertTodoToTicket",
+          "command": "devBuddy.convertTodoToTicket",
           "when": "editorTextFocus && editorHasSelection || editorTextFocus",
           "group": "linear@1"
         }
       ],
       "view/title": [
         {
-          "command": "linearBuddy.createTicket",
+          "command": "devBuddy.createTicket",
           "when": "view == linearTickets",
           "group": "navigation@1"
         },
         {
-          "command": "linearBuddy.refreshTickets",
+          "command": "devBuddy.refreshTickets",
           "when": "view == linearTickets",
           "group": "navigation@2"
         },
         {
-          "command": "linearBuddy.openStandupBuilder",
+          "command": "devBuddy.openStandupBuilder",
           "when": "view == linearTickets",
           "group": "navigation@3"
         },
         {
-          "command": "linearBuddy.showHelp",
+          "command": "devBuddy.showHelp",
           "when": "view == linearTickets",
           "group": "navigation@4"
+        },
+        {
+          "command": "devBuddy.jira.createIssue",
+          "when": "view == myTickets",
+          "group": "navigation@1"
+        },
+        {
+          "command": "devBuddy.jira.refreshIssues",
+          "when": "view == myTickets",
+          "group": "navigation@2"
         }
       ],
       "view/item/context": [
         {
-          "command": "linearBuddy.startBranch",
-          "when": "view == linearTickets && viewItem == linearTicket:unstarted",
+          "command": "devBuddy.startBranch",
+          "when": "view == myTickets && viewItem == linearTicket:unstarted",
           "group": "inline@1"
         },
         {
-          "command": "linearBuddy.checkoutBranch",
-          "when": "view == linearTickets && viewItem =~ /linearTicket:started:withBranch/",
+          "command": "devBuddy.checkoutBranch",
+          "when": "view == myTickets && viewItem =~ /linearTicket:started:withBranch/",
           "group": "inline@1"
         },
         {
-          "command": "linearBuddy.openPR",
-          "when": "view == linearTickets && viewItem =~ /linearTicket.*:withPR/",
+          "command": "devBuddy.openPR",
+          "when": "view == myTickets && viewItem =~ /linearTicket.*:withPR/",
           "group": "inline@2"
         },
         {
-          "command": "linearBuddy.changeTicketStatus",
-          "when": "view == linearTickets && viewItem =~ /linearTicket.*/",
+          "command": "devBuddy.changeTicketStatus",
+          "when": "view == myTickets && viewItem =~ /linearTicket.*/",
           "group": "status@1"
         },
         {
-          "command": "linearBuddy.associateBranchFromSidebar",
-          "when": "view == linearTickets && viewItem =~ /linearTicket.*/",
+          "command": "devBuddy.associateBranchFromSidebar",
+          "when": "view == myTickets && viewItem =~ /linearTicket.*/",
           "group": "branch@1"
         },
         {
-          "command": "linearBuddy.startWork",
-          "when": "view == linearTickets && viewItem == linearTicket",
+          "command": "devBuddy.startWork",
+          "when": "view == myTickets && viewItem == linearTicket",
           "group": "inline@3"
         },
         {
-          "command": "linearBuddy.completeTicket",
-          "when": "view == linearTickets && viewItem == linearTicket",
+          "command": "devBuddy.completeTicket",
+          "when": "view == myTickets && viewItem == linearTicket",
           "group": "inline@4"
+        },
+        {
+          "command": "devBuddy.jira.openIssue",
+          "when": "view == myTickets && viewItem =~ /jiraTicket.*/",
+          "group": "inline@1"
+        },
+        {
+          "command": "devBuddy.jira.updateStatus",
+          "when": "view == myTickets && viewItem =~ /jiraTicket.*/",
+          "group": "status@1"
+        },
+        {
+          "command": "devBuddy.jira.assignToMe",
+          "when": "view == myTickets && viewItem =~ /jiraTicket.*/",
+          "group": "assign@1"
+        },
+        {
+          "command": "devBuddy.jira.addComment",
+          "when": "view == myTickets && viewItem =~ /jiraTicket.*/",
+          "group": "actions@1"
+        },
+        {
+          "command": "devBuddy.jira.copyIssueKey",
+          "when": "view == myTickets && viewItem =~ /jiraTicket.*/",
+          "group": "copy@1"
+        },
+        {
+          "command": "devBuddy.jira.copyIssueUrl",
+          "when": "view == myTickets && viewItem =~ /jiraTicket.*/",
+          "group": "copy@2"
         }
       ]
     },
     "chatParticipants": [
       {
-        "id": "linear-buddy",
-        "name": "linear",
-        "description": "AI assistant for Linear workflow, PRs, and standups",
+        "id": "dev-buddy",
+        "name": "devbuddy",
+        "description": "Multi-platform AI assistant for ticket workflows, PRs, and standups - supports Linear, Jira, and more",
         "isSticky": true,
         "commands": [
           {
             "name": "tickets",
-            "description": "Show your Linear tickets"
+            "description": "Show your tickets from any platform"
           },
           {
             "name": "standup",
@@ -246,49 +370,48 @@
     ],
     "walkthroughs": [
       {
-        "id": "linearBuddy.gettingStarted",
-        "title": "Getting Started with Linear Buddy",
-        "description": "Learn how to use Linear Buddy to manage your Linear tickets and workflow directly from VS Code",
+        "id": "devBuddy.gettingStarted",
+        "title": "Getting Started with DevBuddy",
+        "description": "Learn how to use DevBuddy to manage your tickets from Linear, Jira, and more—directly from VS Code",
         "steps": [
           {
             "id": "setup.welcome",
-            "title": "Welcome to Linear Buddy! 👋",
-            "description": "Linear Buddy brings your Linear workflow into VS Code. You can view tickets, create branches, update statuses, and more—all without leaving your editor.\n\n**This tutorial uses example explanations** to show you around without affecting your real Linear workspace.\n\nLet's get started!",
+            "title": "Welcome to DevBuddy! 👋",
+            "description": "DevBuddy brings multi-platform ticket management into VS Code. You can view tickets, update statuses, create branches, and more—all without leaving your editor.\n\n**Supported Platforms:**\n• ✅ Linear (full features)\n• ✅ Jira Cloud (core features)\n• ⏳ More coming soon!\n\nLet's get started!",
             "media": {
               "markdown": "media/walkthrough/welcome.md"
             }
           },
           {
-            "id": "setup.apikey",
-            "title": "Connect Your Linear Workspace",
-            "description": "To get started, you'll need to connect your Linear workspace with an API key. This is stored securely and never shared.\n\n[Configure Linear API Key](command:linearBuddy.configureLinearToken)\n\nOnce configured, you'll see your assigned tickets in the sidebar.",
+            "id": "setup.platform",
+            "title": "Choose Your Platform",
+            "description": "First, select which platform you use for ticket management.\n\n[Open Settings](command:workbench.action.openSettings?%5B%22devBuddy.provider%22%5D)\n\nSet `devBuddy.provider` to:\n• **\"linear\"** - For Linear users\n• **\"jira\"** - For Jira Cloud users\n\nYou can change this anytime!",
             "media": {
-              "markdown": "media/walkthrough/setup-apikey.md"
-            },
-            "completionEvents": [
-              "onCommand:linearBuddy.configureLinearToken"
-            ]
+              "markdown": "media/walkthrough/platform-selection.md"
+            }
+          },
+          {
+            "id": "setup.linear",
+            "title": "Connect Linear (Linear Users)",
+            "description": "**If you chose Linear**, connect your workspace with an API key:\n\n1. Get your API key: [linear.app/settings/api](https://linear.app/settings/api)\n2. Run the setup command:\n\n[Configure Linear API Key](command:devBuddy.configureLinearToken)\n\n**Skip this step if you're using Jira.**"
+          },
+          {
+            "id": "setup.jira",
+            "title": "Connect Jira Cloud (Jira Users)",
+            "description": "**If you chose Jira**, connect your Jira Cloud workspace:\n\n1. Run the setup wizard:\n\n[Setup Jira Cloud](command:devBuddy.jira.setup)\n\n2. The wizard will ask for:\n   • **Any URL from your Jira** (e.g., paste a ticket URL like `https://mycompany.atlassian.net/browse/ENG-123`)\n   • Your email address\n   • An API token from [id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens)\n\n**Just like Linear, you can paste any Jira ticket URL and DevBuddy will extract your site URL!**\n\n**Skip this step if you're using Linear.**"
           },
           {
             "id": "explore.sidebar",
             "title": "Explore Your Tickets",
-            "description": "The **Linear Buddy sidebar** shows all your assigned tickets organized by status.\n\n[Open Linear Buddy Sidebar](command:workbench.view.extension.linear-buddy)\n\nClick any ticket to see details, comments, and take actions like updating status or creating a branch.",
+            "description": "The **DevBuddy sidebar** shows all your assigned tickets/issues organized by status.\n\n[Open DevBuddy Sidebar](command:workbench.view.extension.dev-buddy)\n\nClick any ticket to see details, comments, and take actions like updating status or adding comments.\n\n**Works with both Linear and Jira!**",
             "media": {
               "markdown": "media/walkthrough/sidebar.md"
             }
           },
           {
-            "id": "feature.branches",
-            "title": "Create Branches from Tickets",
-            "description": "**Start a branch** directly from any ticket. Linear Buddy automatically generates branch names following your preferred convention (conventional commits, simple, or custom).\n\n• Click the branch icon next to any ticket\n• Choose your source branch\n• Review the auto-generated name or customize it\n• Linear Buddy creates and checks out the branch",
-            "media": {
-              "markdown": "media/walkthrough/branches.md"
-            }
-          },
-          {
             "id": "feature.status",
             "title": "Update Ticket Status",
-            "description": "Change ticket status without leaving VS Code:\n\n• Right-click any ticket and select **Change Status**\n• Or use the edit icon in the sidebar\n• See your team's workflow states with visual indicators\n\nLinear Buddy will ask if you want to update status when you create a branch!",
+            "description": "Change ticket status without leaving VS Code:\n\n• Right-click any ticket/issue\n• Select **Update Status** or **Change Status**\n• Choose from your workflow states\n• See visual indicators for each status\n\n**Works with both Linear and Jira!**",
             "media": {
               "markdown": "media/walkthrough/status.md"
             }
@@ -296,31 +419,39 @@
           {
             "id": "feature.createticket",
             "title": "Create New Tickets",
-            "description": "Create Linear tickets directly from VS Code:\n\n[Create New Ticket](command:linearBuddy.createTicket)\n\n• Rich editor with all Linear fields\n• Select team, project, labels, and priority\n• Assign to team members\n• Set estimates and due dates",
+            "description": "Create tickets/issues directly from VS Code:\n\n[Create New Ticket](command:devBuddy.createTicket)\n\n**Linear:** Rich editor with all fields (team, project, labels, priority, estimates)\n\n**Jira:** Create issues with project, type, priority, assignee, and more\n\n**Works with both platforms!**",
             "media": {
               "markdown": "media/walkthrough/create-ticket.md"
             }
           },
           {
+            "id": "feature.branches",
+            "title": "Create Branches from Tickets (Linear)",
+            "description": "**Linear users:** Start a branch directly from any ticket!\n\n• Click the branch icon next to any ticket\n• Choose your source branch\n• Review the auto-generated name\n• DevBuddy creates and checks out the branch\n\n**Note:** Branch creation is currently Linear-only. Jira support coming soon!",
+            "media": {
+              "markdown": "media/walkthrough/branches.md"
+            }
+          },
+          {
             "id": "feature.todoconverter",
-            "title": "Convert TODOs to Tickets with Permalinks",
-            "description": "Found a TODO in your code? Convert it to a Linear ticket with automatic permalinks to the exact line of code!\n\n**What you get:**\n• TODO → Linear ticket in one click\n• Automatic GitHub/GitLab/Bitbucket permalink\n• Code context (5 lines before/after)\n• Branch and commit info\n• Link multiple related TODOs\n\n**Try it:**\n1. Select a TODO comment or place cursor on TODO line\n2. Right-click → **\"Convert TODO to Linear Ticket\"**\n3. Choose what to do next:\n   - **Replace TODO** - Just this one\n   - **Add More TODOs** - Navigate & paste in other spots\n   - **Link Existing TODOs** - Find & link TODOs you already wrote\n\n[Try Converting a TODO](command:linearBuddy.convertTodoToTicket)",
+            "title": "Convert TODOs to Tickets (Linear)",
+            "description": "**Linear users:** Convert TODOs to tickets with automatic code permalinks!\n\n**What you get:**\n• TODO → Linear ticket in one click\n• Automatic GitHub/GitLab/Bitbucket permalink\n• Code context (5 lines before/after)\n• Branch and commit info\n\n[Try Converting a TODO](command:devBuddy.convertTodoToTicket)\n\n**Note:** Currently Linear-only. Jira support coming soon!",
             "media": {
               "markdown": "media/walkthrough/todo-converter.md"
             }
           },
           {
             "id": "feature.standup",
-            "title": "Generate Standup Updates",
-            "description": "Let AI generate your standup update from your recent commits and Linear activity!\n\n[Open Standup Builder](command:linearBuddy.openStandupBuilder)\n\n• AI analyzes your commits and tickets\n• Generates a summary in your preferred tone\n• Copy and share with your team",
+            "title": "Generate Standup Updates (Linear)",
+            "description": "**Linear users:** Let AI generate your standup update from commits and Linear activity!\n\n[Open Standup Builder](command:devBuddy.openStandupBuilder)\n\n• AI analyzes your commits and tickets\n• Generates a summary in your preferred tone\n• Copy and share with your team\n\n**Note:** AI features currently Linear-only. Jira support coming soon!",
             "media": {
               "markdown": "media/walkthrough/standup.md"
             }
           },
           {
             "id": "feature.prsummary",
-            "title": "AI-Powered PR Summaries",
-            "description": "Generate comprehensive PR summaries for your monorepo changes:\n\n[Generate PR Summary](command:linearBuddy.generatePRSummary)\n\n• Detects affected packages in your monorepo\n• Analyzes git changes and commits\n• Generates description using your PR template\n• Customizable writing tone",
+            "title": "AI-Powered PR Summaries (Linear)",
+            "description": "**Linear users:** Generate comprehensive PR summaries for your changes:\n\n[Generate PR Summary](command:devBuddy.generatePRSummary)\n\n• Detects affected packages in monorepos\n• Analyzes git changes and commits\n• Links to Linear tickets\n• Customizable writing tone\n\n**Note:** AI features currently Linear-only. Jira support coming soon!",
             "media": {
               "markdown": "media/walkthrough/pr-summary.md"
             }
@@ -328,15 +459,23 @@
           {
             "id": "feature.chat",
             "title": "Use the AI Chat Assistant",
-            "description": "Talk to Linear Buddy using the chat interface!\n\nOpen VS Code Chat and type `@linear` to:\n\n• `/tickets` - See your current tickets\n• `/standup` - Generate standup update\n• `/pr` - Generate PR summary\n• `/status` - Update ticket status\n\nOr just ask questions naturally!",
+            "description": "Talk to DevBuddy using the chat interface!\n\nOpen VS Code Chat and type `@devbuddy` to:\n\n• `/tickets` - See your current tickets\n• `/standup` - Generate standup update (Linear)\n• `/pr` - Generate PR summary (Linear)\n• `/status` - Update ticket status\n\nOr just ask questions naturally!\n\n**Works with both platforms, with enhanced features for Linear.**",
             "media": {
               "markdown": "media/walkthrough/chat.md"
             }
           },
           {
+            "id": "feature.jira",
+            "title": "Jira-Specific Features",
+            "description": "**Jira users** get these powerful features:\n\n• **JQL Search** - Search with Jira Query Language\n• **Workflow Transitions** - Full workflow support\n• **Sprints & Boards** - View and manage sprints\n• **Runtime Validation** - Production-grade API validation\n\n**Coming soon:**\n• Branch integration\n• AI features\n• Webview panels\n• Custom fields UI",
+            "media": {
+              "markdown": "media/walkthrough/jira-features.md"
+            }
+          },
+          {
             "id": "next.help",
             "title": "Get Help Anytime",
-            "description": "**Need help?** Click the **Help** button (question icon) at the top of the Linear Buddy sidebar.\n\n**Customize your experience:**\n• Open Settings (Cmd/Ctrl + ,)\n• Search for \"Linear Buddy\"\n• Configure AI model, writing tone, branch naming, and more\n\n[Open Settings](command:workbench.action.openSettings?%5B%22linearBuddy%22%5D)\n\nYou're all set! 🎉",
+            "description": "**Need help?** Click the **Help** button (question icon) at the top of the DevBuddy sidebar.\n\n**Customize your experience:**\n• Open Settings (Cmd/Ctrl + ,)\n• Search for \"DevBuddy\"\n• Configure platform, AI model, writing tone, and more\n\n[Open Settings](command:workbench.action.openSettings?%5B%22devBuddy%22%5D)\n\n**Documentation:**\n• README.md - Main guide\n• FEATURE_COMPATIBILITY_MATRIX.md - Platform features\n• JIRA_QUICK_START.md - Jira setup\n\nYou're all set! 🎉",
             "media": {
               "markdown": "media/walkthrough/help.md"
             }
@@ -345,19 +484,19 @@
       }
     ],
     "configuration": {
-      "title": "Linear Buddy",
+      "title": "DevBuddy",
       "properties": {
-        "linearBuddy.baseBranch": {
+        "devBuddy.baseBranch": {
           "type": "string",
           "default": "main",
           "description": "Default base branch for comparing changes (with fallback to 'master')"
         },
-        "linearBuddy.maxPackageScope": {
+        "devBuddy.maxPackageScope": {
           "type": "number",
           "default": 2,
           "description": "Maximum number of packages that should be modified in a single PR"
         },
-        "linearBuddy.packagesPaths": {
+        "devBuddy.packagesPaths": {
           "type": "array",
           "items": {
             "type": "string"
@@ -368,27 +507,27 @@
           ],
           "description": "Array of directory paths to scan for package changes (e.g., ['packages/', 'apps/', 'domains/'])"
         },
-        "linearBuddy.prTemplatePath": {
+        "devBuddy.prTemplatePath": {
           "type": "string",
           "default": ".github/pull_request_template.md",
           "description": "Path to the PR template file in the workspace"
         },
-        "linearBuddy.standupTimeWindow": {
+        "devBuddy.standupTimeWindow": {
           "type": "string",
           "default": "24 hours ago",
           "description": "Time window for standup commits (e.g., '24 hours ago', '2 days ago')"
         },
-        "linearBuddy.enableAISummarization": {
+        "devBuddy.enableAISummarization": {
           "type": "boolean",
           "default": true,
           "description": "Enable AI-powered summarization for PR summaries and standups"
         },
-        "linearBuddy.ai.disabled": {
+        "devBuddy.ai.disabled": {
           "type": "boolean",
           "default": false,
           "markdownDescription": "**Completely disable AI features** and use rule-based summarization instead.\n\n⚠️ **For sensitive organizations:** Enable this setting if you cannot use external AI services. The extension will use intelligent rule-based analysis instead.\n\n**When to enable:**\n- Working in a highly regulated environment\n- Security policies prohibit external AI\n- GitHub Copilot is not available"
         },
-        "linearBuddy.ai.model": {
+        "devBuddy.ai.model": {
           "type": "string",
           "enum": [
             "auto",
@@ -413,7 +552,7 @@
           ],
           "description": "AI model to use for summarization. Uses VS Code's Language Model API (GitHub Copilot)."
         },
-        "linearBuddy.aiModel": {
+        "devBuddy.aiModel": {
           "type": "string",
           "enum": [
             "gpt-4o",
@@ -425,10 +564,10 @@
             "gemini-2.0-flash"
           ],
           "default": "gpt-4o",
-          "description": "⚠️ Deprecated: Use 'linearBuddy.ai.model' instead. This setting will be removed in a future version.",
-          "deprecationMessage": "Use 'linearBuddy.ai.model' instead"
+          "description": "⚠️ Deprecated: Use 'devBuddy.ai.model' instead. This setting will be removed in a future version.",
+          "deprecationMessage": "Use 'devBuddy.ai.model' instead"
         },
-        "linearBuddy.writingTone": {
+        "devBuddy.writingTone": {
           "type": "string",
           "enum": [
             "casual",
@@ -439,32 +578,32 @@
           "default": "professional",
           "description": "Writing tone for AI-generated summaries"
         },
-        "linearBuddy.debugMode": {
+        "devBuddy.debugMode": {
           "type": "boolean",
           "default": false,
-          "markdownDescription": "**Enable debug logging** for troubleshooting.\n\n✅ **When enabled:**\n- Shows detailed logs in the \"Linear Buddy\" Output channel\n- Automatically opens the Output panel\n- Logs all API calls, AI operations, and git commands\n\n💡 **Use this when:**\n- Reporting bugs or issues\n- Understanding what the extension is doing\n- Debugging AI summarization\n- Troubleshooting Linear API issues"
+          "markdownDescription": "**Enable debug logging** for troubleshooting.\n\n✅ **When enabled:**\n- Shows detailed logs in the \"DevBuddy\" Output channel\n- Automatically opens the Output panel\n- Logs all API calls, AI operations, and git commands\n\n💡 **Use this when:**\n- Reporting bugs or issues\n- Understanding what the extension is doing\n- Debugging AI summarization\n- Troubleshooting platform API issues (Linear, Jira)"
         },
-        "linearBuddy.firstTimeSetupComplete": {
+        "devBuddy.firstTimeSetupComplete": {
           "type": "boolean",
           "default": false,
           "description": "Whether first-time setup has been completed"
         },
-        "linearBuddy.linearTeamId": {
+        "devBuddy.linearTeamId": {
           "type": "string",
           "default": "",
           "description": "Linear team ID to filter tickets (optional)"
         },
-        "linearBuddy.linearDefaultTeamId": {
+        "devBuddy.linearDefaultTeamId": {
           "type": "string",
           "default": "",
           "description": "Default Linear team ID for creating tickets (saved from TODO converter)"
         },
-        "linearBuddy.autoRefreshInterval": {
+        "devBuddy.autoRefreshInterval": {
           "type": "number",
           "default": 5,
           "description": "Auto-refresh interval for Linear tickets in minutes (0 to disable)"
         },
-        "linearBuddy.branchNamingConvention": {
+        "devBuddy.branchNamingConvention": {
           "type": "string",
           "enum": [
             "conventional",
@@ -474,22 +613,22 @@
           "default": "conventional",
           "description": "Branch naming convention: conventional (feat/fix/etc), simple (identifier-only), or custom"
         },
-        "linearBuddy.customBranchTemplate": {
+        "devBuddy.customBranchTemplate": {
           "type": "string",
           "default": "{type}/{identifier}-{slug}",
           "description": "Custom branch template. Available placeholders: {type}, {identifier}, {slug}, {username}"
         },
-        "linearBuddy.linearOrganization": {
+        "devBuddy.linearOrganization": {
           "type": "string",
           "default": "",
           "description": "Linear organization slug (e.g., 'acme' from linear.app/acme/...)"
         },
-        "linearBuddy.preferDesktopApp": {
+        "devBuddy.preferDesktopApp": {
           "type": "boolean",
           "default": false,
           "description": "Open Linear issues in the desktop app instead of the web browser"
         },
-        "linearBuddy.linkFormat": {
+        "devBuddy.linkFormat": {
           "type": "string",
           "enum": [
             "slack",
@@ -504,15 +643,71 @@
           ],
           "description": "Format for copying ticket links (for standup updates & sharing)"
         },
-        "linearBuddy.telemetry.enabled": {
+        "devBuddy.telemetry.enabled": {
           "type": "boolean",
           "default": false,
-          "markdownDescription": "**Share anonymous usage data to help improve Linear Buddy**\n\n✅ **Benefits:**\n- Help us prioritize features\n- Improve stability and performance\n- Get 14 extra days of Pro trial!\n\n🔒 **Privacy:**\n- 100% anonymous (no personal data)\n- No code or file names tracked\n- No content collection\n- Easy opt-out anytime\n\n💡 **What we collect:**\n- Feature usage patterns\n- Error types (not content)\n- Performance metrics\n- Extension version & platform\n\n[Learn more about our telemetry](https://github.com/yourusername/linear-buddy#telemetry)"
+          "markdownDescription": "**Share anonymous usage data to help improve DevBuddy**\n\n✅ **Benefits:**\n- Help us prioritize features\n- Improve stability and performance\n- Get 14 extra days of Pro trial!\n\n🔒 **Privacy:**\n- 100% anonymous (no personal data)\n- No code or file names tracked\n- No content collection\n- Easy opt-out anytime\n\n💡 **What we collect:**\n- Feature usage patterns\n- Error types (not content)\n- Performance metrics\n- Extension version & platform\n\n[Learn more about our telemetry](https://github.com/angelogirardi/developer-buddy#telemetry)"
         },
-        "linearBuddy.telemetry.showPrompt": {
+        "devBuddy.telemetry.showPrompt": {
           "type": "boolean",
           "default": true,
           "description": "Show telemetry opt-in prompt on first use (disable if you've already made your choice)"
+        },
+        "devBuddy.provider": {
+          "type": "string",
+          "enum": [
+            "linear",
+            "jira"
+          ],
+          "default": "linear",
+          "enumDescriptions": [
+            "Linear - Modern issue tracking",
+            "Jira - Enterprise project management"
+          ],
+          "description": "Choose your ticket management platform"
+        },
+        "devBuddy.jira.type": {
+          "type": "string",
+          "enum": [
+            "cloud",
+            "server"
+          ],
+          "default": "cloud",
+          "enumDescriptions": [
+            "Jira Cloud (hosted by Atlassian at atlassian.net)",
+            "Jira Server/Data Center (self-hosted)"
+          ],
+          "description": "Jira deployment type"
+        },
+        "devBuddy.jira.cloud.siteUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Jira Cloud site URL (e.g., 'yourcompany.atlassian.net')"
+        },
+        "devBuddy.jira.cloud.email": {
+          "type": "string",
+          "default": "",
+          "description": "Jira Cloud account email (for API authentication)"
+        },
+        "devBuddy.jira.defaultProject": {
+          "type": "string",
+          "default": "",
+          "description": "Default Jira project key (e.g., 'ENG', 'PROJ')"
+        },
+        "devBuddy.jira.maxResults": {
+          "type": "number",
+          "default": 50,
+          "description": "Maximum number of issues to fetch per query"
+        },
+        "devBuddy.jira.autoRefreshInterval": {
+          "type": "number",
+          "default": 5,
+          "description": "Auto-refresh interval for Jira issues in minutes (0 to disable)"
+        },
+        "devBuddy.jira.openInBrowser": {
+          "type": "boolean",
+          "default": true,
+          "description": "Open Jira issues in browser (false to open in VS Code webview)"
         }
       }
     }
@@ -529,7 +724,12 @@
     "lint": "eslint src/**/*.ts",
     "generate:logo": "node scripts/generate-logo.js",
     "generate:png": "node scripts/generate-png.js",
-    "logo": "npm run generate:logo && npm run generate:png"
+    "logo": "npm run generate:logo && npm run generate:png",
+    "release": "standard-version",
+    "release:major": "standard-version --release-as major",
+    "release:minor": "standard-version --release-as minor",
+    "release:patch": "standard-version --release-as patch",
+    "release:dry-run": "standard-version --dry-run"
   },
   "devDependencies": {
     "@types/node": "^20.x",
@@ -539,13 +739,14 @@
     "@vscode/vsce": "^3.6.2",
     "esbuild": "^0.25.12",
     "sharp": "^0.34.5",
+    "standard-version": "^9.5.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {
     "@vscode/extension-telemetry": "^1.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "simple-git": "^3.30.0"
-  },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+    "simple-git": "^3.30.0",
+    "zod": "^4.1.12"
+  }
 }
