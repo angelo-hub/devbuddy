@@ -75,7 +75,7 @@ export function activate(context: vscode.ExtensionContext) {
   showFirstTimeSetup();
 
   // Development mode: Auto-open walkthrough or help menu
-  if (process.env.LINEARBUDDY_OPEN_WALKTHROUGH === "true") {
+  if (process.env.DEVBUDDY_OPEN_WALKTHROUGH === "true") {
     // Give extension time to fully activate
     setTimeout(() => {
       vscode.commands.executeCommand(
@@ -84,7 +84,7 @@ export function activate(context: vscode.ExtensionContext) {
         false
       );
     }, 1000);
-  } else if (process.env.LINEARBUDDY_OPEN_HELP === "true") {
+  } else if (process.env.DEVBUDDY_OPEN_HELP === "true") {
     // Give extension time to fully activate
     setTimeout(() => {
       vscode.commands.executeCommand("devBuddy.showHelp");

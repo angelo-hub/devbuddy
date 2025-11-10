@@ -3,7 +3,7 @@
   "displayName": "DevBuddy",
   "description": "Multi-platform ticket management for Linear, Jira, and more. AI-powered workflow automation for PRs, standups, and development tasks.",
   "version": "0.2.0",
-  "publisher": "personal",
+  "publisher": "angelogirardi",
   "license": "SEE LICENSE IN LICENSE",
   "icon": "resources/icon.png",
   "author": {
@@ -346,12 +346,12 @@
       {
         "id": "dev-buddy",
         "name": "devbuddy",
-        "description": "AI assistant for Linear workflow, PRs, and standups",
+        "description": "Multi-platform AI assistant for ticket workflows, PRs, and standups - supports Linear, Jira, and more",
         "isSticky": true,
         "commands": [
           {
             "name": "tickets",
-            "description": "Show your Linear tickets"
+            "description": "Show your tickets from any platform"
           },
           {
             "name": "standup",
@@ -581,7 +581,7 @@
         "devBuddy.debugMode": {
           "type": "boolean",
           "default": false,
-          "markdownDescription": "**Enable debug logging** for troubleshooting.\n\n✅ **When enabled:**\n- Shows detailed logs in the \"Linear Buddy\" Output channel\n- Automatically opens the Output panel\n- Logs all API calls, AI operations, and git commands\n\n💡 **Use this when:**\n- Reporting bugs or issues\n- Understanding what the extension is doing\n- Debugging AI summarization\n- Troubleshooting Linear API issues"
+          "markdownDescription": "**Enable debug logging** for troubleshooting.\n\n✅ **When enabled:**\n- Shows detailed logs in the \"DevBuddy\" Output channel\n- Automatically opens the Output panel\n- Logs all API calls, AI operations, and git commands\n\n💡 **Use this when:**\n- Reporting bugs or issues\n- Understanding what the extension is doing\n- Debugging AI summarization\n- Troubleshooting platform API issues (Linear, Jira)"
         },
         "devBuddy.firstTimeSetupComplete": {
           "type": "boolean",
@@ -646,7 +646,7 @@
         "devBuddy.telemetry.enabled": {
           "type": "boolean",
           "default": false,
-          "markdownDescription": "**Share anonymous usage data to help improve Linear Buddy**\n\n✅ **Benefits:**\n- Help us prioritize features\n- Improve stability and performance\n- Get 14 extra days of Pro trial!\n\n🔒 **Privacy:**\n- 100% anonymous (no personal data)\n- No code or file names tracked\n- No content collection\n- Easy opt-out anytime\n\n💡 **What we collect:**\n- Feature usage patterns\n- Error types (not content)\n- Performance metrics\n- Extension version & platform\n\n[Learn more about our telemetry](https://github.com/yourusername/linear-buddy#telemetry)"
+          "markdownDescription": "**Share anonymous usage data to help improve DevBuddy**\n\n✅ **Benefits:**\n- Help us prioritize features\n- Improve stability and performance\n- Get 14 extra days of Pro trial!\n\n🔒 **Privacy:**\n- 100% anonymous (no personal data)\n- No code or file names tracked\n- No content collection\n- Easy opt-out anytime\n\n💡 **What we collect:**\n- Feature usage patterns\n- Error types (not content)\n- Performance metrics\n- Extension version & platform\n\n[Learn more about our telemetry](https://github.com/angelogirardi/developer-buddy#telemetry)"
         },
         "devBuddy.telemetry.showPrompt": {
           "type": "boolean",

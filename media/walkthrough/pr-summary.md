@@ -10,7 +10,7 @@ Use the command:
 
 Or ask in chat:
 ```
-@linear /pr
+@devbuddy /pr
 ```
 
 ### Monorepo Intelligence
