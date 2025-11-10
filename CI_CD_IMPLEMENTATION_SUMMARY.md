@@ -134,7 +134,7 @@ Once testing is complete:
 
 4. **Verify Release**
    - Check GitHub Releases: https://github.com/angelogirardi/developer-buddy/releases
-   - Check VS Code Marketplace: https://marketplace.visualstudio.com/items?itemName=personal.dev-buddy
+   - Check VS Code Marketplace: https://marketplace.visualstudio.com/items?itemName=angelogirardi.dev-buddy
    - Download and test the VSIX from GitHub Release
 
 ## Conventional Commit Examples

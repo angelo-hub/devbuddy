@@ -164,7 +164,7 @@ private getTelemetryConnectionString(): string | undefined {
   }
 
   // Try from extension's package.json (for production builds)
-  const extension = vscode.extensions.getExtension("personal.dev-buddy");
+  const extension = vscode.extensions.getExtension("angelogirardi.dev-buddy");
   const connectionString = extension?.packageJSON.telemetryConnectionString;
 
   if (connectionString) {
