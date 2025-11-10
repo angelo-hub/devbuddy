@@ -3,7 +3,7 @@
 [![Version](https://img.shields.io/github/v/release/angelo-hub/devbuddy?label=version)](https://github.com/angelo-hub/devbuddy/releases)
 [![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/angelogirardi.dev-buddy)](https://marketplace.visualstudio.com/items?itemName=angelogirardi.dev-buddy)
 [![Downloads](https://img.shields.io/visual-studio-marketplace/d/angelogirardi.dev-buddy)](https://marketplace.visualstudio.com/items?itemName=angelogirardi.dev-buddy)
-[![License](https://img.shields.io/github/license/angelo-hub/devbuddy)](./LICENSE)
+[![License](https://img.shields.io/badge/license-MIT%20%2B%20Pro-blue)](./LICENSE)
 
 **Transform your development workflow with AI-powered ticket management, supporting Linear, Jira, and more!**
 
@@ -309,7 +309,11 @@ See [docs/developer/RELEASE_PROCESS.md](./docs/developer/RELEASE_PROCESS.md) for
 
 ## 📄 License
 
-Personal use. Not for commercial distribution.
+**Dual License:**
+- **Core Features**: [MIT License](./LICENSE) - Free and open source
+- **Pro Features**: [Commercial License](./LICENSE.pro) - Requires subscription
+
+The extension is free to use with all core features. Pro features (when available) will require a paid subscription. See [LICENSING_MODEL.md](./LICENSING_MODEL.md) for details.
 
 ---
 
