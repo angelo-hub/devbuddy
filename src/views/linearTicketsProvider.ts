@@ -73,7 +73,7 @@ export class LinearTicketTreeItem extends vscode.TreeItem {
     // Command to open ticket when clicked
     if (itemType === "ticket") {
       this.command = {
-        command: "linearBuddy.openTicket",
+        command: "devBuddy.openTicket",
         title: "Open Ticket",
         arguments: [issue],
       };
@@ -190,7 +190,7 @@ export class LinearTicketsProvider
    * Start auto-refresh timer
    */
   private startAutoRefresh(): void {
-    const config = vscode.workspace.getConfiguration("linearBuddy");
+    const config = vscode.workspace.getConfiguration("devBuddy");
     const intervalMinutes = config.get<number>("autoRefreshInterval", 5);
 
     // Clear existing timer
@@ -246,7 +246,7 @@ export class LinearTicketsProvider
         return;
       }
 
-      const config = vscode.workspace.getConfiguration("linearBuddy");
+      const config = vscode.workspace.getConfiguration("devBuddy");
       const teamId = config.get<string>("linearTeamId");
 
       // Preload data for all sections in parallel
@@ -350,7 +350,7 @@ export class LinearTicketsProvider
 
     try {
       // Fetch data from Linear
-      const config = vscode.workspace.getConfiguration("linearBuddy");
+      const config = vscode.workspace.getConfiguration("devBuddy");
       const teamId = config.get<string>("linearTeamId");
 
       const items: LinearTicketTreeItem[] = [];
@@ -418,7 +418,7 @@ export class LinearTicketsProvider
   private async getMyIssuesChildren(): Promise<LinearTicketTreeItem[]> {
     try {
       const client = await this.getClient();
-      const config = vscode.workspace.getConfiguration("linearBuddy");
+      const config = vscode.workspace.getConfiguration("devBuddy");
       const teamId = config.get<string>("linearTeamId");
 
       this.issues = await client.getMyIssues({
@@ -459,7 +459,7 @@ export class LinearTicketsProvider
   private async getCompletedIssuesChildren(): Promise<LinearTicketTreeItem[]> {
     try {
       const client = await this.getClient();
-      const config = vscode.workspace.getConfiguration("linearBuddy");
+      const config = vscode.workspace.getConfiguration("devBuddy");
       const teamId = config.get<string>("linearTeamId");
 
       const completedIssues = await client.getMyIssues({
@@ -914,7 +914,7 @@ export class LinearTicketsProvider
     );
     item.iconPath = new vscode.ThemeIcon("settings-gear");
     item.command = {
-      command: "linearBuddy.configureLinearToken",
+      command: "devBuddy.configureLinearToken",
       title: "Configure Linear API Token",
     };
     item.contextValue = "configure";
@@ -1046,7 +1046,7 @@ export class LinearTicketsProvider
     );
     item.iconPath = new vscode.ThemeIcon("error");
     item.command = {
-      command: "linearBuddy.refreshTickets",
+      command: "devBuddy.refreshTickets",
       title: "Refresh",
     };
     item.contextValue = "error";

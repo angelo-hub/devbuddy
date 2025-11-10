@@ -1,0 +1,33 @@
+.container {
+  margin-bottom: 24px;
+}
+
+.ticketContext {
+  padding: 12px;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  margin-top: 12px;
+}
+
+.ticketTitle {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.ticketMeta {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  margin-bottom: 8px;
+  color: var(--color-description);
+}
+
+.ticketDescription {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-description);
+  max-height: 100px;
+  overflow-y: auto;
+}
+

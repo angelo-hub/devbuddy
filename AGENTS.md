@@ -1,6 +1,16 @@
-# Linear Buddy Development Guide
+# DevBuddy Development Guide
 
-This workspace contains **Linear Buddy** - an AI-powered VS Code extension that integrates Linear issue tracking with intelligent workflow automation for monorepo development. It provides sidebar ticket management, chat participant integration, PR summary generation, standup automation, and TODO-to-ticket conversion with code permalinks.
+This workspace contains **DevBuddy** - a multi-platform AI-powered VS Code extension that integrates with Linear, Jira, and other ticket management systems with intelligent workflow automation for monorepo development. It provides sidebar ticket management, chat participant integration, PR summary generation, standup automation, and TODO-to-ticket conversion with code permalinks.
+
+## Multi-Platform Support
+
+DevBuddy is designed to work with multiple ticketing platforms:
+
+- **Linear** - Full feature support including AI workflows
+- **Jira Cloud** - Core features with workflow transitions
+- **More platforms coming soon** - Monday.com, ClickUp, and others
+
+The architecture follows a provider pattern where platform-specific implementations extend base abstractions, allowing seamless switching between platforms while maintaining a consistent user experience.
 
 ## Development Commands
 
@@ -48,8 +58,8 @@ npm run generate:png         # Convert SVG to PNG variants
 - Extension code compiles via TypeScript (`tsc`)
 - Webviews compile via esbuild with React JSX transform
 - Hot reload for webviews: make changes, save, and refresh webview panel
-- Enable debug mode: Settings → `linearBuddy.debugMode` → `true`
-- View logs: Output panel → "Linear Buddy" channel
+- Enable debug mode: Settings → `devBuddy.debugMode` → `true`
+- View logs: Output panel → "DevBuddy" channel
 
 ## High-Level Architecture
 
@@ -62,26 +72,44 @@ src/
 │   ├── generatePRSummary.ts        # PR summary generation with monorepo support
 │   ├── generateStandup.ts          # Standup update generation
 │   └── convertTodoToTicket.ts      # TODO to Linear ticket with permalinks
-├── utils/                          # Utility modules
-│   ├── aiSummarizer.ts             # AI summarization via VS Code LM API
-│   ├── fallbackSummarizer.ts       # Rule-based analysis (no AI required)
-│   ├── linearClient.ts             # Linear GraphQL API client
-│   ├── gitAnalyzer.ts              # Git operations and commit analysis
-│   ├── gitPermalinkGenerator.ts    # GitHub/GitLab/Bitbucket permalink generation
-│   ├── packageDetector.ts          # Monorepo package detection
-│   ├── branchAssociationManager.ts # Ticket-branch association tracking
-│   ├── templateParser.ts           # PR template parsing
-│   ├── linkFormatter.ts            # Link format (Slack/Markdown/Plain)
-│   ├── todoCodeActionProvider.ts   # Code actions for TODO comments
-│   ├── firstTimeSetup.ts           # Onboarding flow
-│   └── logger.ts                   # Centralized logging with debug mode
-├── views/                          # Tree view providers (sidebar)
-│   ├── linearTicketsProvider.ts    # Main tickets tree view provider
-│   ├── linearTicketPanel.ts        # Webview panel for ticket details
-│   ├── createTicketPanel.ts        # Webview panel for creating tickets
-│   └── standupBuilderPanel.ts      # Webview panel for standup builder
+├── shared/                         # Shared utilities across all platforms
+│   ├── base/                       # Base abstractions for multi-platform support
+│   │   ├── BaseTicketProvider.ts   # Abstract ticket provider interface
+│   │   ├── BaseTreeViewProvider.ts # Abstract tree view pattern
+│   │   └── BaseTicketPanel.ts      # Abstract webview panel pattern
+│   ├── git/                        # Git-related utilities
+│   │   ├── gitAnalyzer.ts          # Git operations and commit analysis
+│   │   └── gitPermalinkGenerator.ts # GitHub/GitLab/Bitbucket permalink generation
+│   ├── ai/                         # AI-related utilities
+│   │   ├── aiSummarizer.ts         # AI summarization via VS Code LM API
+│   │   └── fallbackSummarizer.ts   # Rule-based analysis (no AI required)
+│   └── utils/                      # General utilities
+│       ├── logger.ts               # Centralized logging with debug mode
+│       ├── packageDetector.ts      # Monorepo package detection
+│       ├── templateParser.ts       # PR template parsing
+│       ├── linkFormatter.ts        # Link format (Slack/Markdown/Plain)
+│       ├── telemetryManager.ts     # Telemetry management
+│       └── platformDetector.ts     # Platform detection utility
+├── providers/                      # Platform-specific implementations
+│   ├── linear/                     # Linear provider implementation
+│   │   ├── LinearClient.ts         # Linear GraphQL API client (extends BaseTicketProvider)
+│   │   ├── types.ts                # Linear-specific type definitions
+│   │   ├── LinearTicketsProvider.ts # Linear tickets tree view provider
+│   │   ├── LinearTicketPanel.ts    # Linear ticket detail webview panel
+│   │   ├── CreateTicketPanel.ts    # Linear ticket creation panel
+│   │   ├── StandupBuilderPanel.ts  # Linear standup builder panel
+│   │   ├── branchAssociationManager.ts # Branch-ticket association tracking
+│   │   └── firstTimeSetup.ts       # Linear onboarding flow
+│   └── jira/                       # Jira provider implementation
+│       ├── JiraClient.ts           # Jira REST API client (extends BaseTicketProvider)
+│       ├── types.ts                # Jira-specific type definitions
+│       ├── JiraTicketsProvider.ts  # Jira tickets tree view provider
+│       └── firstTimeSetup.ts       # Jira onboarding flow
+├── utils/                          # Legacy utilities (being phased out)
+│   └── todoCodeActionProvider.ts   # Code actions for TODO comments
 └── chat/
-    └── linearBuddyParticipant.ts   # Chat participant (@linear)
+    ├── devBuddyParticipant.ts      # Chat participant (@devbuddy) - multiplatform
+    └── linearBuddyParticipant.ts   # Legacy Linear-specific participant
 
 webview-ui/
 ├── build.js                        # esbuild configuration
@@ -98,38 +126,39 @@ webview-ui/
     │   │   └── useVSCode.ts        # Hook for VS Code API communication
     │   └── types/
     │       └── messages.ts         # Message protocol types
-    ├── standup-builder/            # Standup builder webview app
-    │   ├── App.tsx                 # Main app component
-    │   ├── components/             # Feature components
-    │   │   ├── ModeSelector.tsx    # Mode selection (Single/Multi/Custom)
-    │   │   ├── TicketSelector.tsx  # Ticket picker
-    │   │   ├── StandupForm.tsx     # Standup options form
-    │   │   ├── CommitsAndFiles.tsx # Git changes viewer
-    │   │   ├── ProgressIndicator.tsx # Loading/progress state
-    │   │   └── ResultsDisplay.tsx  # Generated standup display
-    │   └── index.tsx               # Entry point
-    ├── ticket-panel/               # Ticket detail webview app
-    │   ├── App.tsx                 # Main app component
-    │   ├── components/             # Feature components
-    │   │   ├── TicketHeader.tsx    # Ticket identifier and title
-    │   │   ├── TicketDescription.tsx # Ticket description with markdown
-    │   │   ├── TicketMetadata.tsx  # Priority, estimate, dates
-    │   │   ├── TicketLabels.tsx    # Labels/tags
-    │   │   ├── StatusSelector.tsx  # Status dropdown
-    │   │   ├── AssigneeSelector.tsx # Assignee picker
-    │   │   ├── Comments.tsx        # Comment thread
-    │   │   ├── CommentForm.tsx     # Add comment form
-    │   │   ├── SubIssues.tsx       # Sub-issues list
-    │   │   ├── AttachedPRs.tsx     # Linked pull requests
-    │   │   ├── BranchManager.tsx   # Branch associations
-    │   │   ├── ActionButtons.tsx   # Primary actions
-    │   │   └── ShareButton.tsx     # Copy link functionality
-    │   └── index.tsx               # Entry point
-    └── create-ticket/              # Create ticket webview app
-        ├── App.tsx                 # Main app component
-        ├── components/
-        │   └── TicketForm.tsx      # Ticket creation form
-        └── index.tsx               # Entry point
+    └── linear/                     # Linear platform webview apps
+        ├── standup-builder/        # Standup builder webview app
+        │   ├── App.tsx             # Main app component
+        │   ├── components/         # Feature components
+        │   │   ├── ModeSelector.tsx # Mode selection (Single/Multi/Custom)
+        │   │   ├── TicketSelector.tsx # Ticket picker
+        │   │   ├── StandupForm.tsx # Standup options form
+        │   │   ├── CommitsAndFiles.tsx # Git changes viewer
+        │   │   ├── ProgressIndicator.tsx # Loading/progress state
+        │   │   └── ResultsDisplay.tsx # Generated standup display
+        │   └── index.tsx           # Entry point
+        ├── ticket-panel/           # Ticket detail webview app
+        │   ├── App.tsx             # Main app component
+        │   ├── components/         # Feature components
+        │   │   ├── TicketHeader.tsx # Ticket identifier and title
+        │   │   ├── TicketDescription.tsx # Ticket description with markdown
+        │   │   ├── TicketMetadata.tsx # Priority, estimate, dates
+        │   │   ├── TicketLabels.tsx # Labels/tags
+        │   │   ├── StatusSelector.tsx # Status dropdown
+        │   │   ├── AssigneeSelector.tsx # Assignee picker
+        │   │   ├── Comments.tsx    # Comment thread
+        │   │   ├── CommentForm.tsx # Add comment form
+        │   │   ├── SubIssues.tsx   # Sub-issues list
+        │   │   ├── AttachedPRs.tsx # Linked pull requests
+        │   │   ├── BranchManager.tsx # Branch associations
+        │   │   ├── ActionButtons.tsx # Primary actions
+        │   │   └── ShareButton.tsx # Copy link functionality
+        │   └── index.tsx           # Entry point
+        └── create-ticket/          # Create ticket webview app
+            ├── App.tsx             # Main app component
+            ├── components/
+            │   └── TicketForm.tsx  # Ticket creation form
+            └── index.tsx           # Entry point
 
 docs/                               # Documentation
 ├── features/                       # Feature-specific docs
@@ -151,7 +180,32 @@ docs/                               # Documentation
 
 ### Core Architectural Patterns
 
-**1. Extension Activation Pattern**
+**1. Multi-Platform Architecture (Production Ready)**
+
+DevBuddy is built on a multi-platform architecture supporting multiple ticketing systems. The architecture follows these principles:
+
+- **Shared Infrastructure**: Common utilities (git, AI, logging) are platform-agnostic
+- **Base Abstractions**: `BaseTicketProvider`, `BaseTreeViewProvider`, and `BaseTicketPanel` define the contract for any platform
+- **Platform-Specific Implementations**: Each platform implements the base abstractions
+- **Platform Detection**: `platformDetector.ts` utility enables runtime platform switching
+- **Separated Concerns**: Platform-specific code is isolated in `src/providers/{platform}/`
+
+**Current State**:
+- **Linear** - Full feature set with AI integration (✅ Production)
+- **Jira Cloud** - Core features with workflow support (✅ Production)
+- **Universal Sidebar** - Single interface for all platforms
+
+**Platform Selection**:
+- Configure via `devBuddy.provider` setting ("linear" or "jira")
+- Seamless switching between platforms
+- Shared commands work across all platforms
+
+**Future Expansion**:
+- Jira Server/Data Center support
+- Monday.com, ClickUp, and other platforms
+- Enhanced AI features for all platforms
+
+**2. Extension Activation Pattern**
 
 - Single activation point in `src/extension.ts`
 - All services initialized on `onStartupFinished` activation event
@@ -228,7 +282,6 @@ fallbackSummarizer.ts → No external AI
   - Create issues with all metadata
   - Add comments
   - Fetch teams, projects, labels, users
-- Automatic token migration from old config storage
 - GraphQL queries with efficient field selection
 
 **6. Branch Association Pattern**
@@ -248,23 +301,26 @@ fallbackSummarizer.ts → No external AI
 ### Configuration Management
 
 - All settings defined in `package.json` contributions
-- Access via `vscode.workspace.getConfiguration("linearBuddy")`
+- Access via `vscode.workspace.getConfiguration("devBuddy")`
 - Key settings:
-  - `linearBuddy.ai.model` - AI model selection (auto, gpt-4o, etc.)
-  - `linearBuddy.ai.disabled` - Privacy mode (disable external AI)
-  - `linearBuddy.writingTone` - Tone for summaries
-  - `linearBuddy.branchNamingConvention` - Branch naming style
-  - `linearBuddy.packagesPaths` - Monorepo package directories
-  - `linearBuddy.debugMode` - Enable debug logging
+  - `devBuddy.provider` - Platform selection ("linear" or "jira")
+  - `devBuddy.ai.model` - AI model selection (auto, gpt-4o, etc.)
+  - `devBuddy.ai.disabled` - Privacy mode (disable external AI)
+  - `devBuddy.writingTone` - Tone for summaries
+  - `devBuddy.branchNamingConvention` - Branch naming style
+  - `devBuddy.packagesPaths` - Monorepo package directories
+  - `devBuddy.debugMode` - Enable debug logging
+  - `devBuddy.jira.cloud.siteUrl` - Jira Cloud site URL
+  - `devBuddy.jira.cloud.email` - Jira Cloud email
 - Secure storage for API tokens (not in settings)
 
 ### Logging System
 
-- Centralized logger in `src/utils/logger.ts`
+- Centralized logger in `src/shared/utils/logger.ts`
 - Singleton pattern: `getLogger()`
-- Output channel: "Linear Buddy"
+- Output channel: "DevBuddy"
 - Levels: `info`, `success`, `warn`, `error`, `debug`
-- Debug logs only shown when `linearBuddy.debugMode` is enabled
+- Debug logs only shown when `devBuddy.debugMode` is enabled
 - Auto-opens output panel in debug mode
 
 ### Command Structure
@@ -272,7 +328,7 @@ fallbackSummarizer.ts → No external AI
 Commands follow the pattern:
 ```typescript
 // In extension.ts
-vscode.commands.registerCommand("linearBuddy.commandName", async (args) => {
+vscode.commands.registerCommand("devBuddy.commandName", async (args) => {
   // Command implementation or delegate to command file
 });
 
@@ -282,7 +338,7 @@ export async function commandNameCommand() {
 }
 ```
 
-All commands prefixed with `linearBuddy.`
+All commands prefixed with `devBuddy.` for multi-platform commands, or `devBuddy.{platform}.` for platform-specific commands (e.g., `devBuddy.jira.setup`)
 
 ### Webview Communication Protocol
 
@@ -374,19 +430,20 @@ panel.webview.onDidReceiveMessage(async (message) => {
 ### Environment Variables (for Development)
 
 ```bash
-LINEARBUDDY_OPEN_WALKTHROUGH=true  # Auto-open walkthrough on activation
-LINEARBUDDY_OPEN_HELP=true         # Auto-open help menu on activation
+DEVBUDDY_OPEN_WALKTHROUGH=true  # Auto-open walkthrough on activation
+DEVBUDDY_OPEN_HELP=true         # Auto-open help menu on activation
 ```
 
 ### Multi-File Architecture
 
-Linear Buddy is organized by feature:
+DevBuddy is organized by feature with platform separation:
 
-- **Commands** - Entry points for user actions
+- **Commands** - Entry points for user actions (platform-agnostic)
+- **Providers** - Platform-specific implementations (Linear, Jira)
+- **Shared** - Cross-platform utilities (git, AI, logging)
 - **Views** - UI providers (tree views, webview panels)
-- **Utils** - Business logic and external integrations
 - **Webview-UI** - React applications (separate build)
-- **Chat** - AI chat participant implementation
+- **Chat** - AI chat participant implementation (multiplatform)
 
 ## Common Development Tasks
 
@@ -404,10 +461,10 @@ Linear Buddy is organized by feature:
 3. Add to `package.json` contributions:
    ```json
    {
-     "command": "linearBuddy.myCommand",
-     "title": "Linear Buddy: My Command",
+     "command": "devBuddy.myCommand",
+     "title": "DevBuddy: My Command",
      "icon": "$(icon-name)",
-     "category": "Linear Buddy"
+     "category": "DevBuddy"
    }
    ```
 4. Add to walkthrough or help menu if user-facing
@@ -528,7 +585,7 @@ Linear Buddy is organized by feature:
 
 3. Choose strategy based on settings:
    ```typescript
-   const config = vscode.workspace.getConfiguration("linearBuddy");
+   const config = vscode.workspace.getConfiguration("devBuddy");
    const aiDisabled = config.get<boolean>("ai.disabled", false);
    
    if (aiDisabled) {
@@ -551,8 +608,8 @@ Linear Buddy is organized by feature:
 3. Add menu contribution in `package.json`:
    ```json
    {
-     "command": "linearBuddy.myAction",
-     "when": "view == linearTickets && viewItem == myItemType",
+     "command": "devBuddy.myAction",
+     "when": "view == myTickets && viewItem == myItemType",
      "group": "inline@1"
    }
    ```
@@ -586,7 +643,7 @@ const removed = await branchManager.cleanupStaleAssociations();
 3. In webview, right-click → "Open Webview Developer Tools"
 4. Use Chrome DevTools to debug React code
 5. Console logs from webview appear in DevTools
-6. Extension-side logs appear in "Linear Buddy" output channel
+6. Extension-side logs appear in "DevBuddy" output channel
 
 ## Repository Guidelines
 
@@ -666,33 +723,42 @@ const removed = await branchManager.cleanupStaleAssociations();
 
 ```typescript
 {
-  // AI Configuration
-  "linearBuddy.ai.model": "auto",           // AI model selection
-  "linearBuddy.ai.disabled": false,         // Privacy mode (disable AI)
-  "linearBuddy.writingTone": "professional", // Tone for summaries
+  // Platform Selection
+  "devBuddy.provider": "linear",            // Choose platform: "linear" or "jira"
   
-  // Linear Integration
-  "linearBuddy.linearOrganization": "myorg", // Organization slug
-  "linearBuddy.linearTeamId": "",           // Filter by team (optional)
-  "linearBuddy.preferDesktopApp": false,    // Open in desktop app
-  "linearBuddy.linkFormat": "markdown",     // Link format (Slack/Markdown/Plain)
+  // AI Configuration
+  "devBuddy.ai.model": "auto",              // AI model selection
+  "devBuddy.ai.disabled": false,            // Privacy mode (disable AI)
+  "devBuddy.writingTone": "professional",   // Tone for summaries
+  
+  // Linear Integration (when provider = "linear")
+  "devBuddy.linearOrganization": "myorg",   // Organization slug
+  "devBuddy.linearTeamId": "",              // Filter by team (optional)
+  "devBuddy.preferDesktopApp": false,       // Open in desktop app
+  "devBuddy.linkFormat": "markdown",        // Link format (Slack/Markdown/Plain)
+  
+  // Jira Integration (when provider = "jira")
+  "devBuddy.jira.type": "cloud",            // "cloud" or "server"
+  "devBuddy.jira.cloud.siteUrl": "",        // Jira Cloud site URL
+  "devBuddy.jira.cloud.email": "",          // Jira Cloud email
+  "devBuddy.jira.defaultProject": "",       // Default project key
   
   // Branch Management
-  "linearBuddy.branchNamingConvention": "conventional", // Branch naming
-  "linearBuddy.customBranchTemplate": "{type}/{identifier}-{slug}",
+  "devBuddy.branchNamingConvention": "conventional", // Branch naming
+  "devBuddy.customBranchTemplate": "{type}/{identifier}-{slug}",
   
   // Monorepo Support
-  "linearBuddy.baseBranch": "main",         // Base branch for PRs
-  "linearBuddy.packagesPaths": ["packages/", "apps/"], // Package directories
-  "linearBuddy.maxPackageScope": 2,         // Max packages per PR
-  "linearBuddy.prTemplatePath": ".github/pull_request_template.md",
+  "devBuddy.baseBranch": "main",            // Base branch for PRs
+  "devBuddy.packagesPaths": ["packages/", "apps/"], // Package directories
+  "devBuddy.maxPackageScope": 2,            // Max packages per PR
+  "devBuddy.prTemplatePath": ".github/pull_request_template.md",
   
   // Standup Configuration
-  "linearBuddy.standupTimeWindow": "24 hours ago", // Commit window
+  "devBuddy.standupTimeWindow": "24 hours ago", // Commit window
   
   // System
-  "linearBuddy.debugMode": false,           // Enable debug logging
-  "linearBuddy.autoRefreshInterval": 5,     // Refresh tickets (minutes)
+  "devBuddy.debugMode": false,              // Enable debug logging
+  "devBuddy.autoRefreshInterval": 5,        // Refresh tickets (minutes)
 }
 ```
 
@@ -757,9 +823,10 @@ await context.secrets.delete("linearApiToken");
 ### Debug Mode
 
 Enable comprehensive logging:
-1. Settings → `linearBuddy.debugMode` → `true`
-2. Output panel → "Linear Buddy"
+1. Settings → `devBuddy.debugMode` → `true`
+2. Output panel → "DevBuddy"
 3. View all API calls, git operations, and AI requests
+4. Shows platform-specific logs (Linear GraphQL, Jira REST API)
 
 ## Contributing Guidelines
 
@@ -781,5 +848,11 @@ Enable comprehensive logging:
 
 ---
 
-This architecture enables Linear Buddy to provide powerful workflow automation while maintaining clean separation of concerns, extensibility for new features, and privacy-first AI integration with intelligent fallback strategies.
+This architecture enables DevBuddy to provide powerful multi-platform workflow automation while maintaining clean separation of concerns, extensibility for new platforms and features, and privacy-first AI integration with intelligent fallback strategies.
+
+## Platform-Specific Documentation
+
+- **Linear Features**: See `docs/user-guides/LINEAR_BUDDY_GUIDE.md`
+- **Jira Integration**: See `JIRA_CLOUD_IMPLEMENTATION_SUMMARY.md` and `JIRA_QUICK_START.md`
+- **Feature Compatibility**: See `FEATURE_COMPATIBILITY_MATRIX.md`
 

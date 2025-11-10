@@ -8,7 +8,7 @@ import { getLogger } from "../utils/logger";
  * Convert Linear web URL to desktop app URL if preference is enabled
  */
 function getLinearUrl(webUrl: string): string {
-  const config = vscode.workspace.getConfiguration("linearBuddy");
+  const config = vscode.workspace.getConfiguration("devBuddy");
   const preferDesktop = config.get<boolean>("preferDesktopApp", false);
   
   if (preferDesktop) {
@@ -221,7 +221,7 @@ export class LinearTicketPanel {
       vscode.window.showInformationMessage("Status updated!");
       await this.refresh();
       // Refresh the sidebar
-      vscode.commands.executeCommand("linearBuddy.refreshTickets");
+      vscode.commands.executeCommand("devBuddy.refreshTickets");
     } else {
       vscode.window.showErrorMessage("Failed to update status");
     }
@@ -264,7 +264,7 @@ export class LinearTicketPanel {
       vscode.window.showInformationMessage("Title updated!");
       await this.refresh();
       // Refresh the sidebar
-      vscode.commands.executeCommand("linearBuddy.refreshTickets");
+      vscode.commands.executeCommand("devBuddy.refreshTickets");
     } else {
       vscode.window.showErrorMessage("Failed to update title");
     }
@@ -310,7 +310,7 @@ export class LinearTicketPanel {
       vscode.window.showInformationMessage("Assignee updated!");
       await this.refresh();
       // Refresh the sidebar
-      vscode.commands.executeCommand("linearBuddy.refreshTickets");
+      vscode.commands.executeCommand("devBuddy.refreshTickets");
     } else {
       vscode.window.showErrorMessage("Failed to update assignee");
     }

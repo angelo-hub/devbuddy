@@ -1,0 +1,87 @@
+/* webview-ui/src/global.css */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    sans-serif;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--vscode-foreground);
+  background-color: var(--vscode-editor-background);
+  padding: 20px;
+}
+:root {
+  --color-foreground: var(--vscode-foreground);
+  --color-background: var(--vscode-editor-background);
+  --color-border: var(--vscode-panel-border);
+  --color-description: var(--vscode-descriptionForeground);
+  --button-background: #0e639c;
+  --button-foreground: #ffffff;
+  --button-hover-background: #1177bb;
+  --button-secondary-background: #3a3d41;
+  --button-secondary-foreground: #cccccc;
+  --button-secondary-hover-background: #45494e;
+  --input-background: var(--vscode-input-background);
+  --input-foreground: var(--vscode-input-foreground);
+  --input-border: var(--vscode-input-border);
+  --focus-border: #007acc;
+  --status-started: #6366f1;
+  --status-completed: #10b981;
+  --status-canceled: #6b7280;
+  --status-backlog: #8b5cf6;
+  --priority-urgent: #ef4444;
+  --priority-high: #f97316;
+  --priority-medium: #eab308;
+  --priority-low: #22c55e;
+  --priority-none: #9ca3af;
+  --list-hover-background: var(--vscode-list-hoverBackground);
+  --list-active-background: var(--vscode-list-activeSelectionBackground);
+  --badge-background: var(--vscode-badge-background);
+  --badge-foreground: var(--vscode-badge-foreground);
+  --link-foreground: var(--vscode-textLink-foreground);
+}
+button {
+  font-family: inherit;
+  font-size: inherit;
+}
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+a {
+  color: var(--link-foreground);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--vscode-scrollbarSlider-background);
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--vscode-scrollbarSlider-hoverBackground);
+}
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--vscode-scrollbarSlider-activeBackground);
+}
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+/*# sourceMappingURL=jira-ticket-panel.css.map */

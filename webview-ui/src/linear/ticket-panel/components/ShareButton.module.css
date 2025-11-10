@@ -1,0 +1,56 @@
+.shareContainer {
+  position: relative;
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  margin-left: 8px;
+}
+
+.shareButton {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-description);
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  opacity: 0.7;
+}
+
+.shareButton:hover {
+  background-color: var(--vscode-button-secondaryHoverBackground);
+  color: var(--vscode-button-foreground);
+  opacity: 1;
+}
+
+.shareButton:active {
+  transform: scale(0.95);
+}
+
+.shareButton svg {
+  width: 14px;
+  height: 14px;
+}
+
+.tooltip {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--vscode-editorWidget-background);
+  color: var(--vscode-editorWidget-foreground);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 1000;
+  border: 1px solid var(--vscode-editorWidget-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+
+

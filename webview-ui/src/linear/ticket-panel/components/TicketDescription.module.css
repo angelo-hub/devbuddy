@@ -1,0 +1,109 @@
+.section {
+  margin-bottom: 24px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-foreground);
+}
+
+.editButton {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-description);
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  opacity: 0.7;
+}
+
+.editButton:hover {
+  background-color: var(--vscode-button-secondaryHoverBackground);
+  color: var(--vscode-button-foreground);
+  opacity: 1;
+}
+
+.editButton:active {
+  transform: scale(0.95);
+}
+
+.description {
+  padding: 12px;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.descriptionTextarea {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 8px;
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.descriptionTextarea:focus {
+  outline: none;
+  border-color: var(--vscode-focusBorder);
+}
+
+.editButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.saveButton,
+.cancelButton {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.saveButton {
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+}
+
+.saveButton:hover {
+  background-color: var(--vscode-button-hoverBackground);
+}
+
+.cancelButton {
+  background-color: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+}
+
+.cancelButton:hover {
+  background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+.emptyState {
+  padding: 24px;
+  text-align: center;
+  color: var(--color-description);
+  font-style: italic;
+}
+

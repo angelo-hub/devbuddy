@@ -76,16 +76,20 @@ const cssModulesPlugin = {
 
 async function main() {
   // Ensure output directory exists
-  const outDir = path.resolve(__dirname, "../out/webview");
+  const outDir = path.resolve(__dirname, "build");
   if (!fs.existsSync(outDir)) {
     fs.mkdirSync(outDir, { recursive: true });
   }
 
   const ctx = await esbuild.context({
     entryPoints: {
-      "standup-builder": path.resolve(__dirname, "src/standup-builder/index.tsx"),
-      "ticket-panel": path.resolve(__dirname, "src/ticket-panel/index.tsx"),
-      "create-ticket": path.resolve(__dirname, "src/create-ticket/index.tsx"),
+      // Linear webviews
+      "linear-standup-builder": path.resolve(__dirname, "src/linear/standup-builder/index.tsx"),
+      "linear-ticket-panel": path.resolve(__dirname, "src/linear/ticket-panel/index.tsx"),
+      "linear-create-ticket": path.resolve(__dirname, "src/linear/create-ticket/index.tsx"),
+      // Jira webviews
+      "jira-ticket-panel": path.resolve(__dirname, "src/jira/ticket-panel/index.tsx"),
+      "jira-create-ticket": path.resolve(__dirname, "src/jira/create-ticket/index.tsx"),
     },
     bundle: true,
     format: "iife",
@@ -106,6 +110,7 @@ async function main() {
       ".ts": "ts",
     },
     jsx: "automatic",
+    resolveExtensions: [".tsx", ".ts", ".jsx", ".js", ".css", ".json"],
   });
 
   if (watch) {

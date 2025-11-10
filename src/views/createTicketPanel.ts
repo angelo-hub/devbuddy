@@ -197,7 +197,7 @@ export class CreateTicketPanel {
         );
 
         // Refresh the sidebar
-        vscode.commands.executeCommand("linearBuddy.refreshTickets");
+        vscode.commands.executeCommand("devBuddy.refreshTickets");
 
         // Ask if user wants to open the ticket
         const action = await vscode.window.showInformationMessage(
@@ -207,7 +207,7 @@ export class CreateTicketPanel {
         );
 
         if (action === "Open Ticket") {
-          vscode.commands.executeCommand("linearBuddy.openTicket", {
+          vscode.commands.executeCommand("devBuddy.openTicket", {
             issue,
           });
         }

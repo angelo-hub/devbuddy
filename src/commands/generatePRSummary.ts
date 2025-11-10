@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { GitAnalyzer } from '../utils/gitAnalyzer';
-import { PackageDetector } from '../utils/packageDetector';
-import { TemplateParser } from '../utils/templateParser';
-import { AISummarizer } from '../utils/aiSummarizer';
+import { GitAnalyzer } from '../shared/git/gitAnalyzer';
+import { PackageDetector } from '../shared/utils/packageDetector';
+import { TemplateParser } from '../shared/utils/templateParser';
+import { AISummarizer } from '../shared/ai/aiSummarizer';
 
 export async function generatePRSummaryCommand() {
   try {
@@ -37,7 +37,7 @@ export async function generatePRSummaryCommand() {
     const packageAnalysis = packageDetector.analyzeChangedFiles(gitContext.changedFiles);
 
     // Read PR template
-    const config = vscode.workspace.getConfiguration('linearBuddy');
+    const config = vscode.workspace.getConfiguration('devBuddy');
     const templatePath = config.get<string>('prTemplatePath', '.github/pull_request_template.md');
     const fullTemplatePath = path.join(workspaceRoot, templatePath);
 
