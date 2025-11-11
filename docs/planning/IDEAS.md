@@ -406,6 +406,49 @@
 
 ---
 
+### 28B. Code Permalink Detection & Auto-Open
+**Description:** Detect code permalinks (GitHub/GitLab/Bitbucket) in ticket descriptions and comments, then provide one-click actions to checkout the branch and open the file at the specific line in VS Code.
+
+**Benefits:**
+- Jump directly to relevant code from tickets
+- Faster code review and context switching
+- Automatic branch checkout if needed
+- Navigate to exact line numbers
+- Works across GitHub, GitLab, and Bitbucket
+
+**Implementation:**
+- Detect permalink patterns in ticket content:
+  - GitHub: `https://github.com/{org}/{repo}/blob/{ref}/path/to/file.ts#L123`
+  - GitLab: `https://gitlab.com/{org}/{repo}/-/blob/{ref}/path/to/file.ts#L123`
+  - Bitbucket: `https://bitbucket.org/{org}/{repo}/src/{ref}/path/to/file.ts#lines-123`
+- Parse permalink to extract:
+  - Repository (validate it matches workspace)
+  - Branch/commit ref
+  - File path
+  - Line number(s)
+- Show "Open in VS Code" button next to detected permalinks
+- On click:
+  1. Check if branch exists locally
+  2. Offer to checkout branch if different from current
+  3. Open file in editor
+  4. Navigate to specific line number
+  5. Highlight the line
+- Cache parsed permalinks for performance
+- Show inline preview/tooltip of the code snippet
+
+**User Experience:**
+```
+[Ticket Description]
+"The bug is in the authentication handler: 
+https://github.com/myorg/myrepo/blob/feat/auth/src/auth.ts#L45-L52"
+
+[Button: 🔍 Open in VS Code]  <- One-click opens file at line 45
+```
+
+**Free Tier Feature** ✅
+
+---
+
 ## Integration Ideas
 
 ### 29. GitHub Integration
@@ -446,6 +489,7 @@
 - #6 - Multi-ticket
 - #18 - Auto-branch
 - #21 - Reminders
+- #28B - Permalink detection & auto-open (FREE TIER) 🆕
 
 **Medium Priority:**
 - #7 - Time tracking

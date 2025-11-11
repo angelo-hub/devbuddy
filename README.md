@@ -5,13 +5,26 @@
 [![Downloads](https://img.shields.io/visual-studio-marketplace/d/angelogirardi.dev-buddy)](https://marketplace.visualstudio.com/items?itemName=angelogirardi.dev-buddy)
 [![License](https://img.shields.io/badge/license-MIT%20%2B%20Pro-blue)](./LICENSE)
 
-**Transform your development workflow with AI-powered ticket management, supporting Linear, Jira, and more!**
+**Transform your development workflow with AI-powered ticket management, supporting Linear, Jira, and more.**
 
-> **🔒 Privacy-First:** Works with or without AI! Organizations with strict security policies can disable external AI and use intelligent rule-based analysis instead.
+> **Privacy-First:** Works with or without AI. Organizations with strict security policies can disable external AI and use intelligent rule-based analysis instead.
 
-> **🌐 Multi-Platform:** Seamlessly switch between Linear, Jira Cloud, and other platforms (more coming soon).
+---
 
-## 🎯 Supported Platforms
+## At a Glance
+
+| Feature | Description | Platforms |
+|---------|-------------|-----------|
+| **Sidebar Management** | View and manage all tickets from VS Code | Linear, Jira |
+| **AI Workflows** | Generate PR summaries and standups automatically | Linear |
+| **TODO Converter** | Convert TODOs to tickets with automatic code permalinks | Linear |
+| **Chat Participant** | Ask `@devbuddy` questions in natural language | Linear, Jira |
+| **Branch Integration** | Create and manage branches directly from tickets | Linear |
+| **Monorepo Support** | Intelligent package detection and validation | All platforms |
+
+---
+
+## Supported Platforms
 
 | Platform | Status | Features |
 |----------|--------|----------|
@@ -21,249 +34,414 @@
 | **Monday.com** | ⏳ Planned | Future release |
 | **ClickUp** | ⏳ Planned | Future release |
 
-## ✨ Features
+---
 
-### 🌐 Multi-Platform Support
-- **Single Interface**: Manage tickets from any platform
-- **Easy Switching**: Change platforms via settings
-- **Consistent UX**: Same commands work across platforms
-- **Platform-Specific Features**: Optimized for each platform
+## Why DevBuddy?
 
-### 💬 Chat Participant
-- Ask `@devbuddy` questions in chat
-- Commands: `/tickets`, `/standup`, `/pr`, `/status`
-- Natural language queries: "show me my open tickets"
-- Works with Linear and Jira (more coming)
+Stop context switching. Manage tickets, generate documentation, and track work without leaving VS Code.
 
-### 📊 Sidebar Ticket View
-- See all your tickets in the sidebar
-- Priority indicators (🔴 Urgent, 🟠 High, 🟡 Medium, 🟢 Low)
-- One-click to open tickets
-- Quick actions: Update status, assign, comment
-- Filter by status, project, assignee
+| Task | Manual Workflow | With DevBuddy | Time Saved |
+|------|----------------|---------------|------------|
+| **Create ticket from TODO** | Open browser, create ticket, copy ID, paste in code, add permalink manually | Right-click → Convert TODO | 5 min → 10 sec |
+| **Track TODOs across files** | Create ticket, manually update 4 files with ticket ID | Create once → paste in 3 more locations | 10 min → 30 sec |
+| **Generate PR summary** | Review changes, write description, list affected packages | One command → AI generates full summary | 15 min → 1 min |
+| **Daily standup** | Review commits, check tickets, write update | One click → AI generates standup | 10 min → 30 sec |
+| **Update ticket status** | Open browser, find ticket, update status | Right-click in sidebar → select new status | 1 min → 5 sec |
 
-### 🤖 AI-Powered Summaries (with Privacy-First Fallback)
-- **Standup Generator**: AI analyzes your commits and generates standup updates
-- **PR Summary**: Auto-generates PR descriptions from your changes
-- **Smart Suggestions**: Next steps and blocker detection
-- **🔒 Rule-Based Fallback**: Works without AI for sensitive organizations
+---
 
-### ⚡ Quick Actions
-- Create, update, and manage tickets
-- Update status and assignments
-- Add comments
-- Search and filter
-- All from VS Code!
-
-### 🔗 Git & Monorepo Support
-- Branch creation from tickets (Linear)
-- Package detection and validation
-- Multi-ticket/branch support
-- PR scope validation
-
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Install Extension
+
+**From VS Code Marketplace:**
+1. Open VS Code
+2. Go to Extensions (Cmd/Ctrl + Shift + X)
+3. Search for "DevBuddy"
+4. Click Install
+
+**Or install from command line:**
 ```bash
-./reinstall.sh
-# Or: code --install-extension dev-buddy-0.1.0.vsix
+code --install-extension angelogirardi.dev-buddy
 ```
 
 ### 2. Choose Your Platform
 
-**Settings → DevBuddy → Provider**
+Open Settings and set your preferred platform:
+
 ```json
 {
   "devBuddy.provider": "linear"  // or "jira"
 }
 ```
 
+| Setting Value | Platform | Configuration Required |
+|---------------|----------|------------------------|
+| `"linear"` | Linear | API token from linear.app/settings/api |
+| `"jira"` | Jira Cloud | Site URL, email, API token |
+
 ### 3. Configure Authentication
 
-#### For Linear:
-1. Get token: [linear.app/settings/api](https://linear.app/settings/api)
-2. `Cmd+Shift+P` → `DevBuddy: Update Linear API Key`
+<details>
+<summary><b>For Linear Users</b></summary>
 
-#### For Jira Cloud:
-1. `Cmd+Shift+P` → `DevBuddy: Setup Jira Cloud`
-2. Enter your Jira site URL (e.g., `yourcompany.atlassian.net`)
-3. Enter your email
-4. Create API token: [id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens)
+1. Get your API key: [linear.app/settings/api](https://linear.app/settings/api)
+2. Open Command Palette: `Cmd+Shift+P` (macOS) or `Ctrl+Shift+P` (Windows/Linux)
+3. Run: `DevBuddy: Update Linear API Key`
+4. Paste your API token
+
+**Optional Configuration:**
+```json
+{
+  "devBuddy.linear.organization": "yourorg",
+  "devBuddy.linear.teamId": "team-id-here"
+}
+```
+
+</details>
+
+<details>
+<summary><b>For Jira Cloud Users</b></summary>
+
+1. Open Command Palette: `Cmd+Shift+P` (macOS) or `Ctrl+Shift+P` (Windows/Linux)
+2. Run: `DevBuddy: Setup Jira Cloud`
+3. Enter your Jira site URL (e.g., `yourcompany.atlassian.net`)
+4. Enter your email address
+5. Create an API token: [id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens)
+6. Paste the API token when prompted
+
+**Tip:** You can paste any Jira ticket URL and DevBuddy will extract your site URL automatically.
+
+</details>
 
 ### 4. Start Using DevBuddy
-- **Open Sidebar**: Click checklist icon (☑️) in Activity Bar
-- **Use Chat**: Open chat → Type `@devbuddy what am I working on?`
-- **Command Palette**: `Cmd+Shift+P` → `DevBuddy: ...`
 
-## 📚 Documentation
+Three ways to interact with DevBuddy:
 
-- **Feature Matrix** (`FEATURE_COMPATIBILITY_MATRIX.md`) - Platform comparison
-- **Complete Guide** (`LINEAR_BUDDY_GUIDE.md`) - Full Linear documentation  
-- **Jira Guide** (`JIRA_CLOUD_IMPLEMENTATION_SUMMARY.md`) - Jira setup & features
-- **Quick Start** (`QUICKSTART.md`) - Get started quickly
-- **AI Features** (`AI_FEATURES_GUIDE.md`) - AI model configuration
-- **🔒 Privacy Mode** (`AI_FALLBACK_QUICK_REFERENCE.md`) - No external AI
-- **Multi-Ticket Guide** (`MULTI_TICKET_GUIDE.md`) - Work across multiple tickets
+1. **Sidebar:** Click the checklist icon in the Activity Bar
+2. **Chat:** Open VS Code Chat → type `@devbuddy`
+3. **Commands:** Press `Cmd+Shift+P` → search "DevBuddy"
 
-## 💬 Chat Examples
+---
 
+## Core Features
+
+### Universal Ticket Management
+
+Works across all supported platforms with a consistent interface.
+
+**Sidebar Features:**
+- View all assigned tickets/issues organized by status
+- Quick actions: Update status, assign, comment
+- Filter by status, project, priority
+- Visual priority indicators
+- One-click to open ticket details
+
+![Sidebar Demo - Placeholder](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/sidebar-demo.gif)
+
+**Key Benefits:**
+- Single interface for multiple platforms
+- Real-time synchronization
+- Keyboard shortcuts for common actions
+- Inline actions without opening browser
+
+---
+
+### TODO to Ticket Converter (Linear)
+
+Transform TODO comments into fully-tracked Linear tickets with automatic code permalinks.
+
+![TODO Converter Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/todo-converter-demo.gif)
+
+**How it works:**
+1. Write a TODO comment in your code
+2. Right-click → "Convert TODO to Linear Ticket"
+3. Review auto-generated ticket with permalink
+4. Choose: Replace TODO, Add More TODOs, or Link Existing TODOs
+
+**What gets included automatically:**
+- File path and line number
+- GitHub/GitLab/Bitbucket permalink to exact code location
+- 5 lines of surrounding code context
+- Current branch and commit SHA
+- Syntax highlighting in Linear
+
+**Multi-File Workflow:**
+
+![Add More TODOs Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/add-more-todos.gif)
+
+After creating a ticket, use "Add More TODOs" to:
+- Navigate to multiple files with Quick Open (Cmd+P)
+- Paste ticket reference in each location
+- Track complex refactors across your codebase
+- Keep all TODOs linked to the same ticket
+
+**Key Benefits:**
+- Zero context loss for your team
+- Permanent links that survive refactoring
+- 10x faster than manual ticket creation
+- Works with GitHub, GitLab, and Bitbucket
+
+[Learn more about TODO Converter](./docs/features/todo-converter/)
+
+---
+
+### AI-Powered PR Summaries (Linear)
+
+Generate comprehensive pull request descriptions automatically, with special support for monorepos.
+
+![PR Summary Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/pr-summary-demo.gif)
+
+**Monorepo Intelligence:**
+- Automatically detects affected packages
+- Analyzes changes per package separately
+- Shows scope of your changes
+- Warns if too many packages are modified
+
+**What gets generated:**
+- High-level overview of changes
+- Per-package breakdown in monorepos
+- Testing notes and checklist
+- Linked Linear tickets
+- Breaking changes detection
+- Migration notes if needed
+
+**PR Template Integration:**
+- Reads your `.github/pull_request_template.md`
+- Fills in sections automatically
+- Preserves formatting and checkboxes
+- Keeps custom fields and instructions
+
+**Key Benefits:**
+- Works with monorepos out of the box
+- Customizable writing tone (professional, casual, technical, concise)
+- Includes git diff analysis
+- Ready to paste into GitHub/GitLab
+
+[Learn more about PR Summaries](./docs/features/pr-standup/)
+
+---
+
+### AI Standup Generator (Linear)
+
+Let AI generate your standup update automatically from commits and Linear activity.
+
+![Standup Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/standup-demo.gif)
+
+**How it works:**
+1. Open Standup Builder
+2. Review your recent commits and Linear tickets
+3. Click "Generate with AI"
+4. Get formatted standup with Yesterday/Today/Blockers
+5. Copy and share
+
+**What gets analyzed:**
+- Git commits in configurable time window (default: 24 hours)
+- Linear tickets you've updated
+- Code changes across packages
+- Commit message context
+
+**Customization:**
+- Adjust time window (24 hours, 2 days, since last standup)
+- Choose writing tone (professional, casual, technical, concise)
+- Select AI model preference
+- Edit generated content before sharing
+
+**Key Benefits:**
+- Never forget what you worked on
+- Consistent standup format
+- Takes 30 seconds instead of 10 minutes
+- Automatically links to relevant tickets
+
+[Learn more about Standup Builder](./docs/features/pr-standup/)
+
+---
+
+### Chat Participant
+
+Talk to DevBuddy using the VS Code Chat interface.
+
+**Available Commands:**
+- `/tickets` - Show your current tickets
+- `/standup` - Generate standup update (Linear)
+- `/pr` - Generate PR summary (Linear)
+- `/status` - Update ticket status
+
+**Natural Language Queries:**
 ```
-@devbuddy /tickets                    # Show your active tickets
-@devbuddy /standup                    # Generate standup update  
-@devbuddy show me ENG-123             # Get ticket details
-@devbuddy what am I working on?       # Natural language query
-@devbuddy create a ticket             # Create new ticket
+@devbuddy what am I working on?
+@devbuddy show me ENG-123
+@devbuddy create a ticket for authentication bug
+@devbuddy update ENG-456 to in progress
 ```
 
-## ⚙️ Configuration
+**Key Benefits:**
+- Works with both Linear and Jira
+- Natural conversation about your work
+- Quick access to ticket information
+- No need to remember command names
 
-### Platform Selection
-```json
-{
-  // Choose your platform
-  "devBuddy.provider": "linear",  // "linear" or "jira"
-  
-  // Platform-specific settings
-  "devBuddy.linear.teamId": "...",
-  "devBuddy.linear.organization": "yourorg",
-  
-  "devBuddy.jira.cloud.siteUrl": "yourcompany.atlassian.net",
-  "devBuddy.jira.cloud.email": "you@company.com",
-  "devBuddy.jira.defaultProject": "ENG"
-}
-```
+---
 
-### AI Configuration
-```json
-{
-  // AI Model (auto-selects best available)
-  "devBuddy.ai.model": "auto",
-  
-  // Writing Tone
-  "devBuddy.writingTone": "professional",
-  
-  // 🔒 Disable external AI (use rule-based analysis)
-  "devBuddy.ai.disabled": false
-}
-```
+## Platform-Specific Features
 
-### Monorepo & Git
-```json
-{
-  // Base branch for PRs
-  "devBuddy.baseBranch": "main",
-  
-  // Monorepo package paths
-  "devBuddy.packagesPaths": ["packages/", "apps/"],
-  
-  // Branch naming
-  "devBuddy.branchNamingConvention": "conventional"
-}
-```
+### Linear Features
 
-## 🎯 Key Features by Platform
+Linear users get the complete DevBuddy experience with full feature support.
 
-### Linear Features ✅
-| Feature | Status |
-|---------|--------|
-| View Tickets | ✅ |
-| Create/Edit Tickets | ✅ |
-| Status Management | ✅ |
-| Branch Creation | ✅ |
-| AI Standup/PR | ✅ |
-| Chat Participant | ✅ |
-| TODO Converter | ✅ |
+| Feature | Status | Description |
+|---------|--------|-------------|
+| View Tickets | ✅ | Rich sidebar with webview panels |
+| Create/Edit Tickets | ✅ | Full ticket management interface |
+| Status Management | ✅ | Visual workflow with all states |
+| Branch Creation | ✅ | Create and manage branches from tickets |
+| Branch Association | ✅ | Link existing branches to tickets |
+| TODO Converter | ✅ | Convert TODOs with automatic permalinks |
+| AI Standup | ✅ | Generate standup from commits and tickets |
+| AI PR Summary | ✅ | Generate PR descriptions with monorepo support |
+| Chat Participant | ✅ | Full chat integration with all commands |
+| Comments | ✅ | Read and add comments to tickets |
+| Sub-issues | ✅ | View and manage sub-issues |
 
-### Jira Cloud Features ✅
-| Feature | Status |
-|---------|--------|
-| View Issues | ✅ |
-| Create/Edit Issues | ✅ |
-| Status Transitions | ✅ |
-| JQL Search | ✅ |
-| Comments | ✅ |
-| Sprints & Boards | ✅ |
-| Runtime Validation | ✅ (Zod v4) |
+**Branch Integration:**
 
-See **`FEATURE_COMPATIBILITY_MATRIX.md`** for complete comparison.
+![Linear Branch Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/linear-sidebar-demo.gif)
 
-## 🤖 AI Models
+- Create branches with smart naming (conventional, simple, or custom)
+- Auto-detect associations based on branch names
+- Checkout associated branches from sidebar
+- View linked PRs directly in ticket panel
 
-**Verified Working Models:**
-- GPT-4o ⭐ (recommended)
+### Jira Cloud Features
+
+Jira Cloud users get core ticket management with workflow support.
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| View Issues | ✅ | Sidebar with issue organization |
+| Create/Edit Issues | ✅ | Issue management via browser |
+| Status Transitions | ✅ | Full workflow transition support |
+| JQL Search | ✅ | Advanced search with Jira Query Language |
+| Comments | ✅ | Read and add comments |
+| Sprints & Boards | ✅ | View and manage sprints |
+| Runtime Validation | ✅ | Production-grade API validation with Zod v4 |
+| Chat Participant | ✅ | Core chat commands |
+| Webview Panels | ⏳ | Coming soon |
+| Branch Integration | ⏳ | Coming soon |
+| AI Features | ⏳ | Coming soon |
+
+**Workflow Management:**
+
+![Jira Sidebar Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/jira-sidebar-demo.gif)
+
+- View issues organized by status
+- Update status with workflow transitions
+- Quick actions: Add comment, assign, copy issue key
+- JQL search for advanced filtering
+- Sprint management
+
+---
+
+## AI Configuration
+
+### Privacy-First AI Options
+
+DevBuddy gives you complete control over AI usage.
+
+**Option 1: Use AI (Default)**
+
+Leverage VS Code's Language Model API (GitHub Copilot) for intelligent summaries.
+
+**Supported Models:**
+- GPT-4o (recommended)
 - GPT-4.1
-- GPT-4 Turbo  
+- GPT-4 Turbo
 - Gemini 2.0 Flash
 
-**Privacy-First Option:**
-- 🔒 Rule-Based Analysis (no external AI)
-  - Perfect for regulated industries
-  - 100% local processing
-  - Works offline
+**Configuration:**
+```json
+{
+  "devBuddy.ai.model": "auto",  // Auto-selects best available
+  "devBuddy.writingTone": "professional"  // or casual, technical, concise
+}
+```
 
-**Auto-fallback:** If preferred model unavailable, automatically uses best available.
+**Option 2: Privacy Mode (No External AI)**
 
-## 🔧 Commands
+Perfect for regulated industries or strict security policies.
 
-### Universal Commands (Work with any platform)
-- `DevBuddy: Refresh Tickets`
-- `DevBuddy: Create Ticket`
-- `DevBuddy: Generate Standup Update`
-- `DevBuddy: Generate PR Summary`
+```json
+{
+  "devBuddy.ai.disabled": true
+}
+```
 
-### Linear-Specific
-- `DevBuddy: Update Linear API Key`
-- `DevBuddy: Start Branch for Ticket`
-- `DevBuddy: Convert TODO to Ticket`
+DevBuddy will use intelligent rule-based analysis instead:
+- Pattern detection in commits
+- Commit message analysis
+- File change categorization
+- 100% local processing
+- Works offline
 
-### Jira-Specific
-- `DevBuddy: Setup Jira Cloud`
-- `DevBuddy: Test Jira Connection`
-- `DevBuddy: Update Jira Issue Status`
+---
 
-## 🎉 What's New in v0.1.0
+## Monorepo Support
 
-### 🌐 Multi-Platform Architecture
-- ✨ Support for Linear AND Jira Cloud
-- 🔄 Easy platform switching
-- 📊 Unified sidebar interface
+DevBuddy is built for monorepos with intelligent package detection.
 
-### 🔧 Jira Integration
-- ✅ Full CRUD operations for Jira Cloud
-- ✅ JQL search support
-- ✅ Workflow transitions
-- ✅ Sprint & board management
-- ✅ Production-grade validation (Zod v4)
+**Configuration:**
+```json
+{
+  "devBuddy.packagesPaths": ["packages/", "apps/", "libs/"],
+  "devBuddy.maxPackageScope": 2,  // Warn if > 2 packages modified
+  "devBuddy.baseBranch": "main"
+}
+```
 
-### 🤖 AI & Chat
-- 💬 Chat participant with `@devbuddy`
-- 🤖 Enhanced AI with code diffs
-- 🔒 Privacy-first fallback mode
+**Features:**
+- Automatic package detection
+- Per-package change analysis in PR summaries
+- Scope validation and warnings
+- Package-aware commit analysis
+- Multi-package workflow support
 
-### ⚡ Quality Improvements
-- ✅ Runtime validation with Zod
-- ✅ Better error handling
-- ✅ Type-safe throughout
-- ✅ Debug mode for troubleshooting
+---
 
-## 🛣️ Roadmap
+## Commands Reference
 
-### Short-Term
-- ⏳ Jira webview panels (ticket detail, create form)
-- ⏳ Jira branch integration
-- ⏳ Jira AI features (standup, PR summary)
+### Universal Commands
 
-### Medium-Term
-- ⏳ Jira Server/Data Center support
-- ⏳ Custom fields UI
-- ⏳ Offline mode
+Work with any configured platform:
 
-### Long-Term  
-- ⏳ Monday.com integration
-- ⏳ ClickUp integration
-- ⏳ GitHub/GitLab Issues
+| Command | Description | Shortcut |
+|---------|-------------|----------|
+| `DevBuddy: Refresh Tickets` | Reload ticket list | - |
+| `DevBuddy: Create Ticket` | Open ticket creation form | - |
+| `DevBuddy: Generate Standup Update` | Generate standup (Linear) | - |
+| `DevBuddy: Generate PR Summary` | Generate PR description (Linear) | - |
 
-## 📦 Installation
+### Linear-Specific Commands
+
+| Command | Description |
+|---------|-------------|
+| `DevBuddy: Update Linear API Key` | Configure Linear authentication |
+| `DevBuddy: Start Branch for Ticket` | Create new branch from ticket |
+| `DevBuddy: Convert TODO to Ticket` | Convert TODO comment to Linear ticket |
+| `DevBuddy: Associate Branch` | Link existing branch to ticket |
+| `DevBuddy: Checkout Branch` | Switch to associated branch |
+
+### Jira-Specific Commands
+
+| Command | Description |
+|---------|-------------|
+| `DevBuddy: Setup Jira Cloud` | Configure Jira Cloud authentication |
+| `DevBuddy: Test Jira Connection` | Verify Jira API connection |
+| `DevBuddy: Update Jira Issue Status` | Update issue workflow state |
+| `DevBuddy: Search Jira Issues` | Search with JQL |
+
+---
+
+## Installation
 
 ### From VS Code Marketplace
 
@@ -279,7 +457,7 @@ Install directly from the [VS Code Marketplace](https://marketplace.visualstudio
 Download the latest `.vsix` file from [GitHub Releases](https://github.com/angelo-hub/devbuddy/releases):
 
 ```bash
-# Download the latest release
+# Download the latest release from GitHub
 # Visit: https://github.com/angelo-hub/devbuddy/releases
 
 # Install the VSIX file
@@ -294,30 +472,123 @@ git clone https://github.com/angelo-hub/devbuddy.git
 cd devbuddy
 npm install
 npm run package
-code --install-extension dev-buddy-0.1.0.vsix
+
+# Install locally
+code --install-extension dev-buddy-0.2.0.vsix
 
 # Quick reinstall script (for development)
 ./reinstall.sh
 ```
 
-### For Contributors
+---
 
-See [docs/developer/RELEASE_PROCESS.md](./docs/developer/RELEASE_PROCESS.md) for information about:
-- Release workflow
-- Conventional commits
-- Publishing to marketplace
+## Documentation
 
-## 📄 License
+Comprehensive guides for all features:
+
+### User Guides
+- [Quick Start Guide](./docs/user-guides/QUICKSTART.md) - Get up and running in 5 minutes
+- [Complete Linear Guide](./docs/user-guides/LINEAR_BUDDY_GUIDE.md) - Full Linear feature documentation
+- [Multi-Ticket Workflows](./docs/user-guides/MULTI_TICKET_GUIDE.md) - Work across multiple tickets
+- [Jira Cloud Guide](./JIRA_QUICK_START.md) - Jira setup and features
+
+### Feature Documentation
+- [AI Features Guide](./docs/features/ai/) - AI configuration and model selection
+- [Privacy Mode](./docs/features/ai/) - Rule-based analysis without external AI
+- [TODO Converter](./docs/features/todo-converter/) - Complete TODO workflow guide
+- [PR & Standup Features](./docs/features/pr-standup/) - PR summaries and standup generation
+- [Branch Management](./docs/features/branches/) - Branch creation and association
+
+### Platform Comparison
+- [Feature Compatibility Matrix](./FEATURE_COMPATIBILITY_MATRIX.md) - Detailed platform comparison
+- [Jira Cloud vs Server](./JIRA_CLOUD_VS_SERVER.md) - Jira deployment options
+
+### Developer Resources
+- [Development Setup](./docs/developer/DEV_ENVIRONMENT_SETUP.md) - Contributing guide
+- [Architecture Guide](./AGENTS.md) - Extension architecture
+- [Release Process](./docs/developer/RELEASE_PROCESS.md) - Publishing workflow
+
+---
+
+## What's New in v0.2.0
+
+### Multi-Platform Architecture
+- Support for Linear AND Jira Cloud
+- Easy platform switching via settings
+- Unified sidebar interface
+
+### Jira Integration
+- Full CRUD operations for Jira Cloud
+- JQL search support
+- Workflow transitions
+- Sprint and board management
+- Production-grade validation with Zod v4
+
+### AI & Chat Enhancements
+- Chat participant with `@devbuddy`
+- Enhanced AI with code diff analysis
+- Privacy-first fallback mode
+
+### Quality Improvements
+- Runtime validation with Zod
+- Better error handling
+- Type-safe throughout
+- Debug mode for troubleshooting
+
+---
+
+## Roadmap
+
+### Short-Term
+- ⏳ Jira webview panels (ticket detail, create form)
+- ⏳ Jira branch integration
+- ⏳ Jira AI features (standup, PR summary)
+
+### Medium-Term
+- ⏳ Jira Server/Data Center support
+- ⏳ Custom fields UI
+- ⏳ Offline mode
+- ⏳ Advanced keyboard shortcuts
+
+### Long-Term
+- ⏳ Monday.com integration
+- ⏳ ClickUp integration
+- ⏳ GitHub/GitLab Issues support
+- ⏳ Team collaboration features
+
+---
+
+## License
 
 **Dual License:**
-- **Core Features**: [MIT License](./LICENSE) - Free and open source
-- **Pro Features**: [Commercial License](./LICENSE.pro) - Requires subscription
+- **Core Features:** [MIT License](./LICENSE) - Free and open source
+- **Pro Features:** [Commercial License](./LICENSE.pro) - Requires subscription
 
 The extension is free to use with all core features. Pro features (when available) will require a paid subscription. See [LICENSING_MODEL.md](./LICENSING_MODEL.md) for details.
 
 ---
 
-**Version:** 0.1.0 | **Status:** ✅ Production Ready | **Date:** November 2025
+## Support & Contributing
 
-**Platforms:** Linear (Full) | Jira Cloud (Core) | More Coming Soon!
+### Get Help
+- [GitHub Issues](https://github.com/angelo-hub/devbuddy/issues) - Report bugs or request features
+- [Documentation](./DOCUMENTATION.md) - Complete documentation index
+- [Quick Reference](./docs/user-guides/HELP_QUICK_REFERENCE.md) - Common tasks
 
+### Contributing
+We welcome contributions! See our [contributing guide](./docs/developer/DEV_ENVIRONMENT_SETUP.md) for:
+- Development setup
+- Code style guidelines
+- Testing requirements
+- Pull request process
+
+### For Contributors
+- [Release Process](./docs/developer/RELEASE_PROCESS.md) - Publishing workflow
+- [Architecture Guide](./AGENTS.md) - Extension structure
+- [Debug Guide](./docs/developer/DEBUG_QUICK_START.md) - Debugging tips
+
+---
+
+**Version:** 0.2.0 | **Status:** ✅ Production Ready | **Date:** November 2025
+
+**Platforms:** Linear (Full) | Jira Cloud (Core) | More Coming Soon
