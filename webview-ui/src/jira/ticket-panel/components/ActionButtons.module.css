@@ -1,0 +1,39 @@
+.container {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.primaryButton {
+  padding: 6px 14px;
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.primaryButton:hover {
+  background-color: var(--vscode-button-hoverBackground);
+}
+
+.button {
+  padding: 6px 14px;
+  background-color: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.button:hover {
+  background-color: var(--vscode-button-secondaryHoverBackground);
+}
+

@@ -1,14 +1,14 @@
 # Convert TODOs to Tickets with Permalinks
 
-Transform TODO comments into fully-tracked Linear tickets with automatic GitHub/GitLab/Bitbucket permalinks to the exact line of code!
+Transform TODO comments into fully-tracked Linear tickets with automatic GitHub/GitLab/Bitbucket permalinks to the exact line of code.
 
 ---
 
-## 🎬 Demo Video
+## Demo Video
 
-> **[PLACEHOLDER: Insert GIF/Video]**  
-> **File:** `media/walkthrough/videos/todo-converter-demo.gif`  
-> **Shows:** Converting a TODO → ticket creation → "Add More TODOs" workflow
+![TODO Converter Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/todo-converter-demo.gif)
+
+**Shows:** Converting a TODO → ticket creation → "Add More TODOs" workflow
 
 ---
 
@@ -35,23 +35,23 @@ Transform TODO comments into fully-tracked Linear tickets with automatic GitHub/
 
 ---
 
-## 🎬 Quick Demo: Basic Conversion
+## Quick Demo: Basic Conversion
 
-> **[PLACEHOLDER: Insert GIF]**  
-> **File:** `media/walkthrough/videos/basic-conversion.gif`  
-> **Shows:** Right-click → convert → ticket created (15 seconds)
+![Basic Conversion Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/basic-conversion.gif)
+
+**Shows:** Right-click → convert → ticket created (15 seconds)
 
 ---
 
 ### Step 3: Review Auto-Generated Description
 
-Linear Buddy creates a ticket with:
+DevBuddy creates a ticket with:
 
 ```markdown
-📍 **Location:** `src/auth/login.ts:145`
-🔗 **View in code:** [GitHub](https://github.com/org/repo/blob/abc1234/src/auth/login.ts#L145)
-🌿 **Branch:** `feature/auth-improvements`
-📝 **Commit:** `abc1234`
+**Location:** `src/auth/login.ts:145`
+**View in code:** [GitHub](https://github.com/org/repo/blob/abc1234/src/auth/login.ts#L145)
+**Branch:** `feature/auth-improvements`
+**Commit:** `abc1234`
 
 **Code context:**
 
@@ -67,15 +67,15 @@ Linear Buddy creates a ticket with:
 ```
 ```
 
-✨ **Automatic permalinks** to GitHub, GitLab, or Bitbucket!
+**Automatic permalinks** to GitHub, GitLab, or Bitbucket.
 
 ---
 
-## 🎬 Demo: Permalink in Ticket
+## Demo: Permalink in Ticket
 
-> **[PLACEHOLDER: Insert GIF/Screenshot]**  
-> **File:** `media/walkthrough/videos/permalink-in-linear.gif`  
-> **Shows:** Opening Linear ticket → clicking permalink → jumps to code
+![Permalink Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/permalink-in-linear.gif)
+
+**Shows:** Opening Linear ticket → clicking permalink → jumps to code
 
 ---
 
@@ -93,7 +93,7 @@ After ticket creation, you'll see:
 
 ---
 
-## Option 1: Replace TODO ✏️
+## Option 1: Replace TODO
 
 Just replace this one TODO with ticket reference:
 
@@ -109,19 +109,18 @@ Simple one-and-done!
 
 ---
 
-## Option 2: Add More TODOs 🚀
+## Option 2: Add More TODOs (KEY FEATURE)
 
-> **[PLACEHOLDER: Insert GIF/Video - KEY FEATURE]**  
-> **File:** `media/walkthrough/videos/add-more-todos.gif`  
-> **Duration:** 30-45 seconds  
-> **Shows:**  
-> 1. Click "Add More TODOs"
-> 2. Ticket reference copied to clipboard notification
-> 3. Quick Open (Cmd+P) → type filename → navigate
-> 4. Paste ticket reference
-> 5. Click "Add Another" → navigate to next file
-> 6. Paste again
-> 7. Click "Done"
+![Add More TODOs Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/add-more-todos.gif)
+
+**Workflow:**
+1. Click "Add More TODOs"
+2. Ticket reference copied to clipboard notification
+3. Quick Open (Cmd+P) → type filename → navigate
+4. Paste ticket reference
+5. Click "Add Another" → navigate to next file
+6. Paste again
+7. Click "Done"
 
 **Use when:** You know other spots need TODOs (but haven't written them yet)
 
@@ -139,17 +138,16 @@ Simple one-and-done!
 
 ---
 
-## Option 3: Link Existing TODOs 🔗
+## Option 3: Link Existing TODOs
 
-> **[PLACEHOLDER: Insert GIF/Video]**  
-> **File:** `media/walkthrough/videos/link-existing-todos.gif`  
-> **Duration:** 20-30 seconds  
-> **Shows:**  
-> 1. Click "Link Existing TODOs"
-> 2. Search results appear showing all TODOs in workspace
-> 3. Multi-select checkboxes for related TODOs
-> 4. Click confirm
-> 5. Success message: "Linked 3 additional TODOs"
+![Link Existing TODOs Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/link-existing-todos.gif)
+
+**Workflow:**
+1. Click "Link Existing TODOs"
+2. Search results appear showing all TODOs in workspace
+3. Multi-select checkboxes for related TODOs
+4. Click confirm
+5. Success message: "Linked 3 additional TODOs"
 
 **Use when:** You already wrote TODOs elsewhere that should reference this ticket
 

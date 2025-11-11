@@ -1,13 +1,409 @@
 import * as vscode from "vscode";
 import { LinearClient } from "../providers/linear/LinearClient";
 import { LinearTeam } from "../providers/linear/types";
-import { GitPermalinkGenerator } from "../shared/git/gitPermalinkGenerator";
+import { JiraCloudClient } from "../providers/jira/cloud/JiraCloudClient";
+import { JiraProject, CreateJiraIssueInput } from "../providers/jira/common/types";
+import { GitPermalinkGenerator, CodeContext, CodePermalink } from "../shared/git/gitPermalinkGenerator";
+import { getCurrentPlatform } from "../shared/utils/platformDetector";
+import { ADFDocument } from "../shared/jira/adfTypes";
+import { ADFBuilder, adf, getADFLanguageFromExtension } from "../shared/jira/adfBuilder";
 
 /**
- * Command to convert a TODO comment in code to a Linear ticket
+ * Helper to convert TODO information to Jira ADF format
+ * Creates a rich, formatted description with code context and permalinks
+ */
+function convertToJiraADF(
+  description: string,
+  permalinkInfo: CodePermalink | null,
+  codeContext: CodeContext | null,
+  fileName: string,
+  lineNumber: number,
+  language?: string
+): ADFDocument {
+  const builder = new ADFBuilder();
+
+  if (permalinkInfo && codeContext) {
+    // Location line
+    builder.richParagraph([
+      adf.strong("📍 Location: "),
+      adf.code(`${fileName}:${lineNumber}`),
+    ]);
+
+    // View in code link
+    builder.richParagraph([
+      adf.text("🔗 View in code: "),
+      adf.link(permalinkInfo.url, permalinkInfo.url),
+    ]);
+
+    // Branch
+    builder.richParagraph([
+      adf.text("🌿 Branch: "),
+      adf.code(permalinkInfo.branch),
+    ]);
+
+    // Commit
+    builder.richParagraph([
+      adf.text("📝 Commit: "),
+      adf.code(permalinkInfo.commitSha.substring(0, 7)),
+    ]);
+
+    // Code context header
+    builder.paragraph();
+    builder.richParagraph([adf.strong("Code context:")]);
+
+    // Code block with syntax highlighting
+    const codeLines = [
+      ...codeContext.contextBefore,
+      codeContext.lineContent,
+      ...codeContext.contextAfter,
+    ];
+    const codeText = codeLines.join("\n");
+
+    const adfLanguage = language ? getADFLanguageFromExtension(language) : "text";
+    builder.codeBlock(codeText, adfLanguage);
+
+    // Add user's additional description if provided
+    if (description && description.trim()) {
+      builder.paragraph();
+      builder.richParagraph([adf.strong("Additional notes:")]);
+      
+      // Split description by newlines and create paragraphs
+      const lines = description.split("\n");
+      for (const line of lines) {
+        if (line.trim()) {
+          builder.paragraph(line.trim());
+        } else {
+          // Empty line - add empty paragraph for spacing
+          builder.paragraph();
+        }
+      }
+    }
+
+    // Add footer
+    builder.paragraph();
+    builder.rule();
+    builder.richParagraph([
+      adf.em("Created by "),
+      adf.strong("DevBuddy"),
+      adf.em(" for VS Code"),
+    ]);
+  } else {
+    // Simple fallback without permalink/code context
+    builder.paragraph(description || `Found in: ${fileName}:${lineNumber}`);
+    
+    // Add footer
+    builder.paragraph();
+    builder.rule();
+    builder.richParagraph([
+      adf.em("Created by "),
+      adf.strong("DevBuddy"),
+      adf.em(" for VS Code"),
+    ]);
+  }
+
+  return builder.build();
+}
+
+/**
+ * Command to convert a TODO comment in code to a ticket (Linear or Jira)
  * Beta Feature
  */
 export async function convertTodoToTicket() {
+  const currentPlatform = getCurrentPlatform();
+  
+  if (currentPlatform === "linear") {
+    return await convertTodoToLinearTicket();
+  } else if (currentPlatform === "jira") {
+    return await convertTodoToJiraTicket();
+  } else {
+    vscode.window.showErrorMessage("No ticket provider configured. Please configure Linear or Jira first.");
+    return;
+  }
+}
+
+/**
+ * Convert TODO to Jira issue
+ */
+async function convertTodoToJiraTicket() {
+  // Check if Jira is configured
+  const jiraClient = await JiraCloudClient.create();
+  if (!jiraClient.isConfigured()) {
+    const configure = await vscode.window.showErrorMessage(
+      "Jira API not configured. Configure now?",
+      "Configure",
+      "Cancel"
+    );
+    if (configure === "Configure") {
+      vscode.commands.executeCommand("devBuddy.jira.setup");
+    }
+    return;
+  }
+
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    vscode.window.showErrorMessage("No active editor found");
+    return;
+  }
+
+  // Extract TODO from selection or current line
+  const todoInfo = extractTodoFromEditor(editor);
+  if (!todoInfo) {
+    vscode.window.showWarningMessage(
+      "No TODO found. Please select a TODO comment or place cursor on a TODO line."
+    );
+    return;
+  }
+
+  // Generate permalink and code context
+  const workspaceFolders = vscode.workspace.workspaceFolders;
+  let permalinkInfo = null;
+  let codeContext = null;
+  let permalinkGenerator: GitPermalinkGenerator | null = null;
+
+  if (workspaceFolders && workspaceFolders.length > 0) {
+    const workspaceRoot = workspaceFolders[0].uri.fsPath;
+    permalinkGenerator = new GitPermalinkGenerator(workspaceRoot);
+
+    try {
+      // Generate permalink
+      permalinkInfo = await permalinkGenerator.generatePermalink(
+        editor.document.fileName,
+        todoInfo.lineNumber - 1
+      );
+
+      // Get code context
+      codeContext = await permalinkGenerator.getCodeContext(
+        editor.document,
+        todoInfo.lineNumber - 1,
+        5
+      );
+    } catch (error) {
+      console.warn("[DevBuddy] Could not generate permalink:", error);
+    }
+  }
+
+  try {
+    await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: "Creating Jira issue from TODO...",
+        cancellable: true,
+      },
+      async (progress, token) => {
+        // Step 1: Get issue title
+        progress.report({ message: "Enter issue title..." });
+        const title = await vscode.window.showInputBox({
+          prompt: "Issue Title",
+          value: todoInfo.text,
+          placeHolder: "Enter a descriptive title for the issue",
+          validateInput: (value) => {
+            return value.trim() ? null : "Title cannot be empty";
+          },
+        });
+
+        if (!title || token.isCancellationRequested) {
+          return;
+        }
+
+        // Step 2: Get description
+        progress.report({ message: "Enter description..." });
+
+        // Build description with permalink and code context
+        let defaultDescription = "";
+
+        if (permalinkInfo && codeContext && permalinkGenerator) {
+          const language = permalinkGenerator.getLanguageFromExtension(
+            todoInfo.fileName.split(".").pop() || ""
+          );
+
+          defaultDescription = `📍 Location: ${todoInfo.fileName}:${todoInfo.lineNumber}\n`;
+          defaultDescription += `🔗 View in code: ${permalinkInfo.url}\n`;
+          defaultDescription += `🌿 Branch: ${permalinkInfo.branch}\n`;
+          defaultDescription += `📝 Commit: ${permalinkInfo.commitSha.substring(0, 7)}\n\n`;
+          defaultDescription += `Code context:\n\n`;
+          // Note: For Jira, we'll convert this to plain text in ADF format later
+          defaultDescription += permalinkGenerator.formatCodeContextForMarkdown(
+            codeContext,
+            language
+          );
+        } else {
+          // Fallback if no permalink available
+          defaultDescription = `Found in: ${todoInfo.fileName}:${todoInfo.lineNumber}\n\n${todoInfo.context}`;
+        }
+
+        const description = await vscode.window.showInputBox({
+          prompt: "Issue Description (optional)",
+          value: defaultDescription,
+          placeHolder: "Add additional context or details",
+        });
+
+        if (token.isCancellationRequested) {
+          return;
+        }
+
+        // Step 3: Get projects
+        progress.report({ message: "Loading projects..." });
+        const projects = await jiraClient.getProjects();
+
+        if (projects.length === 0) {
+          vscode.window.showErrorMessage("No projects found in your Jira workspace");
+          return;
+        }
+
+        // Check for saved project preference
+        const config = vscode.workspace.getConfiguration("devBuddy");
+        let savedProjectKey = config.get<string>("jira.defaultProject");
+        let selectedProject: JiraProject | undefined;
+
+        // If saved project exists, use it as default
+        if (savedProjectKey) {
+          selectedProject = projects.find((p) => p.key === savedProjectKey);
+        }
+
+        // If no saved project or it doesn't exist, prompt user
+        if (!selectedProject) {
+          if (projects.length === 1) {
+            selectedProject = projects[0];
+          } else {
+            progress.report({ message: "Select project..." });
+            const projectPick = await vscode.window.showQuickPick(
+              projects.map((project) => ({
+                label: project.name,
+                description: project.key,
+                project: project,
+              })),
+              {
+                placeHolder: "Select the project for this issue",
+              }
+            );
+
+            if (!projectPick || token.isCancellationRequested) {
+              return;
+            }
+
+            selectedProject = projectPick.project;
+          }
+
+          // Ask if they want to save this as default
+          const saveDefault = await vscode.window.showQuickPick(["Yes", "No"], {
+            placeHolder: `Save "${selectedProject.name}" as default project?`,
+          });
+
+          if (saveDefault === "Yes") {
+            await config.update(
+              "jira.defaultProject",
+              selectedProject.key,
+              vscode.ConfigurationTarget.Global
+            );
+          }
+        }
+
+        if (!selectedProject || token.isCancellationRequested) {
+          return;
+        }
+
+        // Step 4: Get issue types
+        progress.report({ message: "Loading issue types..." });
+        const issueTypes = await jiraClient.getIssueTypes(selectedProject.id);
+
+        if (issueTypes.length === 0) {
+          vscode.window.showErrorMessage(
+            `No issue types found for project ${selectedProject.name}`
+          );
+          return;
+        }
+
+        // Default to "Task" if available
+        let selectedIssueType = issueTypes.find((t) => t.name === "Task") || issueTypes[0];
+
+        if (issueTypes.length > 1) {
+          progress.report({ message: "Select issue type..." });
+          const issueTypePick = await vscode.window.showQuickPick(
+            issueTypes.map((type) => ({
+              label: type.name,
+              description: type.description,
+              issueType: type,
+            })),
+            {
+              placeHolder: "Select the issue type",
+            }
+          );
+
+          if (!issueTypePick || token.isCancellationRequested) {
+            return;
+          }
+
+          selectedIssueType = issueTypePick.issueType;
+        }
+
+        // Step 5: Create issue
+        progress.report({ message: "Creating issue..." });
+
+        // Determine language for code block
+        const language = permalinkGenerator?.getLanguageFromExtension(
+          todoInfo.fileName.split(".").pop() || ""
+        );
+
+        // Create ADF description for rich formatting
+        const descriptionADF = convertToJiraADF(
+          description || "",
+          permalinkInfo,
+          codeContext,
+          todoInfo.fileName,
+          todoInfo.lineNumber,
+          language
+        );
+
+        const createInput: CreateJiraIssueInput = {
+          projectKey: selectedProject.key,
+          summary: title,
+          descriptionADF: descriptionADF,
+          issueTypeId: selectedIssueType.id,
+        };
+
+        const issue = await jiraClient.createIssue(createInput);
+
+        if (!issue) {
+          throw new Error("Failed to create Jira issue");
+        }
+
+        vscode.window.showInformationMessage(
+          `✅ Jira issue ${issue.key} created successfully!`
+        );
+
+        // Open the ticket in the webview
+        await vscode.commands.executeCommand("devBuddy.openTicket", issue);
+
+        // Ask if user wants to replace TODO with ticket reference
+        const replaceChoice = await vscode.window.showQuickPick(
+          ["Replace TODO", "Keep TODO", "Open in Browser"],
+          {
+            placeHolder: `Replace TODO comment with ${issue.key} reference?`,
+          }
+        );
+
+        if (replaceChoice === "Replace TODO") {
+          replaceTodoWithTicketReference(editor, todoInfo, issue.key, issue.url);
+        } else if (replaceChoice === "Open in Browser") {
+          await vscode.env.openExternal(vscode.Uri.parse(issue.url));
+        }
+
+        // Refresh tree view
+        vscode.commands.executeCommand("devBuddy.refreshTickets");
+      }
+    );
+  } catch (error) {
+    vscode.window.showErrorMessage(
+      `Failed to create Jira issue: ${error instanceof Error ? error.message : "Unknown error"}`
+    );
+    console.error("[DevBuddy] TODO to Jira conversion error:", error);
+  }
+}
+
+/**
+ * Convert TODO to Linear ticket (original implementation)
+ */
+async function convertTodoToLinearTicket() {
   // Check if Linear is configured
   const linearClient = await LinearClient.create();
   if (!linearClient.isConfigured()) {

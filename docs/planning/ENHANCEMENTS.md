@@ -18,6 +18,386 @@ This document tracks planned enhancements based on user feedback, competitive an
 
 ---
 
+## 💎 Pro Features Strategy
+
+DevBuddy follows a **freemium model** where core workflow features remain free, while advanced automation and multi-workspace capabilities are premium.
+
+### Free Tier (Always Free)
+- ✅ Core ticket management (Linear/Jira integration)
+- ✅ TODO to ticket converter with code permalinks
+- ✅ Branch management and associations
+- ✅ Sidebar ticket viewing and navigation
+- ✅ Manual ticket status updates
+- ✅ Single workspace/profile
+- ✅ Basic git integration (branch associations)
+- ✅ Cross-repository support (utility feature)
+- ✅ Integrations (Slack, GitHub) - drives adoption
+
+### Pro Tier (Premium) - $3-5/month
+**AI-Powered Features (Core Value):**
+- 💎 **PR Summary Generation** - AI-generated PR descriptions from git changes
+- 💎 **Standup Generation** - AI-powered standup updates from commits and tickets
+- 💎 **Conversational Chat Participant** (@devbuddy) - Natural language ticket queries and actions
+- 💎 **Custom AI Prompts** (#14) - Advanced prompt engineering and customization
+- 💎 **Enhanced AI Models** - Priority model selection, extended context windows
+
+**Multi-Workspace & Organization:**
+- 💎 **Workspace-Based Environment Profiles** (#5) - Multiple isolated workspaces with separate credentials
+- 💎 **Multi-Linear-Workspace Support** (#17) - Switch between multiple Linear organizations
+
+**Team Collaboration Features (Engagement Multipliers):**
+- 💎 **Team Ticket Visibility** (#6) - View and track team members' tickets
+- 💎 **Team Standup Aggregation** (#8) - Generate team-wide standup summaries
+- 💎 **Shared Branch Naming Conventions** (#7) - Team-wide branch naming standards
+- 💎 **Shared TODO Templates** (#9) - Team templates for consistent ticket creation
+
+**Productivity & Analytics (Value Proof):**
+- 💎 **Personal Analytics Dashboard** (#10) - Track productivity, time saved, usage stats
+- 💎 **Ticket Time Tracking** (#15) - Automatic time tracking per ticket with reports
+- 💎 **Advanced Team Analytics** (#11) - Team velocity, bottleneck detection, cycle time
+
+**Quality of Life:**
+- 💎 **Offline Mode** (#16) - Work offline with sync queue
+- 💎 **Custom Themes** (#18) - Personalized UI themes and branding
+- 💎 **Advanced Keyboard Shortcuts** (#19) - Vim-style navigation, quick ticket switching
+- 💎 **Priority Support** - Faster response times and direct support channel
+
+**Optional: Usage-Based Free Tier**
+Consider offering limited free usage to let users experience AI features:
+- 🎁 5 PR summaries per month (free trial)
+- 🎁 10 standup generations per month (free trial)
+- 🎁 Basic chat queries (view-only, no actions)
+
+**Philosophy:** Free tier provides solid ticket management workflow. Pro tier unlocks AI-powered automation and advanced multi-workspace capabilities that save hours every week.
+
+### Pro Tier Value Analysis
+
+At **$10-15/month**, Pro tier becomes a "no-brainer" when packed with features:
+
+**Time Savings Breakdown (per week):**
+- AI Standup Generation: ~30 mins saved (10 standups × 3 mins each)
+- PR Summary Generation: ~45 mins saved (5 PRs × 9 mins each)  
+- Chat Participant Queries: ~30 mins saved (quick ticket lookups)
+- Team Standup Aggregation: ~20 mins saved (team leads)
+- Time Tracking Reports: ~15 mins saved (manual time tracking)
+- Slack Auto-posting: ~10 mins saved (copy/paste elimination)
+- **Total: 2.5-3 hours/week = 10-12 hours/month**
+
+**Value Proposition:**
+- **$5/month** ÷ 10 hours saved = **$0.50/hour** 
+- If your time is worth $50-150/hour → **100x-300x ROI**
+- Annual savings: **120+ hours of repetitive work eliminated**
+- **Critical**: Must be cheaper than primary platform (Linear/Jira) since we're supplementary
+
+**Why Include So Many Features in Pro:**
+1. **Competitive Positioning**: Can't compete on price alone at $3-5/month
+2. **Maximize Value**: Pack in features to justify even a small subscription
+3. **Reduce Churn**: More features = more reasons to keep subscribing
+4. **Word of Mouth**: "DevBuddy Pro is ridiculously cheap for what you get"
+5. **Volume Play**: Low price × high conversion rate = sustainable revenue
+
+**Alternative: Usage-Based Pricing Model**
+Instead of flat subscription, consider pay-per-use:
+- $0.10 per AI standup generation
+- $0.15 per PR summary generation
+- $0.05 per chat query
+- Monthly cap: $5 (unlimited after cap hit)
+- **Advantage**: Users only pay for what they use
+- **Advantage**: Lower barrier to entry than subscription
+- **Disadvantage**: Unpredictable revenue
+
+**Features That MUST Stay Free (Critical for Viral Growth):**
+- ✅ TODO to ticket converter (THE killer feature)
+- ✅ Basic ticket viewing and management
+- ✅ Branch associations
+- ✅ Single workspace support
+
+**Features That Should Be Pro (Professional Use Cases):**
+- 💎 Anything AI-powered (costs + value)
+- 💎 Team collaboration features (target: teams, not solo hobbyists)
+- 💎 Multi-workspace (target: freelancers, consultants)
+- 💎 Integrations (Slack, GitHub) - require maintenance
+- 💎 Analytics & reporting - professional insights
+- 💎 Offline mode - complex feature, pro UX
+
+### Competitive Analysis: Supplementary Tool Positioning
+
+**The Challenge:**
+Users already pay for their primary platform. DevBuddy must be positioned as an **enhancement**, not a replacement.
+
+**Primary Platforms (Users Already Pay For):**
+- **Linear (Standard)**: $8/user/month
+- **Jira (Standard)**: $7.75/user/month
+- **GitHub Copilot**: $10/month (AI assistance)
+
+**Supplementary Tools (What We Compete With):**
+- **VS Code extensions**: Usually free or $1-3/month
+- **Productivity add-ons**: $3-5/month range
+- **Browser extensions**: Often free with optional Pro
+
+**DevBuddy Pro Positioning: $3-5/month**
+- "Makes your Linear/Jira faster without leaving VS Code"
+- "AI-powered automation for your existing workflow"
+- **Must be significantly cheaper than the platform it enhances**
+- Alternative: Free for most users, pay-per-AI-use for heavy users
+
+**Better Value Comparison:**
+- Linear: $8/month (primary platform)
+- DevBuddy: $5/month (makes Linear 10x better in VS Code)
+- **Combined**: $13/month for dramatically improved workflow
+- **User thinking**: "Already paying $8 for Linear, $5 more for AI automation is worth it"
+
+**Reality Check:**
+- ❌ Can't charge $15/month when Linear is $8/month
+- ❌ Can't be same price as primary platform
+- ✅ Should be 30-60% of primary platform cost
+- ✅ Should feel like "enhances my investment" not "another subscription"
+
+**Recommended Tiers:**
+1. **Free Forever**: TODO converter, ticket viewing, basic workflow
+2. **Pro ($3-5/month)**: All AI features, unlimited usage
+3. **Optional: Usage-based**: Pay $0.10-0.15 per AI generation, $5 cap
+
+### Should We Reconsider the Pro Feature List?
+
+**At $3-5/month, maybe we should be MORE selective:**
+
+**Core Pro Features (Justify $3-5/month):**
+- ✅ AI Standup Generation (clear value, saves time)
+- ✅ AI PR Summary Generation (clear value, saves time)
+- ✅ Chat Participant (AI-powered, ongoing cost)
+- ✅ Workspace Profiles (advanced users, freelancers)
+- ⚠️ **Everything else**: Consider keeping FREE to maximize adoption
+
+**Features That Could Stay Free:**
+- ~~Team features (#6-9): Encourages team-wide adoption → more paid users~~
+- ~~Analytics (#10): Proves value → drives upgrades~~
+- ~~Time tracking (#15): Proves value → drives upgrades~~
+- Keyboard shortcuts (#19): Low-cost feature, high UX value
+- Cross-repo support (#1): Utility feature, not AI
+- Integrations (Slack, GitHub): Drives adoption, low maintenance cost
+
+**Why Analytics & Team Features Should Be Pro:**
+1. **Analytics = Value Proof**: Users see "You saved 12 hours this month" → realize tool's worth → less likely to cancel
+2. **Team Visibility = Engagement**: Seeing team's work creates desire for team features (aggregation, shared conventions)
+3. **Stickiness Factor**: Once users check analytics daily, they're hooked
+4. **Upgrade Driver**: Free users think "I wish I could see my stats" → upgrade trigger
+5. **Network Effect**: Team lead gets Pro → sees team activity → wants team to upgrade too
+
+**Rationale for What Stays Free:**
+1. **Low price = need high volume**: $3-5/month needs lots of users to be sustainable
+2. **TODO converter stays free**: The viral feature that drives installs
+3. **Basic integrations free**: Slack/GitHub posting drives word-of-mouth
+4. **Cross-repo support free**: Utility feature that makes tool more useful
+
+**Simplified Pro Strategy:**
+```
+FREE: Core ticket management, TODO converter, integrations
+PRO ($3-5/month): 
+  - All AI features (standup, PR, chat)
+  - Workspace profiles
+  - Team features (visibility, aggregation, shared conventions)
+  - Analytics & time tracking (value proof)
+  - Quality of life (offline, themes, shortcuts)
+
+Result: Clear value proposition
+- "Want AI automation? → Upgrade"
+- "Want to see your productivity stats? → Upgrade"  
+- "Want team features? → Upgrade"
+- Core workflow stays free → massive adoption
+```
+
+**Alternative: Freemium with AI Credits**
+```
+FREE: 5 AI generations/month (trial), all non-AI features unlimited
+PRO: Unlimited AI, workspace profiles, priority support
+
+Result: Users try AI for free, convert when they run out
+```
+
+### The Psychology of Analytics & Team Features as Pro
+
+**Why This Works:**
+
+**Analytics as Conversion Driver:**
+1. Free user: "I wonder how much time I'm saving..."
+2. Sees analytics is Pro → "Let me try Pro for a month"
+3. After upgrade: "Wow, I saved 12 hours last month!"
+4. Renewal time: Sees cumulative stats → "No way I'm canceling"
+
+**Team Features as Stickiness:**
+1. Free user works solo, happy with basics
+2. Upgrades for AI → Gets team visibility as bonus
+3. Sees colleague working on related ticket → Slacks them
+4. Checks team stats → Feels more connected
+5. Now relies on both AI AND team features → Double lock-in
+
+**Value Ladder:**
+```
+Day 1: Install DevBuddy → Love TODO converter (free)
+Week 1: Daily sidebar usage → Core workflow established (free)
+Week 2: "I should try AI standup" → Upgrade to Pro ($5/month)
+Week 3: Sees analytics → "I saved 8 hours!" → Justified
+Week 4: Sees team working on tickets → Collaboration unlocked
+Month 2: Renewal → No hesitation, too valuable
+```
+
+**Conversion Trigger Stack:**
+- Want AI automation? → Upgrade
+- Curious about productivity stats? → Upgrade  
+- Need team visibility? → Upgrade
+- Working across multiple clients? → Upgrade (workspace profiles)
+- Want offline mode? → Upgrade
+- **Result**: Multiple reasons to upgrade, not just one
+
+---
+
+## 🔐 Implementation: AI Feature Gating
+
+### Commands to Gate Behind Pro License
+
+**1. PR Summary Generation (`devBuddy.generatePRSummary`)**
+```typescript
+// Before: Available to all users
+// After: Require Pro license
+
+async function generatePRSummary() {
+  const licenseManager = LicenseManager.getInstance();
+  
+  if (!licenseManager.hasProLicense()) {
+    const choice = await vscode.window.showInformationMessage(
+      "PR Summary Generation is a Pro feature. Upgrade to automatically generate PR descriptions from your commits.",
+      "Upgrade to Pro", "Learn More", "Cancel"
+    );
+    
+    if (choice === "Upgrade to Pro") {
+      vscode.commands.executeCommand('devBuddy.upgradeToPro');
+    }
+    return;
+  }
+  
+  // Existing PR summary logic
+}
+```
+
+**2. Standup Generation (`devBuddy.generateStandup`, `devBuddy.openStandupBuilder`)**
+```typescript
+async function openStandupBuilder() {
+  const licenseManager = LicenseManager.getInstance();
+  
+  if (!licenseManager.hasProLicense()) {
+    // Optional: Check usage quota for free tier
+    const quota = await licenseManager.getFreeUsageQuota('standup');
+    
+    if (quota.remaining > 0) {
+      vscode.window.showInformationMessage(
+        `Standup generation (${quota.remaining}/${quota.limit} free uses remaining this month). Upgrade to Pro for unlimited usage.`,
+        "Continue", "Upgrade to Pro"
+      );
+      // Allow usage but decrement quota
+    } else {
+      vscode.window.showInformationMessage(
+        "You've used all free standup generations this month. Upgrade to Pro for unlimited AI-powered standups.",
+        "Upgrade to Pro", "Learn More"
+      );
+      return;
+    }
+  }
+  
+  // Existing standup builder logic
+}
+```
+
+**3. Chat Participant (`@devbuddy`)**
+```typescript
+// In chat/devBuddyParticipant.ts
+async function handleChatRequest(request, context, stream, token) {
+  const licenseManager = LicenseManager.getInstance();
+  
+  if (!licenseManager.hasProLicense()) {
+    stream.markdown("### 💎 Pro Feature Required\n\n");
+    stream.markdown("The @devbuddy chat participant is available in **DevBuddy Pro**.\n\n");
+    stream.markdown("**Pro features include:**\n");
+    stream.markdown("- Natural language ticket queries\n");
+    stream.markdown("- AI-powered PR summaries\n");
+    stream.markdown("- Automated standup generation\n");
+    stream.markdown("- Multi-workspace profiles\n\n");
+    stream.button({
+      command: 'devBuddy.upgradeToPro',
+      title: 'Upgrade to Pro'
+    });
+    return;
+  }
+  
+  // Existing chat participant logic
+}
+```
+
+**4. Update UI Elements**
+- Add 💎 icon next to Pro features in command palette
+- Show "Pro" badge in sidebar for gated features
+- Update walkthrough to mention Pro features
+- Add pricing/upgrade button to sidebar header
+
+**5. Free Tier Usage Quotas (Optional)**
+```typescript
+interface UsageQuota {
+  standup: { limit: 10, remaining: 10 },  // 10 per month
+  prSummary: { limit: 5, remaining: 5 },   // 5 per month
+  chat: { limit: 0, remaining: 0 }         // View-only, or 0 for fully gated
+}
+```
+
+### User Experience Flow
+
+**New User (Free Tier):**
+1. Install DevBuddy
+2. Connect Linear/Jira (free)
+3. Use TODO converter (free, unlimited)
+4. View and manage tickets (free, unlimited)
+5. Try to generate standup → Prompted to upgrade or use free quota
+6. Experience value → Convert to Pro for unlimited AI
+
+**Pro User:**
+1. All features unlocked
+2. No usage limits
+3. Priority support
+4. Early access to new AI features
+
+### Strategic Considerations
+
+**Why This Model Works:**
+- ✅ **TODO Converter stays free** - This is the viral "wow" feature that drives installs
+- ✅ **Free tier is genuinely useful** - Not a crippled trial, but a solid ticket manager
+- ✅ **Clear upgrade path** - Users experience value, then want AI automation
+- ✅ **Natural conversion points** - "Generate standup" button → upgrade prompt
+- ✅ **Usage quotas reduce friction** - Free users can try AI features before committing
+
+**Pricing Strategy Implications:**
+- **Reality Check**: Users already pay Linear ($8/user/month) or Jira ($7.75/user/month)
+- **DevBuddy is a HELPER, not a platform** - Must be priced accordingly
+- **Target price point**: $3-5/month (supplementary tool pricing)
+- **Value proposition**: "Enhances your existing Linear/Jira investment with AI automation"
+- **Annual discount**: $30-50/year (save 20-30%)
+- **Alternative model**: Usage-based AI credits (pay per AI generation)
+
+**Conversion Funnel:**
+1. **Discovery**: User finds DevBuddy via search for "Linear VS Code" or "TODO tracker"
+2. **Activation**: Converts first TODO → Sees immediate value (free)
+3. **Engagement**: Uses ticket sidebar daily (free)
+4. **Upgrade moment**: Tries to generate standup → "💎 Pro feature"
+5. **Conversion**: User sees time savings value → Upgrades
+6. **Retention**: Relies on AI features daily → Sticky subscription
+
+**Free Tier Value Preservation:**
+- Can manage all tickets without paying
+- Can convert unlimited TODOs to tickets with permalinks
+- Can associate branches with tickets
+- Can view ticket details and update status
+- **Not crippled** - Just focused on manual workflow vs AI automation
+
+---
+
 ## 📝 Important Context
 
 ### Repository Architecture Agnostic
@@ -40,7 +420,7 @@ This document tracks planned enhancements based on user feedback, competitive an
 ## 🚀 Critical Priorities (P0)
 
 ### 1. Cross-Repository Workflow Support
-**Priority:** P0 | **Effort:** 🟡 Medium | **Status:** 📋 Planned
+**Priority:** P0 | **Effort:** 🟡 Medium | **Status:** 💎 Pro Feature | **Tier:** Premium
 
 **Problem:** Developers work across multiple repositories (microservices, frontend/backend, etc.), but Linear Buddy only works in the current workspace.
 
@@ -258,10 +638,434 @@ interface RepositoryManager {
 
 ---
 
+### 5. Workspace-Based Environment Profiles
+**Priority:** P0 | **Effort:** 🟡 Medium | **Status:** 💎 Pro Feature | **Tier:** Premium
+
+**Problem:** Developers work on personal projects, open-source contributions, and work projects in the same VS Code setup. Currently, DevBuddy uses the same Linear/Jira credentials and settings across all workspaces, causing context bleeding.
+
+**User Scenario:**
+1. Developer works at Company A (uses Linear workspace "company-a")
+2. Developer has personal side projects (uses Linear workspace "personal")
+3. Developer contributes to open-source (no Linear/Jira needed)
+4. Switching between projects requires manual credential changes or shows wrong tickets
+
+**Solution:**
+- [ ] **Workspace-specific profiles** (opt-in, disabled by default)
+  - Detect workspace directory and auto-select profile (when enabled)
+  - Store credentials per workspace profile (encrypted in VS Code secrets)
+  - Separate settings for each profile
+  - Profile switcher in sidebar header
+
+- [ ] **Profile configuration**
+  - Create profiles: "Work", "Personal", "Open Source", etc.
+  - **Option 1**: Map workspace paths to profiles (for organized users)
+  - **Option 2**: Remember profile per workspace folder (fallback)
+  - **Option 3**: Always prompt on workspace open (manual mode)
+  - Default profile for unmapped workspaces
+
+- [ ] **Smart workspace detection with fallback**
+  - Try path pattern matching first (if configured)
+  - If no match, check workspace folder memory
+  - If still no match, prompt user: "Which profile for this workspace?"
+  - Remember choice for next time
+  - Option to "Always use [Profile] for workspaces in ~/projects/work"
+
+- [ ] **Credential isolation**
+  - Separate Linear API tokens per profile
+  - Separate Jira credentials per profile
+  - Separate provider selection per profile
+  - No credential leakage between profiles
+
+- [ ] **Settings inheritance**
+  - Profile-specific settings override global settings
+  - Share common settings (e.g., writing tone, debug mode)
+  - Per-profile: API credentials, organization, team ID, branch naming
+  - Global: AI model, theme preferences, UI settings
+
+- [ ] **Walkthrough education**
+  - Suggest directory organization best practices
+  - Show examples: ~/work/*, ~/personal/*, ~/clients/*
+  - Explain benefits but emphasize it's optional
+  - Offer quick setup wizard for organized workflows
+
+**Configuration:**
+```json
+{
+  // Pro Feature - Requires DevBuddy Pro license
+  "devBuddy.profiles.enabled": false,
+  "devBuddy.profiles.autoSwitch": false,  // Auto-switch based on paths
+  "devBuddy.profiles.promptOnNewWorkspace": true,  // Ask which profile
+  
+  "devBuddy.profiles": [
+    {
+      "name": "Work - Company A",
+      "id": "work-company-a",
+      // Optional: Only for users with organized directory structure
+      "workspacePaths": [
+        "~/work/company-a/*",
+        "~/projects/work/**"
+      ],
+      "provider": "linear",
+      "linearOrganization": "company-a",
+      "linearTeamId": "team_abc123",
+      "icon": "briefcase"
+    },
+    {
+      "name": "Personal Projects",
+      "id": "personal",
+      // Can leave workspacePaths empty - rely on prompts/memory
+      "workspacePaths": [],
+      "provider": "linear",
+      "linearOrganization": "personal-workspace",
+      "icon": "home"
+    },
+    {
+      "name": "Open Source",
+      "id": "opensource",
+      "workspacePaths": [],  // No patterns - user selects manually
+      "provider": null,
+      "disableTicketing": true,
+      "icon": "git-branch"
+    }
+  ],
+  "devBuddy.defaultProfile": "personal",
+  "devBuddy.showProfileSwitcher": true,
+  
+  // Workspace folder → profile memory (auto-populated)
+  "devBuddy.workspaceFolderProfiles": {
+    "/Users/alice/random-project": "work-company-a",
+    "/Users/alice/my-side-project": "personal",
+    "/Users/alice/Documents/client-work": "work-company-a"
+  }
+}
+```
+
+**Credential Storage (VS Code Secrets):**
+```typescript
+// Stored separately per profile
+await context.secrets.store("devBuddy.profile.work-company-a.linearApiToken", token);
+await context.secrets.store("devBuddy.profile.personal.linearApiToken", token);
+await context.secrets.store("devBuddy.profile.client-b.jiraApiToken", token);
+```
+
+**UI Flow (Prompt-Based Fallback):**
+```
+Scenario A: User with organized directories + auto-switch enabled
+─────────────────────────────────────────────────────────────────
+1. Open workspace: ~/work/company-a/backend-api
+   ↓
+2. DevBuddy detects path matches "Work - Company A" profile
+   ↓
+3. Auto-loads credentials and settings silently
+   ↓
+4. Sidebar shows: "DevBuddy - Work - Company A 💼"
+
+Scenario B: User with random directories (MOST COMMON)
+─────────────────────────────────────────────────────────
+1. Open workspace: ~/Documents/random-project-123
+   ↓
+2. DevBuddy checks: No path pattern match
+   ↓
+3. DevBuddy checks: No workspace folder memory
+   ↓
+4. Show notification (first time only):
+   
+   ┌──────────────────────────────────────────────────┐
+   │ DevBuddy: Which profile for this workspace?     │
+   │                                                  │
+   │ [💼 Work - Company A]  [🏠 Personal Projects]   │
+   │ [🌐 Open Source]                                 │
+   │                                                  │
+   │ ☑ Remember this choice                          │
+   │ ☐ Always use [selected] for ~/Documents/**      │
+   └──────────────────────────────────────────────────┘
+   
+   ↓
+5. User selects "Work - Company A"
+   ↓
+6. DevBuddy saves to workspaceFolderProfiles:
+   "/Users/alice/Documents/random-project-123": "work-company-a"
+   ↓
+7. Next time: Opens directly with Work profile (no prompt)
+
+Scenario C: Profiles disabled (DEFAULT for new users)
+───────────────────────────────────────────────────────
+1. Open any workspace
+   ↓
+2. DevBuddy uses default/single credential set
+   ↓  
+3. Sidebar shows: "DevBuddy" (no profile indicator)
+   ↓
+4. (Optional) Show one-time tip:
+   "💡 Working on multiple projects? Try Profiles to separate work and personal credentials."
+   [Learn More] [Enable Profiles] [Don't Show Again]
+```
+
+**Profile Switcher UI (Sidebar Header):**
+```
+┌─────────────────────────────────────┐
+│ DevBuddy - Work - Company A 💼 ▼   │
+├─────────────────────────────────────┤
+│ MY TICKETS (5)                      │
+│ ├─ In Progress (2)                  │
+│ └─ Todo (3)                         │
+└─────────────────────────────────────┘
+```
+
+**API Design:**
+```typescript
+interface WorkspaceProfile {
+  id: string;
+  name: string;
+  workspacePaths: string[];  // Glob patterns (optional - can be empty)
+  provider: 'linear' | 'jira' | null;
+  icon?: string;
+  
+  // Provider-specific settings
+  linearOrganization?: string;
+  linearTeamId?: string;
+  jiraType?: 'cloud' | 'server';
+  jiraSiteUrl?: string;
+  jiraEmail?: string;
+  
+  // Feature toggles
+  disableTicketing?: boolean;
+  disableAI?: boolean;
+  
+  // Override settings
+  branchNamingConvention?: string;
+  writingTone?: string;
+}
+
+interface ProfileManager {
+  // Detect active profile based on current workspace
+  // Returns null if no match and prompting is needed
+  detectActiveProfile(workspacePath: string): WorkspaceProfile | null;
+  
+  // Prompt user to select profile for workspace
+  promptForProfile(workspacePath: string): Promise<WorkspaceProfile | null>;
+  
+  // Remember workspace → profile association
+  rememberWorkspaceProfile(workspacePath: string, profileId: string): Promise<void>;
+  
+  // Check if workspace has remembered profile
+  getRememberedProfile(workspacePath: string): WorkspaceProfile | null;
+  
+  // Switch to different profile manually
+  switchProfile(profileId: string): Promise<void>;
+  
+  // Get credentials for active profile
+  getProfileCredentials(profileId: string): Promise<ProfileCredentials>;
+  
+  // Create new profile
+  createProfile(profile: WorkspaceProfile): Promise<void>;
+  
+  // List all profiles
+  listProfiles(): WorkspaceProfile[];
+  
+  // Determine profile using waterfall strategy
+  async resolveProfileForWorkspace(workspacePath: string): Promise<WorkspaceProfile> {
+    // 1. Try path pattern matching (if autoSwitch enabled)
+    if (config.get('profiles.autoSwitch')) {
+      const matched = this.detectActiveProfile(workspacePath);
+      if (matched) return matched;
+    }
+    
+    // 2. Check workspace memory
+    const remembered = this.getRememberedProfile(workspacePath);
+    if (remembered) return remembered;
+    
+    // 3. Prompt user (if enabled)
+    if (config.get('profiles.promptOnNewWorkspace')) {
+      const selected = await this.promptForProfile(workspacePath);
+      if (selected) {
+        await this.rememberWorkspaceProfile(workspacePath, selected.id);
+        return selected;
+      }
+    }
+    
+    // 4. Fall back to default profile
+    return this.getDefaultProfile();
+  }
+}
+```
+
+**First-Time Setup Flow:**
+```
+New User (Profiles Disabled by Default)
+────────────────────────────────────────
+1. User installs DevBuddy
+   ↓
+2. Standard single-profile setup flow
+   - "Connect to Linear" or "Connect to Jira"
+   - Enter credentials
+   - Start using DevBuddy
+   ↓
+3. User opens different workspace (e.g., personal project)
+   ↓
+4. User notices wrong tickets showing up
+   ↓
+5. User discovers Profiles feature in settings or walkthrough
+
+Existing User Enables Profiles
+───────────────────────────────
+1. User enables "devBuddy.profiles.enabled": true
+   ↓
+2. Welcome notification:
+   "Profiles enabled! Let's set up your first profile."
+   [Set Up Now] [Later]
+   ↓
+3. Profile creation wizard:
+   - Profile name: "Work"
+   - Provider: [Linear] [Jira] [None]
+   - (Optional) Workspace paths for auto-detection
+   ↓
+4. Migrate existing credentials:
+   "Your existing setup will become your 'Work' profile."
+   [Continue] [Cancel]
+   ↓
+5. Prompt to create second profile:
+   "Add another profile? (e.g., Personal, Client projects)"
+   [Add Profile] [I'm Done]
+
+Walkthrough Section (Education - Optional)
+───────────────────────────────────────────
+Title: "📁 Organize Projects with Profiles (Optional)"
+
+Description:
+"Working on multiple projects with different credentials? 
+Profiles keep work and personal projects separate.
+
+💡 Best Practice (Optional):
+Organize your directories like this for automatic switching:
+  ~/work/          → Work profile
+  ~/personal/      → Personal profile  
+  ~/clients/       → Client profiles
+  
+Don't organize this way? No problem! DevBuddy will ask 
+which profile to use when you open a new workspace."
+
+[Enable Profiles] [Skip - I only work on one type of project]
+```
+
+**Migration Strategy:**
+```typescript
+// Profiles feature is completely opt-in and backwards compatible
+// Existing users continue working exactly as before unless they enable profiles
+
+async function handleProfilesMigration(context: vscode.ExtensionContext) {
+  const profilesEnabled = config.get<boolean>('devBuddy.profiles.enabled', false);
+  
+  if (!profilesEnabled) {
+    // User hasn't enabled profiles - do nothing
+    // Extension works exactly as before
+    return;
+  }
+  
+  // User enabled profiles for the first time
+  const hasExistingConfig = await context.secrets.get("linearApiToken") || 
+                            await context.secrets.get("jiraApiToken");
+  
+  if (hasExistingConfig) {
+    // Show welcome notification
+    const choice = await vscode.window.showInformationMessage(
+      "Profiles enabled! Let's migrate your existing setup to a profile.",
+      "Set Up Now", "Later"
+    );
+    
+    if (choice === "Set Up Now") {
+      // Prompt for profile name
+      const profileName = await vscode.window.showInputBox({
+        prompt: "Name for your existing profile",
+        value: "Work",
+        placeHolder: "e.g., Work, Personal, Client Name"
+      });
+      
+      if (!profileName) return;
+      
+      // Create profile from existing settings
+      const migrationProfile: WorkspaceProfile = {
+        id: profileName.toLowerCase().replace(/\s+/g, '-'),
+        name: profileName,
+        workspacePaths: [],  // No auto-detection by default
+        provider: config.get("devBuddy.provider"),
+        linearOrganization: config.get("devBuddy.linearOrganization"),
+        linearTeamId: config.get("devBuddy.linearTeamId"),
+        jiraType: config.get("devBuddy.jira.type"),
+        jiraSiteUrl: config.get("devBuddy.jira.cloud.siteUrl"),
+        jiraEmail: config.get("devBuddy.jira.cloud.email"),
+      };
+      
+      // Move credentials to profile-specific keys
+      const linearToken = await context.secrets.get("linearApiToken");
+      const jiraToken = await context.secrets.get("jiraApiToken");
+      
+      if (linearToken) {
+        await context.secrets.store(
+          `devBuddy.profile.${migrationProfile.id}.linearApiToken`, 
+          linearToken
+        );
+      }
+      if (jiraToken) {
+        await context.secrets.store(
+          `devBuddy.profile.${migrationProfile.id}.jiraApiToken`, 
+          jiraToken
+        );
+      }
+      
+      // Save profile
+      const profiles = config.get<WorkspaceProfile[]>('devBuddy.profiles', []);
+      profiles.push(migrationProfile);
+      await config.update('devBuddy.profiles', profiles, vscode.ConfigurationTarget.Global);
+      
+      // Set as default
+      await config.update('devBuddy.defaultProfile', migrationProfile.id, vscode.ConfigurationTarget.Global);
+      
+      // Offer to add another profile
+      const addAnother = await vscode.window.showInformationMessage(
+        `Profile "${profileName}" created! Add another profile?`,
+        "Add Profile", "I'm Done"
+      );
+      
+      if (addAnother === "Add Profile") {
+        vscode.commands.executeCommand('devBuddy.createProfile');
+      }
+    }
+  }
+}
+```
+
+**Success Metrics:**
+- % of users with multiple profiles configured
+- Profile switches per week
+- Reduction in credential management issues
+- User feedback on context separation
+
+**Benefits:**
+- ✅ Complete isolation between work and personal projects
+- ✅ No manual credential switching
+- ✅ Different Linear/Jira workspaces per project type
+- ✅ Freelancers can manage multiple client workspaces
+- ✅ Open-source contributors can disable ticketing features
+- ✅ One VS Code setup, multiple contexts
+
+**Why Pro?**
+This is a premium feature designed for:
+- **Freelancers & Consultants**: Managing multiple client workspaces with separate credentials
+- **Multi-Company Developers**: Working across different organizations
+- **Advanced Users**: Complex workflow automation with automatic profile switching
+- Free tier users can still use DevBuddy with a single profile/workspace
+
+**Related Features:**
+- Complements #1 (Cross-Repository Support) - profiles manage which credentials to use, cross-repo manages multiple repos within same profile
+- Enables use case: Work profile with multiple work repos, Personal profile with multiple personal repos
+
+---
+
 ## 👥 Light Team Features (P1)
 
 ### 6. Team Ticket Visibility
-**Priority:** P1 | **Effort:** 🟡 Medium | **Status:** 📋 Planned
+**Priority:** P1 | **Effort:** 🟡 Medium | **Status:** 💎 Pro Feature | **Tier:** Premium
 
 **Problem:** Tool is single-player, but Linear is collaborative.
 
@@ -299,7 +1103,7 @@ LINEAR BUDDY
 ---
 
 ### 7. Shared Branch Naming Conventions
-**Priority:** P1 | **Effort:** 🟢 Small | **Status:** 📋 Planned
+**Priority:** P1 | **Effort:** 🟢 Small | **Status:** 💎 Pro Feature | **Tier:** Premium
 
 **Problem:** Each developer has their own branch naming style.
 
@@ -326,7 +1130,7 @@ LINEAR BUDDY
 ---
 
 ### 8. Team Standup Aggregation
-**Priority:** P1 | **Effort:** 🟡 Medium | **Status:** 📋 Planned
+**Priority:** P1 | **Effort:** 🟡 Medium | **Status:** 💎 Pro Feature | **Tier:** Premium
 
 **Problem:** Hard to see what the team accomplished.
 
@@ -367,7 +1171,7 @@ and fixed critical bugs in payment flow.
 ---
 
 ### 9. Shared TODO Templates
-**Priority:** P1 | **Effort:** 🟢 Small | **Status:** 📋 Planned
+**Priority:** P1 | **Effort:** 🟢 Small | **Status:** 💎 Pro Feature | **Tier:** Premium
 
 **Problem:** Team members create tickets differently.
 
@@ -411,7 +1215,7 @@ and fixed critical bugs in payment flow.
 ## 📊 Secondary Enhancements (P2)
 
 ### 10. Personal Analytics Dashboard
-**Priority:** P2 | **Effort:** 🟡 Medium | **Status:** 📋 Planned
+**Priority:** P2 | **Effort:** 🟡 Medium | **Status:** 💎 Pro Feature | **Tier:** Premium
 
 **Value:** Quantifies productivity and justifies tool's value.
 
@@ -456,7 +1260,7 @@ and fixed critical bugs in payment flow.
 ---
 
 ### 12. Slack Integration
-**Priority:** P2 | **Effort:** 🟡 Medium | **Status:** 📋 Planned
+**Priority:** P2 | **Effort:** 🟡 Medium | **Status:** 💎 Pro Feature | **Tier:** Premium
 
 **Value:** Share standups/PRs directly to Slack.
 
@@ -479,7 +1283,7 @@ and fixed critical bugs in payment flow.
 ---
 
 ### 13. GitHub PR Auto-Comments
-**Priority:** P2 | **Effort:** 🟡 Medium | **Status:** 📋 Planned
+**Priority:** P2 | **Effort:** 🟡 Medium | **Status:** 💎 Pro Feature | **Tier:** Premium
 
 **Value:** Surface Linear context in PRs automatically.
 
@@ -511,9 +1315,12 @@ Implement JWT authentication with RS256 signing...
 ---
 
 ### 14. Custom AI Prompts
-**Priority:** P2 | **Effort:** 🟢 Small | **Status:** 📋 Planned
+**Priority:** P2 | **Effort:** 🟢 Small | **Status:** 💎 Pro Feature | **Tier:** Premium
 
 **Value:** Let power users customize AI behavior.
+
+**Why Pro?**
+Advanced AI customization is a premium feature for power users who want fine-grained control over AI behavior and prompt engineering.
 
 **Features:**
 - [ ] Expose prompt templates in settings
@@ -535,7 +1342,7 @@ Implement JWT authentication with RS256 signing...
 ---
 
 ### 15. Ticket Time Tracking
-**Priority:** P2 | **Effort:** 🟡 Medium | **Status:** 📋 Planned
+**Priority:** P2 | **Effort:** 🟡 Medium | **Status:** 💎 Pro Feature | **Tier:** Premium
 
 **Value:** Automatic time tracking based on work sessions.
 
@@ -556,7 +1363,7 @@ Implement JWT authentication with RS256 signing...
 ---
 
 ### 16. Offline Mode Improvements
-**Priority:** P2 | **Effort:** 🟡 Medium | **Status:** 📋 Planned
+**Priority:** P2 | **Effort:** 🟡 Medium | **Status:** 💎 Pro Feature | **Tier:** Premium
 
 **Value:** Work without internet, sync later.
 
@@ -600,7 +1407,7 @@ Implement JWT authentication with RS256 signing...
 ---
 
 ### 19. Keyboard-First Navigation
-**Priority:** P3 | **Effort:** 🟢 Small | **Status:** 📋 Planned
+**Priority:** P3 | **Effort:** 🟢 Small | **Status:** 💎 Pro Feature | **Tier:** Premium
 
 **Features:**
 - [ ] Quick open ticket by ID (Cmd+K → type "ENG-123")
@@ -742,11 +1549,26 @@ Implement JWT authentication with RS256 signing...
 
 ## 📝 Notes
 
-- Keep free tier valuable (don't paywall basic features)
+### Freemium Model Strategy
+- Free tier is a **solid ticket management tool** (not a limited trial)
+- All AI-powered features are Pro (standup, PR summaries, chat)
+- Core workflow features remain free forever
+- Pro tier targets developers who want AI-powered automation
+- Consider usage limits (5-10 free uses/month) to let users experience AI value
+
+### Growth & Retention
 - Focus on word-of-mouth growth (viral features)
+- **TODO converter remains free** - This is the viral "wow" feature
+- Free tier demonstrates value → users upgrade for AI automation
 - Prioritize features that increase daily usage
 - Balance solo developer needs with team collaboration
 - Maintain privacy-first approach (no intrusive telemetry)
+
+### Pro Feature Philosophy
+- **Free tier**: Manual ticket management, TODO converter, basic git integration
+- **Pro tier**: All AI features, multi-workspace, custom prompts, team analytics
+- **Value proposition**: "Save 2-3 hours per week on standups, PR descriptions, and context switching"
+- Gradual value ladder: Free (basic) → Pro (AI + multi-workspace) → Enterprise (team features + SSO)
 
 ---
 

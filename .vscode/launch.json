@@ -24,11 +24,10 @@
         "${workspaceFolder}/out/**/*.js"
       ],
       "preLaunchTask": "${defaultBuildTask}",
+      "envFile": "${workspaceFolder}/.env.local",
       "env": {
         "DEV_MODE": "true",
         "DEV_PROVIDER": "linear",
-        "DEV_LINEAR_API_TOKEN": "${env:DEV_LINEAR_API_TOKEN}",
-        "DEV_LINEAR_ORGANIZATION": "${env:DEV_LINEAR_ORGANIZATION}",
         "DEV_DEBUG_MODE": "true"
       }
     },
@@ -43,12 +42,10 @@
         "${workspaceFolder}/out/**/*.js"
       ],
       "preLaunchTask": "${defaultBuildTask}",
+      "envFile": "${workspaceFolder}/.env.local",
       "env": {
         "DEV_MODE": "true",
         "DEV_PROVIDER": "jira",
-        "DEV_JIRA_SITE_URL": "${env:DEV_JIRA_SITE_URL}",
-        "DEV_JIRA_EMAIL": "${env:DEV_JIRA_EMAIL}",
-        "DEV_JIRA_API_TOKEN": "${env:DEV_JIRA_API_TOKEN}",
         "DEV_DEBUG_MODE": "true"
       }
     },

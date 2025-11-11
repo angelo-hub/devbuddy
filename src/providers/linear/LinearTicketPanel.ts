@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 import { LinearClient } from "./LinearClient";
 import { LinearIssue } from "./types";
-import { BranchAssociationManager } from "./branchAssociationManager";
+import { BranchAssociationManager } from "../../shared/git/branchAssociationManager";
 import { getLogger } from "../../shared/utils/logger";
 
 /**
@@ -150,7 +150,7 @@ export class LinearTicketPanel {
         enableScripts: true,
         retainContextWhenHidden: true,
         localResourceRoots: [
-          vscode.Uri.joinPath(extensionUri, "out", "webview"),
+          vscode.Uri.joinPath(extensionUri, "webview-ui", "build"),
         ],
       }
     );
@@ -494,9 +494,19 @@ export class LinearTicketPanel {
     const scriptUri = webview.asWebviewUri(
       vscode.Uri.joinPath(
         this._extensionUri,
-        "out",
-        "webview",
-        "ticket-panel.js"
+        "webview-ui",
+        "build",
+        "linear-ticket-panel.js"
+      )
+    );
+
+    // Get the CSS URI
+    const styleUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(
+        this._extensionUri,
+        "webview-ui",
+        "build",
+        "linear-ticket-panel.css"
       )
     );
 
@@ -537,6 +547,7 @@ export class LinearTicketPanel {
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; style-src ${
     webview.cspSource
   } 'unsafe-inline'; script-src 'nonce-${nonce}';">
+  <link href="${styleUri}" rel="stylesheet">
   <title>${this._issue.identifier}</title>
 </head>
 <body>

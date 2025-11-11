@@ -86,7 +86,7 @@ export class CreateTicketPanel {
         enableScripts: true,
         retainContextWhenHidden: true,
         localResourceRoots: [
-          vscode.Uri.joinPath(extensionUri, "out", "webview"),
+          vscode.Uri.joinPath(extensionUri, "webview-ui", "build"),
         ],
       }
     );
@@ -264,9 +264,19 @@ export class CreateTicketPanel {
     const scriptUri = webview.asWebviewUri(
       vscode.Uri.joinPath(
         this._extensionUri,
-        "out",
-        "webview",
-        "create-ticket.js"
+        "webview-ui",
+        "build",
+        "linear-create-ticket.js"
+      )
+    );
+
+    // Get the CSS URI
+    const styleUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(
+        this._extensionUri,
+        "webview-ui",
+        "build",
+        "linear-create-ticket.css"
       )
     );
 
@@ -281,6 +291,7 @@ export class CreateTicketPanel {
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; style-src ${
     webview.cspSource
   } 'unsafe-inline'; script-src 'nonce-${nonce}';">
+  <link href="${styleUri}" rel="stylesheet">
   <title>Create New Ticket</title>
 </head>
 <body>

@@ -245,39 +245,36 @@
       "view/title": [
         {
           "command": "devBuddy.createTicket",
-          "when": "view == linearTickets",
+          "when": "view == myTickets",
           "group": "navigation@1"
         },
         {
           "command": "devBuddy.refreshTickets",
-          "when": "view == linearTickets",
+          "when": "view == myTickets",
           "group": "navigation@2"
         },
         {
           "command": "devBuddy.openStandupBuilder",
-          "when": "view == linearTickets",
+          "when": "view == myTickets",
           "group": "navigation@3"
         },
         {
           "command": "devBuddy.showHelp",
-          "when": "view == linearTickets",
+          "when": "view == myTickets",
           "group": "navigation@4"
-        },
-        {
-          "command": "devBuddy.jira.createIssue",
-          "when": "view == myTickets",
-          "group": "navigation@1"
-        },
-        {
-          "command": "devBuddy.jira.refreshIssues",
-          "when": "view == myTickets",
-          "group": "navigation@2"
         }
       ],
       "view/item/context": [
         {
+          "comment": "Branch creation for Linear issues",
           "command": "devBuddy.startBranch",
           "when": "view == myTickets && viewItem == linearTicket:unstarted",
+          "group": "inline@1"
+        },
+        {
+          "comment": "Branch creation for Jira issues",
+          "command": "devBuddy.startBranch",
+          "when": "view == myTickets && viewItem =~ /jiraIssue:.*/",
           "group": "inline@1"
         },
         {
@@ -405,7 +402,8 @@
             "title": "Explore Your Tickets",
             "description": "The **DevBuddy sidebar** shows all your assigned tickets/issues organized by status.\n\n[Open DevBuddy Sidebar](command:workbench.view.extension.dev-buddy)\n\nClick any ticket to see details, comments, and take actions like updating status or adding comments.\n\n**Works with both Linear and Jira!**",
             "media": {
-              "markdown": "media/walkthrough/sidebar.md"
+              "image": "media/walkthrough/videos/sidebar-demo.gif",
+              "altText": "DevBuddy sidebar showing tickets organized by status with quick actions"
             }
           },
           {
@@ -429,7 +427,8 @@
             "title": "Create Branches from Tickets (Linear)",
             "description": "**Linear users:** Start a branch directly from any ticket!\n\n• Click the branch icon next to any ticket\n• Choose your source branch\n• Review the auto-generated name\n• DevBuddy creates and checks out the branch\n\n**Note:** Branch creation is currently Linear-only. Jira support coming soon!",
             "media": {
-              "markdown": "media/walkthrough/branches.md"
+              "image": "media/walkthrough/videos/linear-sidebar-demo.gif",
+              "altText": "Linear sidebar showing ticket details with branch creation and management"
             }
           },
           {
@@ -437,7 +436,8 @@
             "title": "Convert TODOs to Tickets (Linear)",
             "description": "**Linear users:** Convert TODOs to tickets with automatic code permalinks!\n\n**What you get:**\n• TODO → Linear ticket in one click\n• Automatic GitHub/GitLab/Bitbucket permalink\n• Code context (5 lines before/after)\n• Branch and commit info\n\n[Try Converting a TODO](command:devBuddy.convertTodoToTicket)\n\n**Note:** Currently Linear-only. Jira support coming soon!",
             "media": {
-              "markdown": "media/walkthrough/todo-converter.md"
+              "image": "media/walkthrough/videos/todo-converter-demo.gif",
+              "altText": "Converting a TODO comment to a Linear ticket with automatic permalink generation"
             }
           },
           {
@@ -445,7 +445,8 @@
             "title": "Generate Standup Updates (Linear)",
             "description": "**Linear users:** Let AI generate your standup update from commits and Linear activity!\n\n[Open Standup Builder](command:devBuddy.openStandupBuilder)\n\n• AI analyzes your commits and tickets\n• Generates a summary in your preferred tone\n• Copy and share with your team\n\n**Note:** AI features currently Linear-only. Jira support coming soon!",
             "media": {
-              "markdown": "media/walkthrough/standup.md"
+              "image": "media/walkthrough/videos/standup-demo.gif",
+              "altText": "Standup Builder generating daily standup from commits and Linear tickets"
             }
           },
           {
@@ -453,7 +454,8 @@
             "title": "AI-Powered PR Summaries (Linear)",
             "description": "**Linear users:** Generate comprehensive PR summaries for your changes:\n\n[Generate PR Summary](command:devBuddy.generatePRSummary)\n\n• Detects affected packages in monorepos\n• Analyzes git changes and commits\n• Links to Linear tickets\n• Customizable writing tone\n\n**Note:** AI features currently Linear-only. Jira support coming soon!",
             "media": {
-              "markdown": "media/walkthrough/pr-summary.md"
+              "image": "media/walkthrough/videos/pr-summary-demo.gif",
+              "altText": "PR Summary generation with monorepo package detection and analysis"
             }
           },
           {
@@ -743,7 +745,9 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@types/prismjs": "^1.26.5",
     "@vscode/extension-telemetry": "^1.1.0",
+    "prismjs": "^1.30.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "simple-git": "^3.30.0",

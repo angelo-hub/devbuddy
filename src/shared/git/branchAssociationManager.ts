@@ -20,8 +20,8 @@ export interface BranchHistory {
 }
 
 /**
- * Manages associations between Linear tickets and git branches
- * Stores them in workspace state for now, with future support for Linear attachments
+ * Manages associations between tickets and git branches (supports Linear, Jira, and other platforms)
+ * Stores them in workspace state with support for future platform-specific attachments
  */
 export class BranchAssociationManager {
   private static readonly STORAGE_KEY = "devBuddy.branchAssociations";

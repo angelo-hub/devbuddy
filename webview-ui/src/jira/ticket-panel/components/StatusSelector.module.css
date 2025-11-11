@@ -1,0 +1,35 @@
+.container {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vscode-descriptionForeground);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.select {
+  width: 100%;
+  padding: 8px 12px;
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border);
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  outline: none;
+}
+
+.select:focus {
+  border-color: var(--vscode-focusBorder);
+}
+
+.select:hover {
+  background-color: var(--vscode-list-hoverBackground);
+}
+

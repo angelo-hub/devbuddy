@@ -162,8 +162,15 @@ export class JiraCreateTicketPanel {
     }
 
     try {
+      // Get the project to retrieve its ID
+      const project = await this._jiraClient.getProject(projectKey);
+      if (!project) {
+        logger.error(`Project not found: ${projectKey}`);
+        return;
+      }
+
       const [issueTypes, priorities] = await Promise.all([
-        this._jiraClient.getIssueTypes(projectKey),
+        this._jiraClient.getIssueTypes(project.id),
         this._jiraClient.getPriorities(),
       ]);
 

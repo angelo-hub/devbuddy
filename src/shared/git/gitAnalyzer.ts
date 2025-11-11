@@ -44,7 +44,9 @@ export class GitAnalyzer {
   }
 
   /**
-   * Extract ticket ID from branch name (e.g., OB-1234 from feature/OB-1234-description)
+   * Extract ticket ID from branch name
+   * Supports Linear issues (e.g., ENG-123) and Jira keys (e.g., PROJ-123)
+   * Pattern: [A-Z]+-\d+ matches both formats
    */
   extractTicketId(branchName: string): string | null {
     const match = branchName.match(/[A-Z]+-\d+/);

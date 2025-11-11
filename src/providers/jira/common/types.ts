@@ -76,6 +76,8 @@ export interface JiraPriority {
   iconUrl?: string;
 }
 
+import { ADFDocument } from "../../../shared/jira/adfTypes";
+
 /**
  * Jira User
  */
@@ -192,6 +194,7 @@ export interface CreateJiraIssueInput {
   projectKey: string;
   summary: string;
   description?: string;
+  descriptionADF?: ADFDocument; // Rich ADF description (overrides description if provided)
   issueTypeId: string;
   priorityId?: string;
   assigneeId?: string;
@@ -200,7 +203,7 @@ export interface CreateJiraIssueInput {
   epicKey?: string;
   sprintId?: number;
   dueDate?: string;
-  customFields?: Record<string, any>;
+  customFields?: Record<string, unknown>;
 }
 
 /**
@@ -209,12 +212,13 @@ export interface CreateJiraIssueInput {
 export interface UpdateJiraIssueInput {
   summary?: string;
   description?: string;
+  descriptionADF?: ADFDocument; // Rich ADF description (overrides description if provided)
   priorityId?: string;
   assigneeId?: string;
   labels?: string[];
   sprintId?: number;
   dueDate?: string;
-  customFields?: Record<string, any>;
+  customFields?: Record<string, unknown>;
 }
 
 /**

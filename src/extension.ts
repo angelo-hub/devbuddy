@@ -10,11 +10,12 @@ import { LinearClient } from "./providers/linear/LinearClient";
 import { LinearIssue } from "./providers/linear/types";
 import { LinearTicketPanel } from "./providers/linear/LinearTicketPanel";
 import { CreateTicketPanel } from "./providers/linear/CreateTicketPanel";
-import { StandupBuilderPanel } from "./providers/linear/StandupBuilderPanel";
-import { BranchAssociationManager } from "./providers/linear/branchAssociationManager";
+import { LinearStandupDataProvider } from "./providers/linear/LinearStandupDataProvider";
+import { BranchAssociationManager } from "./shared/git/branchAssociationManager";
 import { getLogger } from "./shared/utils/logger";
 import { getTelemetryManager } from "./shared/utils/telemetryManager";
 import { loadDevCredentials, showDevModeWarning } from "./shared/utils/devEnvLoader";
+import { UniversalStandupBuilderPanel } from "./shared/views/UniversalStandupBuilderPanel";
 
 // Jira imports
 import { runJiraCloudSetup, testJiraCloudConnection, resetJiraCloudConfig, updateJiraCloudApiToken } from "./providers/jira/cloud/firstTimeSetup";
@@ -29,8 +30,10 @@ import {
   viewJiraIssueDetails,
 } from "./commands/jira/issueCommands";
 import { JiraIssue } from "./providers/jira/common/types";
-import { JiraTicketPanel } from "./providers/jira/cloud/JiraTicketPanel";
+import { JiraIssuePanel } from "./providers/jira/cloud/JiraIssuePanel";
 import { JiraCreateTicketPanel } from "./providers/jira/cloud/JiraCreateTicketPanel";
+import { JiraStandupDataProvider } from "./providers/jira/JiraStandupDataProvider";
+import { JiraCloudClient } from "./providers/jira/cloud/JiraCloudClient";
 import { getCurrentPlatform } from "./shared/utils/platformDetector";
 
 export function activate(context: vscode.ExtensionContext) {
@@ -136,11 +139,31 @@ export function activate(context: vscode.ExtensionContext) {
       "devBuddy.generateStandup",
       generateStandupCommand
     ),
-    vscode.commands.registerCommand("devBuddy.openStandupBuilder", () => {
-      StandupBuilderPanel.createOrShow(context.extensionUri);
+    vscode.commands.registerCommand("devBuddy.openStandupBuilder", async () => {
+      // Get the current platform and create appropriate data provider
+      const platform = getCurrentPlatform();
+      let dataProvider;
+      
+      if (platform === "jira") {
+        dataProvider = new JiraStandupDataProvider();
+        await dataProvider.initialize();
+      } else {
+        // Default to Linear
+        dataProvider = new LinearStandupDataProvider();
+        await dataProvider.initialize();
+      }
+      
+      await UniversalStandupBuilderPanel.createOrShow(context.extensionUri, dataProvider);
     }),
     vscode.commands.registerCommand("devBuddy.createTicket", () => {
-      CreateTicketPanel.createOrShow(context.extensionUri);
+      const platform = getCurrentPlatform();
+      
+      if (platform === "jira") {
+        JiraCreateTicketPanel.createOrShow(context.extensionUri);
+      } else {
+        // Default to Linear
+        CreateTicketPanel.createOrShow(context.extensionUri);
+      }
     }),
 
     // Beta: Convert TODO to Linear Ticket
@@ -172,8 +195,8 @@ export function activate(context: vscode.ExtensionContext) {
 
     vscode.commands.registerCommand(
       "devBuddy.startWork",
-      async (item: any) => {
-        const issue = item.issue as LinearIssue;
+      async (item: { issue?: LinearIssue }) => {
+        const issue = item.issue;
         if (!issue) return;
 
         const linearClient = await LinearClient.create();
@@ -204,8 +227,8 @@ export function activate(context: vscode.ExtensionContext) {
 
     vscode.commands.registerCommand(
       "devBuddy.completeTicket",
-      async (item: any) => {
-        const issue = item.issue as LinearIssue;
+      async (item: { issue?: LinearIssue }) => {
+        const issue = item.issue;
         if (!issue) return;
 
         const linearClient = await LinearClient.create();
@@ -348,8 +371,8 @@ export function activate(context: vscode.ExtensionContext) {
 
     vscode.commands.registerCommand(
       "devBuddy.changeTicketStatus",
-      async (item: any) => {
-        const issue = item.issue as LinearIssue;
+      async (item: { issue?: LinearIssue }) => {
+        const issue = item.issue;
         if (!issue) return;
 
         try {
@@ -460,9 +483,33 @@ export function activate(context: vscode.ExtensionContext) {
 
     vscode.commands.registerCommand(
       "devBuddy.startBranch",
-      async (item: any) => {
-        const issue = item.issue as LinearIssue;
-        if (!issue) return;
+      async (item: { issue?: LinearIssue | JiraIssue }) => {
+        const currentPlatform = getCurrentPlatform();
+        
+        // Extract issue/ticket data based on platform
+        let identifier: string;
+        let title: string;
+        let labels: Array<{ name: string }>;
+        let issueId: string;
+        
+        if (currentPlatform === "linear") {
+          const issue = item.issue as LinearIssue | undefined;
+          if (!issue) return;
+          identifier = issue.identifier;
+          title = issue.title;
+          labels = issue.labels || [];
+          issueId = issue.id;
+        } else if (currentPlatform === "jira") {
+          const issue = item.issue as JiraIssue | undefined;
+          if (!issue) return;
+          identifier = issue.key;
+          title = issue.summary;
+          labels = issue.labels.map(label => ({ name: label }));
+          issueId = issue.id;
+        } else {
+          vscode.window.showErrorMessage("Unsupported platform for branch creation");
+          return;
+        }
 
         try {
           // Initialize git
@@ -494,7 +541,7 @@ export function activate(context: vscode.ExtensionContext) {
           const sourceBranch = await new Promise<string | undefined>(
             (resolve) => {
               const quickPick = vscode.window.createQuickPick();
-              quickPick.title = `Select source branch for ${issue.identifier}`;
+              quickPick.title = `Select source branch for ${identifier}`;
               quickPick.placeholder =
                 "Type to search or enter a custom branch name";
               quickPick.value = currentBranch; // Default to current branch
@@ -556,8 +603,8 @@ export function activate(context: vscode.ExtensionContext) {
 
           // Determine the conventional commit type from the issue labels or default to 'feat'
           let commitType = "feat";
-          if (issue.labels && issue.labels.length > 0) {
-            const labelName = issue.labels[0].name.toLowerCase();
+          if (labels && labels.length > 0) {
+            const labelName = labels[0].name.toLowerCase();
             if (["bug", "bugfix", "fix"].includes(labelName)) {
               commitType = "fix";
             } else if (["chore", "maintenance"].includes(labelName)) {
@@ -572,7 +619,7 @@ export function activate(context: vscode.ExtensionContext) {
           }
 
           // Create a slug from the title
-          const slug = issue.title
+          const slug = title
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, "-")
             .replace(/^-+|-+$/g, "")
@@ -582,10 +629,10 @@ export function activate(context: vscode.ExtensionContext) {
 
           switch (convention) {
             case "conventional":
-              defaultBranchName = `${commitType}/${issue.identifier.toLowerCase()}-${slug}`;
+              defaultBranchName = `${commitType}/${identifier.toLowerCase()}-${slug}`;
               break;
             case "simple":
-              defaultBranchName = `${issue.identifier.toLowerCase()}-${slug}`;
+              defaultBranchName = `${identifier.toLowerCase()}-${slug}`;
               break;
             case "custom":
               // Get current username from git config
@@ -602,17 +649,17 @@ export function activate(context: vscode.ExtensionContext) {
 
               defaultBranchName = customTemplate
                 .replace("{type}", commitType)
-                .replace("{identifier}", issue.identifier.toLowerCase())
+                .replace("{identifier}", identifier.toLowerCase())
                 .replace("{slug}", slug)
                 .replace("{username}", username);
               break;
             default:
-              defaultBranchName = `${commitType}/${issue.identifier.toLowerCase()}-${slug}`;
+              defaultBranchName = `${commitType}/${identifier.toLowerCase()}-${slug}`;
           }
 
           // Step 2: Enter new branch name
           const branchName = await vscode.window.showInputBox({
-            prompt: `Create a new branch for ${issue.identifier} from '${sourceBranch}'`,
+            prompt: `Create a new branch for ${identifier} from '${sourceBranch}'`,
             placeHolder: defaultBranchName,
             value: defaultBranchName,
             ignoreFocusOut: true,
@@ -646,7 +693,7 @@ export function activate(context: vscode.ExtensionContext) {
                 `Checked out existing branch: ${branchName}`
               );
               // Associate the branch with the ticket
-              await branchManager.associateBranch(issue.identifier, branchName);
+              await branchManager.associateBranch(identifier, branchName);
             }
             return;
           }
@@ -674,7 +721,7 @@ export function activate(context: vscode.ExtensionContext) {
           );
 
           // Associate the branch with the ticket
-          await branchManager.associateBranch(issue.identifier, branchName);
+          await branchManager.associateBranch(identifier, branchName);
 
           vscode.window.showInformationMessage(
             `Branch '${branchName}' created from '${sourceBranch}' and checked out! 🚀`
@@ -682,30 +729,53 @@ export function activate(context: vscode.ExtensionContext) {
 
           // Optionally update the issue status to "In Progress"
           const shouldUpdateStatus = await vscode.window.showInformationMessage(
-            `Do you want to mark ${issue.identifier} as "In Progress"?`,
+            `Do you want to mark ${identifier} as "In Progress"?`,
             "Yes",
             "No"
           );
 
           if (shouldUpdateStatus === "Yes") {
-            const linearClient = await LinearClient.create();
-            const states = await linearClient.getWorkflowStates();
-            const inProgressState = states.find(
-              (s) =>
-                s.type === "started" ||
-                s.name.toLowerCase().includes("progress")
-            );
-
-            if (inProgressState) {
-              const success = await linearClient.updateIssueStatus(
-                issue.id,
-                inProgressState.id
+            if (currentPlatform === "linear") {
+              const linearClient = await LinearClient.create();
+              const states = await linearClient.getWorkflowStates();
+              const inProgressState = states.find(
+                (s) =>
+                  s.type === "started" ||
+                  s.name.toLowerCase().includes("progress")
               );
-              if (success) {
-                vscode.window.showInformationMessage(
-                  `${issue.identifier} status updated to In Progress`
+
+              if (inProgressState) {
+                const success = await linearClient.updateIssueStatus(
+                  issueId,
+                  inProgressState.id
                 );
-                ticketsProvider.refresh();
+                if (success) {
+                  vscode.window.showInformationMessage(
+                    `${identifier} status updated to In Progress`
+                  );
+                  ticketsProvider.refresh();
+                }
+              }
+            } else if (currentPlatform === "jira") {
+              const jiraClient = await JiraCloudClient.create();
+              const transitions = await jiraClient.getTransitions(identifier);
+              const inProgressTransition = transitions.find(
+                (t: any) => 
+                  t.to.name.toLowerCase().includes("progress") ||
+                  t.to.name.toLowerCase().includes("doing")
+              );
+
+              if (inProgressTransition) {
+                const success = await jiraClient.transitionIssue(
+                  identifier,
+                  inProgressTransition.id
+                );
+                if (success) {
+                  vscode.window.showInformationMessage(
+                    `${identifier} status updated to In Progress`
+                  );
+                  ticketsProvider.refresh();
+                }
               }
             }
           }
@@ -720,8 +790,8 @@ export function activate(context: vscode.ExtensionContext) {
       }
     ),
 
-    vscode.commands.registerCommand("devBuddy.openPR", async (item: any) => {
-      const issue = item.issue as LinearIssue;
+    vscode.commands.registerCommand("devBuddy.openPR", async (item: { issue?: LinearIssue }) => {
+      const issue = item.issue;
       if (!issue) return;
 
       try {
@@ -780,12 +850,25 @@ export function activate(context: vscode.ExtensionContext) {
 
     vscode.commands.registerCommand(
       "devBuddy.checkoutBranch",
-      async (item: any) => {
-        const issue = item.issue as LinearIssue;
-        if (!issue) return;
+      async (item: { issue?: LinearIssue | JiraIssue }) => {
+        const currentPlatform = getCurrentPlatform();
+        
+        // Extract identifier based on platform
+        let identifier: string;
+        if (currentPlatform === "linear") {
+          const issue = item.issue as LinearIssue | undefined;
+          if (!issue) return;
+          identifier = issue.identifier;
+        } else if (currentPlatform === "jira") {
+          const issue = item.issue as JiraIssue | undefined;
+          if (!issue) return;
+          identifier = issue.key;
+        } else {
+          return;
+        }
 
         try {
-          await branchManager.checkoutBranch(issue.identifier);
+          await branchManager.checkoutBranch(identifier);
           ticketsProvider.refresh();
         } catch (error) {
           console.error("[DevBuddy] Failed to checkout branch:", error);
@@ -800,9 +883,22 @@ export function activate(context: vscode.ExtensionContext) {
 
     vscode.commands.registerCommand(
       "devBuddy.associateBranchFromSidebar",
-      async (item: any) => {
-        const issue = item.issue as LinearIssue;
-        if (!issue) return;
+      async (item: { issue?: LinearIssue | JiraIssue }) => {
+        const currentPlatform = getCurrentPlatform();
+        
+        // Extract identifier based on platform
+        let identifier: string;
+        if (currentPlatform === "linear") {
+          const issue = item.issue as LinearIssue | undefined;
+          if (!issue) return;
+          identifier = issue.identifier;
+        } else if (currentPlatform === "jira") {
+          const issue = item.issue as JiraIssue | undefined;
+          if (!issue) return;
+          identifier = issue.key;
+        } else {
+          return;
+        }
 
         try {
           // Get all local branches
@@ -818,12 +914,12 @@ export function activate(context: vscode.ExtensionContext) {
 
           // Get suggestions for this ticket
           const suggestions = await branchManager.suggestAssociationsForTicket(
-            issue.identifier
+            identifier
           );
 
           // Create quick pick with branches, highlighting suggestions and current branch
           const quickPick = vscode.window.createQuickPick();
-          quickPick.title = `Associate branch with ${issue.identifier}`;
+          quickPick.title = `Associate branch with ${identifier}`;
           quickPick.placeholder = "Type to search or select a branch";
           quickPick.matchOnDescription = true;
           quickPick.matchOnDetail = true;
@@ -868,7 +964,7 @@ export function activate(context: vscode.ExtensionContext) {
           quickPick.items = items;
 
           // If current branch matches pattern, pre-select it
-          if (currentBranch && currentBranch.includes(issue.identifier)) {
+          if (currentBranch && currentBranch.includes(identifier)) {
             const currentItem = items.find((i) => i.branch === currentBranch);
             if (currentItem) {
               quickPick.activeItems = [currentItem];
@@ -878,17 +974,17 @@ export function activate(context: vscode.ExtensionContext) {
           quickPick.onDidAccept(async () => {
             const selected = quickPick.selectedItems[0];
             if (selected) {
-              const branchName = (selected as any).branch;
+              const branchName = (selected as { label: string; description: string; branch: string }).branch;
               quickPick.hide();
 
               const success = await branchManager.associateBranch(
-                issue.identifier,
+                identifier,
                 branchName
               );
 
               if (success) {
                 vscode.window.showInformationMessage(
-                  `Associated ${issue.identifier} with ${branchName} ✓`
+                  `Associated ${identifier} with ${branchName} ✓`
                 );
                 ticketsProvider.refresh();
               } else {
@@ -1451,11 +1547,11 @@ export function activate(context: vscode.ExtensionContext) {
       await openJiraIssue(issue);
     }),
 
-    vscode.commands.registerCommand("devBuddy.jira.viewIssueDetails", async (item: any) => {
-      const issue = item?.issue as JiraIssue;
+    vscode.commands.registerCommand("devBuddy.jira.viewIssueDetails", async (item: { issue?: JiraIssue }) => {
+      const issue = item?.issue;
       if (issue) {
         // Open in webview panel
-        await JiraTicketPanel.createOrShow(context.extensionUri, context, issue);
+        await JiraIssuePanel.createOrShow(context.extensionUri, issue, context);
       }
     }),
 
@@ -1463,36 +1559,36 @@ export function activate(context: vscode.ExtensionContext) {
       await JiraCreateTicketPanel.createOrShow(context.extensionUri);
     }),
 
-    vscode.commands.registerCommand("devBuddy.jira.updateStatus", async (item: any) => {
-      const issue = item?.issue as JiraIssue;
+    vscode.commands.registerCommand("devBuddy.jira.updateStatus", async (item: { issue?: JiraIssue }) => {
+      const issue = item?.issue;
       if (issue) {
         await updateJiraIssueStatus(issue);
       }
     }),
 
-    vscode.commands.registerCommand("devBuddy.jira.assignIssue", async (item: any) => {
-      const issue = item?.issue as JiraIssue;
+    vscode.commands.registerCommand("devBuddy.jira.assignIssue", async (item: { issue?: JiraIssue }) => {
+      const issue = item?.issue;
       if (issue) {
         await assignJiraIssue(issue);
       }
     }),
 
-    vscode.commands.registerCommand("devBuddy.jira.addComment", async (item: any) => {
-      const issue = item?.issue as JiraIssue;
+    vscode.commands.registerCommand("devBuddy.jira.addComment", async (item: { issue?: JiraIssue }) => {
+      const issue = item?.issue;
       if (issue) {
         await addJiraComment(issue);
       }
     }),
 
-    vscode.commands.registerCommand("devBuddy.jira.copyUrl", async (item: any) => {
-      const issue = item?.issue as JiraIssue;
+    vscode.commands.registerCommand("devBuddy.jira.copyUrl", async (item: { issue?: JiraIssue }) => {
+      const issue = item?.issue;
       if (issue) {
         await copyJiraIssueUrl(issue);
       }
     }),
 
-    vscode.commands.registerCommand("devBuddy.jira.copyKey", async (item: any) => {
-      const issue = item?.issue as JiraIssue;
+    vscode.commands.registerCommand("devBuddy.jira.copyKey", async (item: { issue?: JiraIssue }) => {
+      const issue = item?.issue;
       if (issue) {
         await copyJiraIssueKey(issue);
       }

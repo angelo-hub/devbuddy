@@ -11,7 +11,7 @@ import { LinearIssue } from "../../providers/linear/types";
 import { JiraCloudClient } from "../../providers/jira/cloud/JiraCloudClient";
 import { JiraIssue } from "../../providers/jira/common/types";
 import { getLogger } from "../utils/logger";
-import { BranchAssociationManager } from "../../providers/linear/branchAssociationManager";
+import { BranchAssociationManager } from "../git/branchAssociationManager";
 
 const logger = getLogger();
 
@@ -30,6 +30,11 @@ export class UniversalTicketTreeItem extends vscode.TreeItem {
     public readonly contextValue?: string
   ) {
     super(label, collapsibleState);
+  }
+
+  // Expose ticket as 'issue' for backwards compatibility with commands
+  get issue(): TicketItem | undefined {
+    return this.ticket;
   }
 }
 
