@@ -29314,30 +29314,40 @@
     const language = node.attrs?.language || "text";
     const prismLanguage = languageMap[language.toLowerCase()] || "text";
     const code = node.content?.[0]?.text || "";
+    console.log("[ADF Renderer] Code block:", { language, prismLanguage, hasCode: !!code });
     try {
+      if (!import_prismjs.default.languages[prismLanguage]) {
+        console.warn(`[ADF Renderer] Language not loaded: ${prismLanguage}, falling back to text`);
+        return renderPlainCodeBlock(code, key);
+      }
       const highlighted = import_prismjs.default.highlight(
         code,
-        import_prismjs.default.languages[prismLanguage] || import_prismjs.default.languages.text,
+        import_prismjs.default.languages[prismLanguage],
         prismLanguage
       );
       return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
         "pre",
         {
+          className: `language-${prismLanguage}`,
           style: {
             backgroundColor: "var(--vscode-editor-background)",
             border: "1px solid var(--vscode-panel-border)",
             borderRadius: "4px",
-            padding: "12px",
+            padding: "16px",
             overflow: "auto",
-            marginBottom: "12px",
+            marginBottom: "16px",
             fontSize: "13px",
-            lineHeight: "1.5"
+            lineHeight: "1.6",
+            fontFamily: "var(--vscode-editor-font-family, 'Menlo', 'Monaco', 'Courier New', monospace)"
           },
           children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
             "code",
             {
               className: `language-${prismLanguage}`,
-              style: { fontFamily: "var(--vscode-editor-font-family)" },
+              style: {
+                fontFamily: "inherit",
+                fontSize: "inherit"
+              },
               dangerouslySetInnerHTML: { __html: highlighted }
             }
           )
@@ -29345,25 +29355,30 @@
         key
       );
     } catch (error) {
-      return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
-        "pre",
-        {
-          style: {
-            backgroundColor: "var(--vscode-editor-background)",
-            border: "1px solid var(--vscode-panel-border)",
-            borderRadius: "4px",
-            padding: "12px",
-            overflow: "auto",
-            marginBottom: "12px",
-            fontSize: "13px",
-            lineHeight: "1.5",
-            fontFamily: "var(--vscode-editor-font-family)"
-          },
-          children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("code", { children: code })
-        },
-        key
-      );
+      console.error("[ADF Renderer] Failed to highlight code:", error);
+      return renderPlainCodeBlock(code, key);
     }
+  }
+  function renderPlainCodeBlock(code, key) {
+    return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+      "pre",
+      {
+        style: {
+          backgroundColor: "var(--vscode-editor-background)",
+          border: "1px solid var(--vscode-panel-border)",
+          borderRadius: "4px",
+          padding: "16px",
+          overflow: "auto",
+          marginBottom: "16px",
+          fontSize: "13px",
+          lineHeight: "1.6",
+          fontFamily: "var(--vscode-editor-font-family, 'Menlo', 'Monaco', 'Courier New', monospace)",
+          color: "var(--vscode-editor-foreground)"
+        },
+        children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("code", { children: code })
+      },
+      key
+    );
   }
   function renderHeading(node, key) {
     const level = node.attrs?.level || 1;

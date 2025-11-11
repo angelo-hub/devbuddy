@@ -165,56 +165,77 @@ function renderCodeBlock(node: ADFNode, key: number): React.ReactNode {
   const prismLanguage = languageMap[language.toLowerCase()] || "text";
   const code = node.content?.[0]?.text || "";
 
+  console.log("[ADF Renderer] Code block:", { language, prismLanguage, hasCode: !!code });
+
   try {
+    // Check if language is supported
+    if (!Prism.languages[prismLanguage]) {
+      console.warn(`[ADF Renderer] Language not loaded: ${prismLanguage}, falling back to text`);
+      return renderPlainCodeBlock(code, key);
+    }
+
     // Highlight code with Prism
     const highlighted = Prism.highlight(
       code,
-      Prism.languages[prismLanguage] || Prism.languages.text,
+      Prism.languages[prismLanguage],
       prismLanguage
     );
 
     return (
       <pre
         key={key}
+        className={`language-${prismLanguage}`}
         style={{
           backgroundColor: "var(--vscode-editor-background)",
           border: "1px solid var(--vscode-panel-border)",
           borderRadius: "4px",
-          padding: "12px",
+          padding: "16px",
           overflow: "auto",
-          marginBottom: "12px",
+          marginBottom: "16px",
           fontSize: "13px",
-          lineHeight: "1.5",
+          lineHeight: "1.6",
+          fontFamily: "var(--vscode-editor-font-family, 'Menlo', 'Monaco', 'Courier New', monospace)",
         }}
       >
         <code
           className={`language-${prismLanguage}`}
-          style={{ fontFamily: "var(--vscode-editor-font-family)" }}
+          style={{
+            fontFamily: "inherit",
+            fontSize: "inherit",
+          }}
           dangerouslySetInnerHTML={{ __html: highlighted }}
         />
       </pre>
     );
   } catch (error) {
-    // Fallback to plain code block
-    return (
-      <pre
-        key={key}
-        style={{
-          backgroundColor: "var(--vscode-editor-background)",
-          border: "1px solid var(--vscode-panel-border)",
-          borderRadius: "4px",
-          padding: "12px",
-          overflow: "auto",
-          marginBottom: "12px",
-          fontSize: "13px",
-          lineHeight: "1.5",
-          fontFamily: "var(--vscode-editor-font-family)",
-        }}
-      >
-        <code>{code}</code>
-      </pre>
-    );
+    console.error("[ADF Renderer] Failed to highlight code:", error);
+    return renderPlainCodeBlock(code, key);
   }
+}
+
+/**
+ * Render plain code block without highlighting (fallback)
+ */
+function renderPlainCodeBlock(code: string, key: number): React.ReactNode {
+  return (
+    <pre
+      key={key}
+      style={{
+        backgroundColor: "var(--vscode-editor-background)",
+        border: "1px solid var(--vscode-panel-border)",
+        borderRadius: "4px",
+        padding: "16px",
+        overflow: "auto",
+        marginBottom: "16px",
+        fontSize: "13px",
+        lineHeight: "1.6",
+        fontFamily: "var(--vscode-editor-font-family, 'Menlo', 'Monaco', 'Courier New', monospace)",
+        color: "var(--vscode-editor-foreground)",
+      }}
+    >
+      <code>{code}</code>
+    </pre>
+  );
 }
 
 /**
