@@ -29330,24 +29330,18 @@
         {
           className: `language-${prismLanguage}`,
           style: {
-            backgroundColor: "var(--vscode-editor-background)",
             border: "1px solid var(--vscode-panel-border)",
             borderRadius: "4px",
             padding: "16px",
             overflow: "auto",
             marginBottom: "16px",
-            fontSize: "13px",
-            lineHeight: "1.6",
-            fontFamily: "var(--vscode-editor-font-family, 'Menlo', 'Monaco', 'Courier New', monospace)"
+            fontSize: "14px",
+            lineHeight: "1.6"
           },
           children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
             "code",
             {
               className: `language-${prismLanguage}`,
-              style: {
-                fontFamily: "inherit",
-                fontSize: "inherit"
-              },
               dangerouslySetInnerHTML: { __html: highlighted }
             }
           )
