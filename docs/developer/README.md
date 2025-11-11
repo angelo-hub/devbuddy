@@ -7,25 +7,25 @@ Welcome to the DevBuddy developer documentation! This directory contains compreh
 ### Getting Started
 
 - **[DEBUG_QUICK_START.md](./DEBUG_QUICK_START.md)** - Quick debugging guide
-- **[INFRASTRUCTURE_SETUP.md](./INFRASTRUCTURE_SETUP.md)** ⭐ **NEW** - Summary of recent infrastructure setup (ESLint, path aliases, etc.)
+- **[INFRASTRUCTURE_SETUP.md](./INFRASTRUCTURE_SETUP.md)** - Summary of recent infrastructure setup (ESLint, path aliases, etc.)
 
 ### Architecture & Design
 
-- **[PRO_CORE_ARCHITECTURE.md](./PRO_CORE_ARCHITECTURE.md)** ⭐ **NEW** - Complete guide to pro/core feature organization
+- **[PRO_CORE_ARCHITECTURE.md](./PRO_CORE_ARCHITECTURE.md)** - Complete guide to pro/core feature organization
   - Directory structure
   - Feature gating patterns
   - License management
   - Migration strategy (7 phases)
   - Code examples
 
-- **[ARCHITECTURE_DIAGRAM.md](./ARCHITECTURE_DIAGRAM.md)** ⭐ **NEW** - Visual diagrams of the architecture
+- **[ARCHITECTURE_DIAGRAM.md](./ARCHITECTURE_DIAGRAM.md)** - Visual diagrams of the architecture
   - Extension structure
   - Webview structure
   - Feature gating flow
   - User experience flow
   - Feature comparison table
 
-- **[PATH_ALIASES.md](./PATH_ALIASES.md)** ⭐ **NEW** - Path alias quick reference
+- **[PATH_ALIASES.md](./PATH_ALIASES.md)** - Path alias quick reference
   - All available aliases
   - Usage examples
   - IDE integration
@@ -88,7 +88,8 @@ Welcome to the DevBuddy developer documentation! This directory contains compreh
 ### Setup & Configuration
 - [INFRASTRUCTURE_SETUP.md](./INFRASTRUCTURE_SETUP.md) - Infrastructure setup summary
 - [PATH_ALIASES.md](./PATH_ALIASES.md) - TypeScript path aliases
-- [REACT_ESLINT.md](./REACT_ESLINT.md) ⭐ **NEW** - React & Hooks ESLint rules
+- [REACT_ESLINT.md](./REACT_ESLINT.md) - React & Hooks ESLint rules
+- [CI_CD.md](./CI_CD.md) - CI/CD configuration and required checks
 
 ### Development Guides
 - [WEBVIEW_GUIDE.md](./WEBVIEW_GUIDE.md) - Webview development
@@ -96,7 +97,7 @@ Welcome to the DevBuddy developer documentation! This directory contains compreh
 - [DEBUG_QUICK_START.md](./DEBUG_QUICK_START.md) - Debugging
 - [TESTING.md](./TESTING.md) - Testing
 
-## 🆕 Recent Updates
+## Recent Updates
 
 ### Infrastructure Setup (Latest)
 
