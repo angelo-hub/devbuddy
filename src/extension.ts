@@ -513,6 +513,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         try {
           // Initialize git
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
           const simpleGit = require("simple-git");
           const workspaceFolders = vscode.workspace.workspaceFolders;
 
@@ -634,7 +635,7 @@ export function activate(context: vscode.ExtensionContext) {
             case "simple":
               defaultBranchName = `${identifier.toLowerCase()}-${slug}`;
               break;
-            case "custom":
+            case "custom": {
               // Get current username from git config
               let username = "user";
               try {
@@ -653,6 +654,7 @@ export function activate(context: vscode.ExtensionContext) {
                 .replace("{slug}", slug)
                 .replace("{username}", username);
               break;
+            }
             default:
               defaultBranchName = `${commitType}/${identifier.toLowerCase()}-${slug}`;
           }
@@ -668,6 +670,7 @@ export function activate(context: vscode.ExtensionContext) {
                 return "Branch name cannot be empty";
               }
               // Check for invalid git branch characters
+              // eslint-disable-next-line no-useless-escape
               if (/[\s~^:?*\[\]\\]/.test(value)) {
                 return "Branch name contains invalid characters";
               }

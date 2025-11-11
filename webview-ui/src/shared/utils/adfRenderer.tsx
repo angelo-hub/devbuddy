@@ -121,7 +121,7 @@ function renderTextNode(node: ADFNode, key: number): React.ReactNode {
         case "underline":
           element = <u key={key}>{element}</u>;
           break;
-        case "link":
+        case "link": {
           const attrs = mark.attrs as { href?: string };
           element = (
             <a
@@ -135,6 +135,7 @@ function renderTextNode(node: ADFNode, key: number): React.ReactNode {
             </a>
           );
           break;
+        }
       }
     }
   }

@@ -29285,7 +29285,7 @@
           case "underline":
             element = /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("u", { children: element }, key);
             break;
-          case "link":
+          case "link": {
             const attrs = mark.attrs;
             element = /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
               "a",
@@ -29299,6 +29299,7 @@
               key
             );
             break;
+          }
         }
       }
     }

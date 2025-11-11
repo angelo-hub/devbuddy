@@ -252,7 +252,7 @@ async function convertTodoToJiraTicket() {
 
         // Check for saved project preference
         const config = vscode.workspace.getConfiguration("devBuddy");
-        let savedProjectKey = config.get<string>("jira.defaultProject");
+        const savedProjectKey = config.get<string>("jira.defaultProject");
         let selectedProject: JiraProject | undefined;
 
         // If saved project exists, use it as default
@@ -543,7 +543,7 @@ async function convertTodoToLinearTicket() {
 
         // Check for saved team preference
         const config = vscode.workspace.getConfiguration("devBuddy");
-        let savedTeamId = config.get<string>("linearDefaultTeamId");
+        const savedTeamId = config.get<string>("linearDefaultTeamId");
         let selectedTeam: LinearTeam | undefined;
 
         // If saved team exists, use it as default

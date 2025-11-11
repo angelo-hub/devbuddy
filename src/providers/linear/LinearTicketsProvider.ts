@@ -325,7 +325,7 @@ export class LinearTicketsProvider
           // These are subsection headers (non-collapsible labels)
           return [];
 
-        case "statusHeader":
+        case "statusHeader": {
           const status = element.issue.state.name;
           const statusIssues = this.issues.filter(
             (issue) => issue.state.name === status
@@ -339,7 +339,7 @@ export class LinearTicketsProvider
                 this.branchManager
               )
           );
-
+        }
         default:
           return [];
       }

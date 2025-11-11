@@ -27,7 +27,7 @@ interface ParentIssue {
 }
 
 interface SubIssuesProps {
-  children?: {
+  childrenIssues?: {
     nodes: SubIssue[];
   };
   parent?: ParentIssue;

@@ -51,7 +51,7 @@ export const Comments: React.FC<CommentsProps> = ({ comments }) => {
         </div>
       ) : (
         <div className={styles.commentsList}>
-          {comments!.nodes.map((comment) => (
+          {comments?.nodes.map((comment) => (
             <div key={comment.id} className={styles.commentItem}>
               {comment.user?.avatarUrl ? (
                 <img

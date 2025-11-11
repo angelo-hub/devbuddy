@@ -21,7 +21,7 @@ const logger = getLogger();
 function parseJiraSiteUrl(url: string): string | null {
   try {
     // Remove protocol and www if present
-    let cleaned = url.replace(/^https?:\/\//, "").replace(/^www\./, "");
+    const cleaned = url.replace(/^https?:\/\//, "").replace(/^www\./, "");
     
     // Check if it's an Atlassian Cloud URL
     if (!cleaned.includes("atlassian.net")) {

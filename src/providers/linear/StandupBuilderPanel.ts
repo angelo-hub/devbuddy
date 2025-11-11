@@ -172,19 +172,15 @@ export class StandupBuilderPanel {
 
       this._gitAnalyzer = new GitAnalyzer(workspaceRoot);
 
-      let result: any;
-      let allCommits: any[];
-      let allChangedFiles: string[];
-
       // For now, only support single ticket mode (multi-ticket needs additional git methods)
       this._panel.webview.postMessage({
         command: "progress",
         message: "Fetching git context...",
       });
 
-      result = await this._gitAnalyzer.getGitContext(data.timeWindow);
-      allCommits = result.commits;
-      allChangedFiles = result.changedFiles;
+      const result = await this._gitAnalyzer.getGitContext(data.timeWindow);
+      const allCommits = result.commits;
+      const allChangedFiles = result.changedFiles;
 
       // Get file diffs
       this._panel.webview.postMessage({
