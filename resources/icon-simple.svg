@@ -1,0 +1,24 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- Simple, clean background -->
+  <rect width="128" height="128" fill="#007ACC" rx="16"/>
+  
+  <!-- Checklist icon in white -->
+  <g transform="translate(24, 24)">
+    <!-- First checkbox - checked -->
+    <rect x="0" y="0" width="20" height="20" rx="3" fill="white" opacity="0.2"/>
+    <path d="M 4 10 L 8 14 L 16 6" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Second checkbox - checked -->
+    <rect x="0" y="30" width="20" height="20" rx="3" fill="white" opacity="0.2"/>
+    <path d="M 4 40 L 8 44 L 16 36" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Third checkbox - checked -->
+    <rect x="0" y="60" width="20" height="20" rx="3" fill="white" opacity="0.2"/>
+    <path d="M 4 70 L 8 74 L 16 66" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Lines representing text -->
+    <line x1="28" y1="10" x2="76" y2="10" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.9"/>
+    <line x1="28" y1="40" x2="76" y2="40" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.9"/>
+    <line x1="28" y1="70" x2="76" y2="70" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.9"/>
+  </g>
+</svg>

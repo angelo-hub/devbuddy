@@ -5,8 +5,26 @@ import { GitAnalyzer } from '@shared/git/gitAnalyzer';
 import { PackageDetector } from '@shared/utils/packageDetector';
 import { TemplateParser } from '@shared/utils/templateParser';
 import { AISummarizer } from '@shared/ai/aiSummarizer';
+import { LicenseManager } from '@pro/utils/licenseManager';
 
+/**
+ * Generate PR Summary Command - PRO FEATURE
+ * 
+ * AI-powered PR description generation with monorepo support.
+ * Requires valid DevBuddy Pro license or active trial.
+ * 
+ * @license Commercial - See LICENSE.pro
+ */
 export async function generatePRSummaryCommand() {
+  // Feature gate: Check Pro license
+  const context = await getExtensionContext();
+  const licenseManager = LicenseManager.getInstance(context);
+  
+  if (!licenseManager.hasProAccess()) {
+    await licenseManager.promptUpgrade('AI PR Summary Generation');
+    return;
+  }
+
   try {
     // Get workspace root
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -213,5 +231,18 @@ async function promptForCheckboxSection(section: any): Promise<string> {
 
   output += `\n`;
   return output;
+}
+
+/**
+ * Helper function to get extension context from VS Code globals
+ * This is a workaround since commands don't receive context directly
+ */
+async function getExtensionContext(): Promise<vscode.ExtensionContext> {
+  const extension = vscode.extensions.getExtension('angelogirardi.dev-buddy');
+  if (!extension) {
+    throw new Error('Extension context not available');
+  }
+  // Access context from extension exports (needs to be set up in extension.ts)
+  return (extension.exports as any).context;
 }
 

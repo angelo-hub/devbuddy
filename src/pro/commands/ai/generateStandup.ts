@@ -2,8 +2,27 @@ import * as vscode from "vscode";
 import { GitAnalyzer } from "@shared/git/gitAnalyzer";
 import { PackageDetector } from "@shared/utils/packageDetector";
 import { AISummarizer } from "@shared/ai/aiSummarizer";
+import { LicenseManager } from "@pro/utils/licenseManager";
 
-export async function generateStandupCommand() {
+/**
+ * Generate Standup Command - PRO FEATURE
+ * 
+ * AI-powered standup generation from commits and ticket activity.
+ * Requires valid DevBuddy Pro license or active trial.
+ * 
+ * @license Commercial - See LICENSE.pro
+ */
+export async function generateStandupCommand(context?: vscode.ExtensionContext) {
+  // Feature gate: Check Pro license
+  if (context) {
+    const licenseManager = LicenseManager.getInstance(context);
+    
+    if (!licenseManager.hasProAccess()) {
+      await licenseManager.promptUpgrade('AI Standup Generation');
+      return;
+    }
+  }
+
   try {
     // Get workspace root
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
