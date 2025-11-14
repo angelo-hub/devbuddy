@@ -71,3 +71,4 @@ Once you've chosen your platform:
 
 The extension will guide you through the setup process!
 
+

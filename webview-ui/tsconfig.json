@@ -15,7 +15,15 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
-    "noEmit": true
+    "noEmit": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@shared/*": ["shared/*"],
+      "@core/*": ["core/*"],
+      "@pro/*": ["pro/*"],
+      "@linear/*": ["linear/*"],
+      "@jira/*": ["jira/*"]
+    }
   },
   "include": [
     "src/**/*"

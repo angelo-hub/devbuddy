@@ -74,6 +74,36 @@ const cssModulesPlugin = {
   },
 };
 
+/**
+ * Path alias plugin for esbuild
+ * Resolves @shared, @core, @pro, @linear, @jira to webview-ui/src/* directories
+ * @type {import('esbuild').Plugin}
+ */
+const pathAliasPlugin = {
+  name: "path-alias",
+  setup(build) {
+    const aliases = {
+      "@shared": path.resolve(__dirname, "src/shared"),
+      "@core": path.resolve(__dirname, "src/core"),
+      "@pro": path.resolve(__dirname, "src/pro"),
+      "@linear": path.resolve(__dirname, "src/linear"),
+      "@jira": path.resolve(__dirname, "src/jira"),
+    };
+
+    build.onResolve({ filter: /^@(shared|core|pro|linear|jira)/ }, (args) => {
+      for (const [alias, aliasPath] of Object.entries(aliases)) {
+        if (args.path.startsWith(alias)) {
+          const relativePath = args.path.replace(alias, "");
+          return {
+            path: path.join(aliasPath, relativePath),
+          };
+        }
+      }
+      return null;
+    });
+  },
+};
+
 async function main() {
   // Ensure output directory exists
   const outDir = path.resolve(__dirname, "build");
@@ -101,6 +131,7 @@ async function main() {
     external: ["vscode"],
     logLevel: "silent",
     plugins: [
+      pathAliasPlugin,
       cssModulesPlugin,
       esbuildProblemMatcherPlugin,
     ],
