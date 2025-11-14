@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { TextArea } from "../../../shared/components/TextArea";
-import { Button } from "../../../shared/components/Button";
-import { renderADF } from "../../../shared/utils/adfRenderer";
+import { TextArea } from "@shared/components/TextArea";
+import { Button } from "@shared/components/Button";
+import { renderADF } from "@shared/utils/adfRenderer";
 import styles from "./TicketDescription.module.css";
 
 interface TicketDescriptionProps {

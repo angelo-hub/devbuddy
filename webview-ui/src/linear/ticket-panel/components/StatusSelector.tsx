@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Select, Button } from "../../../shared/components/index.ts";
-import { WorkflowState } from "../../shared/types/messages";
+import { Select, Button } from "@shared/components";
+import { WorkflowState } from "@shared/types/messages";
 import styles from "./StatusSelector.module.css";
 
 interface StatusSelectorProps {

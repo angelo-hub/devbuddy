@@ -1,5 +1,5 @@
 import React from "react";
-import { Badge } from "../../../shared/components/Badge";
+import { Badge } from "@shared/components/Badge";
 import styles from "./TicketMetadata.module.css";
 
 interface TicketMetadataProps {
@@ -56,7 +56,9 @@ export const TicketMetadata: React.FC<TicketMetadataProps> = ({
           <h3 className={styles.heading}>Labels</h3>
           <div className={styles.labels}>
             {labels.map((label) => (
-              <Badge key={label} text={label} color="#6366f1" />
+              <Badge key={label} color="#6366f1">
+                {label}
+              </Badge>
             ))}
           </div>
         </div>

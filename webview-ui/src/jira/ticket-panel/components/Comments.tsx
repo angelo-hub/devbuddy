@@ -1,5 +1,5 @@
 import React from "react";
-import { renderADF } from "../../../shared/utils/adfRenderer";
+import { renderADF } from "@shared/utils/adfRenderer";
 import styles from "./Comments.module.css";
 
 interface Comment {

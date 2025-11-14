@@ -1,5 +1,5 @@
 import React from "react";
-import { Badge } from "../../../shared/components/index.ts";
+import { Badge } from "@shared/components";
 import styles from "./TicketLabels.module.css";
 
 interface Label {

@@ -94,9 +94,28 @@ const pathAliasPlugin = {
       for (const [alias, aliasPath] of Object.entries(aliases)) {
         if (args.path.startsWith(alias)) {
           const relativePath = args.path.replace(alias, "");
-          return {
-            path: path.join(aliasPath, relativePath),
-          };
+          const fullPath = path.join(aliasPath, relativePath);
+          
+          // Try common extensions if the path doesn't have one
+          const extensions = [".tsx", ".ts", ".jsx", ".js", "/index.tsx", "/index.ts", "/index.jsx", "/index.js"];
+          
+          // If path already has an extension, try it directly
+          if (path.extname(fullPath)) {
+            if (fs.existsSync(fullPath)) {
+              return { path: fullPath };
+            }
+          }
+          
+          // Try adding extensions
+          for (const ext of extensions) {
+            const pathWithExt = fullPath + ext;
+            if (fs.existsSync(pathWithExt)) {
+              return { path: pathWithExt };
+            }
+          }
+          
+          // If still not found, return the original path and let esbuild handle the error
+          return { path: fullPath };
         }
       }
       return null;
@@ -136,7 +155,7 @@ async function main() {
       esbuildProblemMatcherPlugin,
     ],
     loader: {
-      ".css": "css",
+      ".css": "css", // This will bundle CSS files into the output
       ".tsx": "tsx",
       ".ts": "ts",
     },

@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 import { JiraCloudClient } from "./JiraCloudClient";
 import { JiraIssue, JiraTransition, JiraUser, JiraComment } from "../common/types";
-import { getLogger } from "../../../shared/utils/logger";
+import { getLogger } from "@shared/utils/logger";
 
 const logger = getLogger();
 
@@ -384,7 +384,7 @@ export class JiraIssuePanel {
 <body>
   <div id="root"></div>
   <script nonce="${nonce}">
-    window.__INITIAL_STATE__ = ${JSON.stringify(initialState)};
+    window.__JIRA_INITIAL_STATE__ = ${JSON.stringify(initialState)};
   </script>
   <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>

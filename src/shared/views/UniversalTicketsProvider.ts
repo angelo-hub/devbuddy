@@ -6,12 +6,12 @@
  */
 
 import * as vscode from "vscode";
-import { LinearClient } from "../../providers/linear/LinearClient";
-import { LinearIssue } from "../../providers/linear/types";
-import { JiraCloudClient } from "../../providers/jira/cloud/JiraCloudClient";
-import { JiraIssue } from "../../providers/jira/common/types";
-import { getLogger } from "../utils/logger";
-import { BranchAssociationManager } from "../git/branchAssociationManager";
+import { LinearClient } from "@providers/linear/LinearClient";
+import { LinearIssue } from "@providers/linear/types";
+import { JiraCloudClient } from "@providers/jira/cloud/JiraCloudClient";
+import { JiraIssue } from "@providers/jira/common/types";
+import { getLogger } from "@shared/utils/logger";
+import { BranchAssociationManager } from "@shared/git/branchAssociationManager";
 
 const logger = getLogger();
 

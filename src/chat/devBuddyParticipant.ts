@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
-import { LinearClient } from "../providers/linear/LinearClient";
-import { LinearIssue } from "../providers/linear/types";
-import { GitAnalyzer } from "../shared/git/gitAnalyzer";
-import { AISummarizer } from "../shared/ai/aiSummarizer";
+import { LinearClient } from "@providers/linear/LinearClient";
+import { LinearIssue } from "@providers/linear/types";
+import { GitAnalyzer } from "@shared/git/gitAnalyzer";
+import { AISummarizer } from "@shared/ai/aiSummarizer";
 
 /**
  * Convert Linear web URL to desktop app URL if preference is enabled

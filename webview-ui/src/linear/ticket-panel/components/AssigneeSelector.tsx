@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import styles from "./AssigneeSelector.module.css";
-import { LinearUser } from "../../shared/types/messages";
+import { LinearUser } from "@shared/types/messages";
 
 interface AssigneeSelectorProps {
   currentAssignee?: {

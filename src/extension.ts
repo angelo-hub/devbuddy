@@ -1,24 +1,24 @@
 import * as vscode from "vscode";
-import { generatePRSummaryCommand } from "./commands/generatePRSummary";
-import { generateStandupCommand } from "./commands/generateStandup";
-import { convertTodoToTicket } from "./commands/convertTodoToTicket";
-import { TodoToTicketCodeActionProvider } from "./utils/todoCodeActionProvider";
-import { showFirstTimeSetup } from "./providers/linear/firstTimeSetup";
-import { UniversalTicketsProvider } from "./shared/views/UniversalTicketsProvider";
-import { DevBuddyChatParticipant } from "./chat/devBuddyParticipant";
-import { LinearClient } from "./providers/linear/LinearClient";
-import { LinearIssue } from "./providers/linear/types";
-import { LinearTicketPanel } from "./providers/linear/LinearTicketPanel";
-import { CreateTicketPanel } from "./providers/linear/CreateTicketPanel";
-import { LinearStandupDataProvider } from "./providers/linear/LinearStandupDataProvider";
-import { BranchAssociationManager } from "./shared/git/branchAssociationManager";
-import { getLogger } from "./shared/utils/logger";
-import { getTelemetryManager } from "./shared/utils/telemetryManager";
-import { loadDevCredentials, showDevModeWarning } from "./shared/utils/devEnvLoader";
-import { UniversalStandupBuilderPanel } from "./shared/views/UniversalStandupBuilderPanel";
+import { generatePRSummaryCommand } from "@commands/generatePRSummary";
+import { generateStandupCommand } from "@commands/generateStandup";
+import { convertTodoToTicket } from "@commands/convertTodoToTicket";
+import { TodoToTicketCodeActionProvider } from "@utils/todoCodeActionProvider";
+import { showFirstTimeSetup } from "@providers/linear/firstTimeSetup";
+import { UniversalTicketsProvider } from "@shared/views/UniversalTicketsProvider";
+import { DevBuddyChatParticipant } from "@chat/devBuddyParticipant";
+import { LinearClient } from "@providers/linear/LinearClient";
+import { LinearIssue } from "@providers/linear/types";
+import { LinearTicketPanel } from "@providers/linear/LinearTicketPanel";
+import { CreateTicketPanel } from "@providers/linear/CreateTicketPanel";
+import { LinearStandupDataProvider } from "@providers/linear/LinearStandupDataProvider";
+import { BranchAssociationManager } from "@shared/git/branchAssociationManager";
+import { getLogger } from "@shared/utils/logger";
+import { getTelemetryManager } from "@shared/utils/telemetryManager";
+import { loadDevCredentials, showDevModeWarning } from "@shared/utils/devEnvLoader";
+import { UniversalStandupBuilderPanel } from "@shared/views/UniversalStandupBuilderPanel";
 
 // Jira imports
-import { runJiraCloudSetup, testJiraCloudConnection, resetJiraCloudConfig, updateJiraCloudApiToken } from "./providers/jira/cloud/firstTimeSetup";
+import { runJiraCloudSetup, testJiraCloudConnection, resetJiraCloudConfig, updateJiraCloudApiToken } from "@providers/jira/cloud/firstTimeSetup";
 import {
   openJiraIssue,
   refreshJiraIssues,
@@ -28,13 +28,13 @@ import {
   copyJiraIssueUrl,
   copyJiraIssueKey,
   viewJiraIssueDetails,
-} from "./commands/jira/issueCommands";
-import { JiraIssue } from "./providers/jira/common/types";
-import { JiraIssuePanel } from "./providers/jira/cloud/JiraIssuePanel";
-import { JiraCreateTicketPanel } from "./providers/jira/cloud/JiraCreateTicketPanel";
-import { JiraStandupDataProvider } from "./providers/jira/JiraStandupDataProvider";
-import { JiraCloudClient } from "./providers/jira/cloud/JiraCloudClient";
-import { getCurrentPlatform } from "./shared/utils/platformDetector";
+} from "@commands/jira/issueCommands";
+import { JiraIssue } from "@providers/jira/common/types";
+import { JiraIssuePanel } from "@providers/jira/cloud/JiraIssuePanel";
+import { JiraCreateTicketPanel } from "@providers/jira/cloud/JiraCreateTicketPanel";
+import { JiraStandupDataProvider } from "@providers/jira/JiraStandupDataProvider";
+import { JiraCloudClient } from "@providers/jira/cloud/JiraCloudClient";
+import { getCurrentPlatform } from "@shared/utils/platformDetector";
 
 export function activate(context: vscode.ExtensionContext) {
   // Initialize logger first
@@ -513,6 +513,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         try {
           // Initialize git
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
           const simpleGit = require("simple-git");
           const workspaceFolders = vscode.workspace.workspaceFolders;
 
@@ -634,7 +635,7 @@ export function activate(context: vscode.ExtensionContext) {
             case "simple":
               defaultBranchName = `${identifier.toLowerCase()}-${slug}`;
               break;
-            case "custom":
+            case "custom": {
               // Get current username from git config
               let username = "user";
               try {
@@ -653,6 +654,7 @@ export function activate(context: vscode.ExtensionContext) {
                 .replace("{slug}", slug)
                 .replace("{username}", username);
               break;
+            }
             default:
               defaultBranchName = `${commitType}/${identifier.toLowerCase()}-${slug}`;
           }
@@ -668,6 +670,7 @@ export function activate(context: vscode.ExtensionContext) {
                 return "Branch name cannot be empty";
               }
               // Check for invalid git branch characters
+              // eslint-disable-next-line no-useless-escape
               if (/[\s~^:?*\[\]\\]/.test(value)) {
                 return "Branch name contains invalid characters";
               }
@@ -1284,7 +1287,7 @@ export function activate(context: vscode.ExtensionContext) {
             );
             break;
 
-          case "docs":
+          case "docs": {
             const readmeUri = vscode.Uri.joinPath(
               context.extensionUri,
               "README.md"
@@ -1294,7 +1297,7 @@ export function activate(context: vscode.ExtensionContext) {
               readmeUri
             );
             break;
-
+          }
           case "config":
             await vscode.commands.executeCommand(
               "workbench.action.openSettings",

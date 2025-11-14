@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
-import { BaseTicketProvider } from "../base/BaseTicketProvider";
-import { LinearClient } from "../../providers/linear/LinearClient";
-import { JiraCloudClient } from "../../providers/jira/cloud/JiraCloudClient";
-import { BaseJiraClient } from "../../providers/jira/common/BaseJiraClient";
+import { BaseTicketProvider } from "@shared/base/BaseTicketProvider";
+import { LinearClient } from "@providers/linear/LinearClient";
+import { JiraCloudClient } from "@providers/jira/cloud/JiraCloudClient";
+import { BaseJiraClient } from "@providers/jira/common/BaseJiraClient";
 
 /**
  * Supported platform types
@@ -41,7 +41,7 @@ export async function getPlatformClient(): Promise<BaseTicketProvider | BaseJira
     case "linear":
       return await LinearClient.create();
     
-    case "jira":
+    case "jira": {
       const jiraType = getJiraDeploymentType();
       if (jiraType === "cloud") {
         return await JiraCloudClient.create();
@@ -49,7 +49,7 @@ export async function getPlatformClient(): Promise<BaseTicketProvider | BaseJira
         // TODO: Implement Jira Server support in Phase 2B
         throw new Error("Jira Server support not yet implemented. Please select 'cloud' deployment type.");
       }
-    
+    }
     case "monday":
       // TODO: Implement Monday support in Phase 3
       throw new Error("Monday.com support not yet implemented");

@@ -24674,7 +24674,8 @@
         }
       }
     }, [selectedTemplateId, templates]);
-    const handleTeamChange = (value) => {
+    const handleTeamChange = (e) => {
+      const value = e.target.value;
       setSelectedTeamId(value);
       setSelectedTemplateId("");
       onTeamChange(value);
@@ -24730,7 +24731,7 @@
           Select,
           {
             value: selectedTemplateId,
-            onChange: (value) => setSelectedTemplateId(value),
+            onChange: (e) => setSelectedTemplateId(e.target.value),
             children: [
               /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("option", { value: "", children: "No template" }),
               templates.map((template) => /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("option", { value: template.id, children: template.name }, template.id))
@@ -24773,7 +24774,7 @@
             Select,
             {
               value: priority?.toString() || "",
-              onChange: (value) => setPriority(value ? parseInt(value, 10) : void 0),
+              onChange: (e) => setPriority(e.target.value ? parseInt(e.target.value, 10) : void 0),
               children: [
                 /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("option", { value: "", children: "No Priority" }),
                 /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("option", { value: "1", children: "\u{1F534} Urgent" }),
@@ -24790,7 +24791,7 @@
             Select,
             {
               value: stateId || "",
-              onChange: (value) => setStateId(value || void 0),
+              onChange: (e) => setStateId(e.target.value || void 0),
               children: [
                 /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("option", { value: "", children: "Default status" }),
                 workflowStates.map((state) => /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("option", { value: state.id, children: state.name }, state.id))
@@ -24804,7 +24805,7 @@
             Select,
             {
               value: assigneeId || "",
-              onChange: (value) => setAssigneeId(value || void 0),
+              onChange: (e) => setAssigneeId(e.target.value || void 0),
               children: [
                 /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("option", { value: "", children: "Unassigned" }),
                 users.map((user) => /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("option", { value: user.id, children: [
@@ -24823,7 +24824,7 @@
             Select,
             {
               value: projectId || "",
-              onChange: (value) => setProjectId(value || void 0),
+              onChange: (e) => setProjectId(e.target.value || void 0),
               children: [
                 /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("option", { value: "", children: "No project" }),
                 projects.map((project) => /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("option", { value: project.id, children: project.name }, project.id))

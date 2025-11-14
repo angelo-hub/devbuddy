@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { GitAnalyzer } from '../shared/git/gitAnalyzer';
-import { PackageDetector } from '../shared/utils/packageDetector';
-import { TemplateParser } from '../shared/utils/templateParser';
-import { AISummarizer } from '../shared/ai/aiSummarizer';
+import { GitAnalyzer } from '@shared/git/gitAnalyzer';
+import { PackageDetector } from '@shared/utils/packageDetector';
+import { TemplateParser } from '@shared/utils/templateParser';
+import { AISummarizer } from '@shared/ai/aiSummarizer';
 
 export async function generatePRSummaryCommand() {
   try {

@@ -1,6 +1,6 @@
-import { BaseStandupDataProvider, StandupTicket } from "../../shared/base/BaseStandupDataProvider";
+import { BaseStandupDataProvider, StandupTicket } from "@shared/base/BaseStandupDataProvider";
 import { LinearClient } from "./LinearClient";
-import { formatTicketReferencesInText } from "../../shared/utils/linkFormatter";
+import { formatTicketReferencesInText } from "@shared/utils/linkFormatter";
 
 /**
  * Linear-specific implementation of standup data provider
