@@ -27,7 +27,7 @@ interface ParentIssue {
 }
 
 interface SubIssuesProps {
-  children?: {
+  childrenIssues?: {
     nodes: SubIssue[];
   };
   parent?: ParentIssue;
@@ -68,8 +68,8 @@ function getPriorityInfo(priority: number): { label: string; className: string }
   }
 }
 
-export const SubIssues: React.FC<SubIssuesProps> = ({ children, parent, onOpenIssue }) => {
-  if (!children && !parent) {
+export const SubIssues: React.FC<SubIssuesProps> = ({ childrenIssues, parent, onOpenIssue }) => {
+  if (!childrenIssues && !parent) {
     return null;
   }
 
@@ -100,14 +100,14 @@ export const SubIssues: React.FC<SubIssuesProps> = ({ children, parent, onOpenIs
         </div>
       )}
 
-      {children && children.nodes.length > 0 && (
+      {childrenIssues && childrenIssues.nodes.length > 0 && (
         <div className={styles.childrenSection}>
           <h3 className={styles.title}>
             <span className={styles.titleIcon}>⬇️</span>
-            Sub-issues ({children.nodes.length})
+            Sub-issues ({childrenIssues.nodes.length})
           </h3>
           <div className={styles.subIssuesList}>
-            {children.nodes.map((subIssue) => {
+            {childrenIssues.nodes.map((subIssue: SubIssue) => {
               const priorityInfo = getPriorityInfo(subIssue.priority);
               const statusColorClass = getStatusColor(subIssue.state.type);
               

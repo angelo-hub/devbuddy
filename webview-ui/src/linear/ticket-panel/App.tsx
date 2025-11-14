@@ -232,7 +232,7 @@ function App() {
       )}
 
       <SubIssues 
-        children={issue.children} 
+        childrenIssues={issue.children} 
         parent={issue.parent} 
         onOpenIssue={handleOpenIssue}
       />

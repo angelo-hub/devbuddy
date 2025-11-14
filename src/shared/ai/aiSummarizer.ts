@@ -70,12 +70,13 @@ export class AISummarizer {
         case "gemini-2.0-flash":
           this.modelFamily = "gemini-2.0-flash-exp";
           break;
-        default:
+        default: {
           // Try legacy setting as fallback
           const legacyModel = config.get<string>("aiModel", "gpt-4o");
           this.modelFamily = legacyModel === "gemini-2.0-flash" 
             ? "gemini-2.0-flash-exp" 
             : legacyModel;
+        }
       }
     }
   }
