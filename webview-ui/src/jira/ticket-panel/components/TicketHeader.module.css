@@ -1,0 +1,85 @@
+.header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+  background-color: var(--vscode-editor-background);
+}
+
+.headerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.issueKey {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--vscode-descriptionForeground);
+}
+
+.typeIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.status {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+}
+
+.summary {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--vscode-foreground);
+  margin: 0 0 12px 0;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.summary:hover {
+  opacity: 0.8;
+}
+
+.editContainer {
+  margin-bottom: 12px;
+}
+
+.summaryInput {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 18px;
+  font-weight: 600;
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border);
+  border-radius: 4px;
+  outline: none;
+}
+
+.summaryInput:focus {
+  border-color: var(--vscode-focusBorder);
+}
+
+.metadata {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.metadataItem {
+  display: flex;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.label {
+  color: var(--vscode-descriptionForeground);
+  font-weight: 500;
+}
+

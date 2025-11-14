@@ -1,14 +1,14 @@
 # Convert TODOs to Tickets with Permalinks
 
-Transform TODO comments into fully-tracked Linear tickets with automatic GitHub/GitLab/Bitbucket permalinks to the exact line of code!
+Transform TODO comments into fully-tracked Linear tickets with automatic GitHub/GitLab/Bitbucket permalinks to the exact line of code.
 
 ---
 
-## 🎬 Demo Video
+## Demo Video
 
-> **[PLACEHOLDER: Insert GIF/Video]**  
-> **File:** `media/walkthrough/videos/todo-converter-demo.gif`  
-> **Shows:** Converting a TODO → ticket creation → "Add More TODOs" workflow
+![TODO Converter Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/todo-converter-demo.gif)
+
+**Shows:** Converting a TODO → ticket creation → "Add More TODOs" workflow
 
 ---
 
@@ -35,23 +35,23 @@ Transform TODO comments into fully-tracked Linear tickets with automatic GitHub/
 
 ---
 
-## 🎬 Quick Demo: Basic Conversion
+## Quick Demo: Basic Conversion
 
-> **[PLACEHOLDER: Insert GIF]**  
-> **File:** `media/walkthrough/videos/basic-conversion.gif`  
-> **Shows:** Right-click → convert → ticket created (15 seconds)
+![Basic Conversion Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/basic-conversion.gif)
+
+**Shows:** Right-click → convert → ticket created (15 seconds)
 
 ---
 
 ### Step 3: Review Auto-Generated Description
 
-Linear Buddy creates a ticket with:
+DevBuddy creates a ticket with:
 
 ```markdown
-📍 **Location:** `src/auth/login.ts:145`
-🔗 **View in code:** [GitHub](https://github.com/org/repo/blob/abc1234/src/auth/login.ts#L145)
-🌿 **Branch:** `feature/auth-improvements`
-📝 **Commit:** `abc1234`
+**Location:** `src/auth/login.ts:145`
+**View in code:** [GitHub](https://github.com/org/repo/blob/abc1234/src/auth/login.ts#L145)
+**Branch:** `feature/auth-improvements`
+**Commit:** `abc1234`
 
 **Code context:**
 
@@ -67,15 +67,15 @@ Linear Buddy creates a ticket with:
 ```
 ```
 
-✨ **Automatic permalinks** to GitHub, GitLab, or Bitbucket!
+**Automatic permalinks** to GitHub, GitLab, or Bitbucket.
 
 ---
 
-## 🎬 Demo: Permalink in Ticket
+## Demo: Permalink in Ticket
 
-> **[PLACEHOLDER: Insert GIF/Screenshot]**  
-> **File:** `media/walkthrough/videos/permalink-in-linear.gif`  
-> **Shows:** Opening Linear ticket → clicking permalink → jumps to code
+![Permalink Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/permalink-in-linear.gif)
+
+**Shows:** Opening Linear ticket → clicking permalink → jumps to code
 
 ---
 
@@ -93,7 +93,7 @@ After ticket creation, you'll see:
 
 ---
 
-## Option 1: Replace TODO ✏️
+## Option 1: Replace TODO
 
 Just replace this one TODO with ticket reference:
 
@@ -109,19 +109,18 @@ Simple one-and-done!
 
 ---
 
-## Option 2: Add More TODOs 🚀
+## Option 2: Add More TODOs (KEY FEATURE)
 
-> **[PLACEHOLDER: Insert GIF/Video - KEY FEATURE]**  
-> **File:** `media/walkthrough/videos/add-more-todos.gif`  
-> **Duration:** 30-45 seconds  
-> **Shows:**  
-> 1. Click "Add More TODOs"
-> 2. Ticket reference copied to clipboard notification
-> 3. Quick Open (Cmd+P) → type filename → navigate
-> 4. Paste ticket reference
-> 5. Click "Add Another" → navigate to next file
-> 6. Paste again
-> 7. Click "Done"
+![Add More TODOs Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/add-more-todos.gif)
+
+**Workflow:**
+1. Click "Add More TODOs"
+2. Ticket reference copied to clipboard notification
+3. Quick Open (Cmd+P) → type filename → navigate
+4. Paste ticket reference
+5. Click "Add Another" → navigate to next file
+6. Paste again
+7. Click "Done"
 
 **Use when:** You know other spots need TODOs (but haven't written them yet)
 
@@ -139,17 +138,16 @@ Simple one-and-done!
 
 ---
 
-## Option 3: Link Existing TODOs 🔗
+## Option 3: Link Existing TODOs
 
-> **[PLACEHOLDER: Insert GIF/Video]**  
-> **File:** `media/walkthrough/videos/link-existing-todos.gif`  
-> **Duration:** 20-30 seconds  
-> **Shows:**  
-> 1. Click "Link Existing TODOs"
-> 2. Search results appear showing all TODOs in workspace
-> 3. Multi-select checkboxes for related TODOs
-> 4. Click confirm
-> 5. Success message: "Linked 3 additional TODOs"
+![Link Existing TODOs Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/link-existing-todos.gif)
+
+**Workflow:**
+1. Click "Link Existing TODOs"
+2. Search results appear showing all TODOs in workspace
+3. Multi-select checkboxes for related TODOs
+4. Click confirm
+5. Success message: "Linked 3 additional TODOs"
 
 **Use when:** You already wrote TODOs elsewhere that should reference this ticket
 
@@ -166,19 +164,18 @@ Simple one-and-done!
 
 ---
 
-## 🎬 Side-by-Side Comparison
+## Side-by-Side Comparison
 
-> **[PLACEHOLDER: Insert Split-Screen Video]**  
-> **File:** `media/walkthrough/videos/workflow-comparison.gif`  
-> **Left side:** Old way (manual ticket creation, copy-paste IDs)  
-> **Right side:** New way (one-click, auto-permalink, guided workflow)  
-> **Duration:** 45-60 seconds
+![Workflow Comparison](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/workflow-comparison.gif)
+
+**Left side:** Old way (manual ticket creation, copy-paste IDs)  
+**Right side:** New way (one-click, auto-permalink, guided workflow)
 
 ---
 
 ## Supported TODO Formats
 
-Linear Buddy recognizes various comment styles:
+DevBuddy recognizes various comment styles:
 
 ```typescript
 // TODO: Description          (JavaScript, TypeScript, C++, Go, Rust)
@@ -199,26 +196,26 @@ Linear Buddy recognizes various comment styles:
 
 ## What Makes This Special?
 
-### 🔗 **Permanent Links**
+### Permanent Links
 Click the permalink in Linear → Jump directly to exact line of code, even if:
 - Line numbers change
 - Code gets refactored
 - Branch gets deleted
 
-Uses commit SHA for stability!
+Uses commit SHA for stability.
 
-### 📍 **Full Context**
+### Full Context
 - File path and line number
 - 5 lines of code before/after
 - Branch and commit info
 - Syntax highlighting in Linear
 
-### ⚡ **Multiple TODO Workflows**
+### Multiple TODO Workflows
 - **One TODO** → Replace only
 - **Add more** → Navigate & paste in other spots
 - **Already have TODOs** → Bulk link existing ones
 
-### 🎯 **Zero Context Loss**
+### Zero Context Loss
 When someone picks up the ticket 3 weeks later:
 - Click link → Immediately at the right code
 - No hunting through files
@@ -226,27 +223,27 @@ When someone picks up the ticket 3 weeks later:
 
 ---
 
-## 🎬 Real-World Example
+## Real-World Example
 
-> **[PLACEHOLDER: Insert Complete Workflow Video]**  
-> **File:** `media/walkthrough/videos/real-world-example.mp4`  
-> **Duration:** 1-2 minutes  
-> **Scenario:** Developer finds auth bug affecting 4 files  
-> **Shows:**
-> 1. Write first TODO in login.ts
-> 2. Convert to ticket (ENG-789 created)
-> 3. Click "Add More TODOs"
-> 4. Navigate to middleware.ts → Paste
-> 5. Navigate to token.ts → Paste
-> 6. Navigate to config/jwt.ts → Paste
-> 7. Click "Done"
-> 8. Open Linear ticket → Click permalink → Jumps to code
-> 
-> **Result:** 4 TODOs across 4 files, all linked, done in 45 seconds!
+![Real World Example](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/real-world-example.mp4)
+
+**Scenario:** Developer finds auth bug affecting 4 files
+
+**Workflow:**
+1. Write first TODO in login.ts
+2. Convert to ticket (ENG-789 created)
+3. Click "Add More TODOs"
+4. Navigate to middleware.ts → Paste
+5. Navigate to token.ts → Paste
+6. Navigate to config/jwt.ts → Paste
+7. Click "Done"
+8. Open Linear ticket → Click permalink → Jumps to code
+
+**Result:** 4 TODOs across 4 files, all linked, done in 45 seconds
 
 ---
 
-## Pro Tips 💡
+## Pro Tips
 
 ### Tip 1: Use Quick Open
 After clicking "Add More TODOs":
@@ -280,19 +277,19 @@ Knowing your TODOs become tickets with permalinks, write them with context:
 ## Why This Matters
 
 ### For You
-- ⚡ **10x faster** than manual ticket creation
-- 🎯 **Zero typos** in ticket IDs or URLs
-- 🧠 **Mental model match** - add TODOs as you think of them
+- **10x faster** than manual ticket creation
+- **Zero typos** in ticket IDs or URLs
+- **Mental model match** - add TODOs as you think of them
 
 ### For Your Team
-- 📍 **No context loss** - click link → right place in code
-- 🔄 **Better async work** - no Slack messages asking "where?"
-- 📊 **Better planning** - see all locations affected by one ticket
+- **No context loss** - click link → right place in code
+- **Better async work** - no Slack messages asking "where?"
+- **Better planning** - see all locations affected by one ticket
 
 ### For Your Codebase
-- 🧹 **Cleaner** - TODOs become tracked work
-- 📈 **Trackable** - Know which TODOs are tickets
-- 🎯 **Actionable** - Every TODO links to a ticket
+- **Cleaner** - TODOs become tracked work
+- **Trackable** - Know which TODOs are tickets
+- **Actionable** - Every TODO links to a ticket
 
 ---
 
@@ -315,22 +312,19 @@ Works with both cloud and self-hosted instances!
 
 ---
 
-## 🎬 Full Feature Demo
+## Full Feature Demo
 
-> **[PLACEHOLDER: Insert Complete Feature Video]**  
-> **File:** `media/walkthrough/videos/complete-todo-features.mp4`  
-> **Duration:** 2-3 minutes  
-> **Covers:**
-> - Basic TODO conversion with permalink
-> - "Add More TODOs" workflow (navigate & paste)
-> - "Link Existing TODOs" bulk linking
-> - Opening ticket in Linear and clicking permalink
-> - Side-by-side: 4 files all referencing one ticket
-> 
-> **Voiceover script provided in:** `media/walkthrough/videos/voiceover-script.md`
+![Complete TODO Features](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/complete-todo-features.mp4)
+
+**Covers:**
+- Basic TODO conversion with permalink
+- "Add More TODOs" workflow (navigate & paste)
+- "Link Existing TODOs" bulk linking
+- Opening ticket in Linear and clicking permalink
+- Side-by-side: 4 files all referencing one ticket
 
 ---
 
-**Ready to eliminate context switching and never lose track of TODOs again?** 🚀
+**Ready to eliminate context switching and never lose track of TODOs again?**
 
-[Try Converting a TODO Now](command:linearBuddy.convertTodoToTicket)
+[Try Converting a TODO Now](command:devBuddy.convertTodoToTicket)

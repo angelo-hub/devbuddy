@@ -1,0 +1,70 @@
+.container {
+  padding: 16px 20px;
+}
+
+.heading {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vscode-descriptionForeground);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 12px 0;
+}
+
+.emptyState {
+  color: var(--vscode-descriptionForeground);
+  font-style: italic;
+  font-size: 13px;
+}
+
+.commentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.comment {
+  padding: 12px;
+  background-color: var(--vscode-editor-background);
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 4px;
+}
+
+.commentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.authorInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.authorName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--vscode-foreground);
+}
+
+.date {
+  font-size: 12px;
+  color: var(--vscode-descriptionForeground);
+}
+
+.commentBody {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--vscode-foreground);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+

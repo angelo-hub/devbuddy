@@ -1,19 +1,21 @@
 # Generate Standup Updates
 
-Let AI generate your standup update automatically from your commits and Linear activity. No more scrambling to remember what you did!
+Let AI generate your standup update automatically from your commits and Linear activity. No more scrambling to remember what you did.
+
+![Standup Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/standup-demo.gif)
 
 ## How It Works
 
 ### Open the Standup Builder
-Click the **$(notebook)** icon in the sidebar or use the command:
-**"Linear Buddy: Open Standup Builder"**
+Click the icon in the sidebar or use the command:
+**"DevBuddy: Open Standup Builder"**
 
 ### AI Analyzes Your Work
-Linear Buddy automatically:
-- 📊 **Fetches your recent commits** (last 24 hours by default)
-- 🎫 **Checks your Linear tickets** (updated recently)
-- 🔍 **Analyzes code changes** across packages
-- 🧠 **Understands context** from commit messages
+DevBuddy automatically:
+- **Fetches your recent commits** (last 24 hours by default)
+- **Checks your Linear tickets** (updated recently)
+- **Analyzes code changes** across packages
+- **Understands context** from commit messages
 
 ### Review & Customize
 The standup builder shows:
@@ -24,11 +26,11 @@ The standup builder shows:
 - **Pull Requests** - Any PRs you've created
 
 ### Generate with AI
-Click **"Generate with AI"** and Linear Buddy:
-- ✨ **Summarizes your work** in natural language
-- 📝 **Uses your preferred tone** (professional, casual, technical, concise)
-- 🎯 **Highlights key accomplishments** and progress
-- 🔗 **Links to relevant tickets** and PRs
+Click **"Generate with AI"** and DevBuddy:
+- **Summarizes your work** in natural language
+- **Uses your preferred tone** (professional, casual, technical, concise)
+- **Highlights key accomplishments** and progress
+- **Links to relevant tickets** and PRs
 
 ### Copy & Share
 One click to copy the standup to your clipboard, ready to paste in Slack, email, or your standup tool!
@@ -42,7 +44,7 @@ Configure how far back to look:
 - Since last standup
 - Custom time range
 
-**Settings** → **Linear Buddy** → **Standup Time Window**
+**Settings** → **DevBuddy** → **Standup Time Window**
 
 ### Writing Tone
 Choose how your standup sounds:
@@ -51,7 +53,7 @@ Choose how your standup sounds:
 - **Technical** - Detailed, implementation-focused
 - **Concise** - Brief, to-the-point
 
-**Settings** → **Linear Buddy** → **Writing Tone**
+**Settings** → **DevBuddy** → **Writing Tone**
 
 ## Example Output
 
@@ -88,7 +90,7 @@ You can choose which AI model to use:
 - **GPT-4 Turbo** - Fast and powerful
 - **GPT-4o Mini** - Faster, more efficient
 
-**Settings** → **Linear Buddy** → **AI Model**
+**Settings** → **DevBuddy** → **AI Model**
 
 Try generating your standup now - it's way easier than writing it from scratch!
 

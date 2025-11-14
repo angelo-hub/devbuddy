@@ -1,10 +1,10 @@
-# Welcome to DevBuddy! 🎉
+# Welcome to DevBuddy
 
-DevBuddy is your multi-platform ticket management assistant for VS Code, supporting Linear, Jira, and more!
+DevBuddy is your multi-platform ticket management assistant for VS Code, supporting Linear, Jira, and more.
 
 ## What You Can Do
 
-- **View & manage** tickets from Linear, Jira, or your chosen platform
+- **View and manage** tickets from Linear, Jira, or your chosen platform
 - **Create branches** with smart, conventional naming (Linear)
 - **Update status** directly from your editor
 - **Generate PR summaries** with AI assistance
@@ -22,5 +22,3 @@ DevBuddy is your multi-platform ticket management assistant for VS Code, support
 **This walkthrough uses example explanations** to show you around without affecting your real workspace.
 
 Let's get started and explore what DevBuddy can do for you!
-
-

@@ -14,7 +14,7 @@ import { z } from "zod";
 export const JiraApiUserSchema = z.object({
   accountId: z.string(),
   displayName: z.string(),
-  emailAddress: z.string().email().optional(),
+  emailAddress: z.string().optional(), // Don't validate email format - Jira may have invalid/empty emails
   avatarUrls: z.object({
     "48x48": z.string().url().optional(),
   }).optional(),
@@ -188,7 +188,14 @@ export const JiraTransitionsResponseSchema = z.object({
 
 // ==================== Project Schema ====================
 
-export const JiraProjectsResponseSchema = z.array(JiraApiProjectSchema);
+// Project search API returns paginated response
+export const JiraProjectsResponseSchema = z.object({
+  values: z.array(JiraApiProjectSchema),
+  maxResults: z.number().optional(),
+  startAt: z.number().optional(),
+  total: z.number().optional(),
+  isLast: z.boolean().optional(),
+});
 
 // ==================== User Schema ====================
 

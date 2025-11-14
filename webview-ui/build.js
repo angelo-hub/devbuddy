@@ -94,7 +94,7 @@ async function main() {
     bundle: true,
     format: "iife",
     minify: production,
-    sourcemap: !production,
+    sourcemap: false, // Disabled to prevent corruption issues in Cursor
     sourcesContent: false,
     platform: "browser",
     outdir: outDir,

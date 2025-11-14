@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useVSCode } from "../../shared/hooks/useVSCode";
+import { TicketHeader } from "./components/TicketHeader";
+import { TicketMetadata } from "./components/TicketMetadata";
+import { TicketDescription } from "./components/TicketDescription";
+import { StatusSelector } from "./components/StatusSelector";
+import { AssigneeSelector } from "./components/AssigneeSelector";
+import { Comments } from "./components/Comments";
+import { CommentForm } from "./components/CommentForm";
+import { ActionButtons } from "./components/ActionButtons";
+import { SubtasksSection } from "./components/SubtasksSection";
 import styles from "./App.module.css";
 
 // Types for Jira issue data
@@ -37,6 +46,9 @@ interface JiraIssue {
   reporter: {
     accountId: string;
     displayName: string;
+    avatarUrls?: {
+      "48x48"?: string;
+    };
   };
   project: {
     key: string;
@@ -47,6 +59,40 @@ interface JiraIssue {
   updated: string;
   dueDate: string | null;
   url: string;
+  comments?: Array<{
+    id: string;
+    body: string;
+    author: {
+      accountId: string;
+      displayName: string;
+      avatarUrls?: {
+        "48x48"?: string;
+      };
+    };
+    created: string;
+    updated: string;
+  }>;
+  subtasks?: Array<{
+    id: string;
+    key: string;
+    summary: string;
+    status: {
+      id: string;
+      name: string;
+    };
+    issueType: {
+      id: string;
+      name: string;
+    };
+  }>;
+  attachments?: Array<{
+    id: string;
+    filename: string;
+    mimeType: string;
+    size: number;
+    content: string;
+    thumbnail?: string;
+  }>;
 }
 
 interface JiraTransition {
@@ -80,8 +126,20 @@ type MessageFromWebview =
   | { command: "updateAssignee"; assigneeId: string | null }
   | { command: "loadTransitions" }
   | { command: "loadUsers"; projectKey: string }
+  | { command: "searchUsers"; searchTerm: string; projectKey?: string }
   | { command: "openInJira" }
-  | { command: "refresh" };
+  | { command: "refresh" }
+  | { command: "copyKey" }
+  | { command: "copyUrl" };
+
+// Get initial state from window object (passed from extension)
+declare global {
+  interface Window {
+    __INITIAL_STATE__?: {
+      issue: JiraIssue;
+    };
+  }
+}
 
 function App() {
   const { postMessage, onMessage } = useVSCode<
@@ -89,14 +147,11 @@ function App() {
     MessageFromWebview
   >();
 
-  const [issue, setIssue] = useState<JiraIssue | null>(null);
+  const [issue, setIssue] = useState<JiraIssue | null>(
+    window.__INITIAL_STATE__?.issue || null
+  );
   const [transitions, setTransitions] = useState<JiraTransition[]>([]);
   const [users, setUsers] = useState<JiraUser[]>([]);
-  const [isEditingSummary, setIsEditingSummary] = useState(false);
-  const [isEditingDescription, setIsEditingDescription] = useState(false);
-  const [editedSummary, setEditedSummary] = useState("");
-  const [editedDescription, setEditedDescription] = useState("");
-  const [commentBody, setCommentBody] = useState("");
 
   // Handle messages from extension
   useEffect(() => {
@@ -104,8 +159,6 @@ function App() {
       switch (message.command) {
         case "updateIssue":
           setIssue(message.issue);
-          setEditedSummary(message.issue.summary);
-          setEditedDescription(message.issue.description);
           break;
 
         case "transitionsLoaded":
@@ -131,236 +184,121 @@ function App() {
     postMessage({ command: "updateStatus", transitionId });
   };
 
-  const handleUpdateSummary = () => {
-    if (editedSummary.trim() && editedSummary !== issue?.summary) {
-      postMessage({ command: "updateSummary", summary: editedSummary.trim() });
-    }
-    setIsEditingSummary(false);
+  const handleAddComment = (body: string) => {
+    postMessage({ command: "addComment", body });
   };
 
-  const handleUpdateDescription = () => {
-    if (editedDescription !== issue?.description) {
-      postMessage({
-        command: "updateDescription",
-        description: editedDescription,
-      });
-    }
-    setIsEditingDescription(false);
+  const handleUpdateSummary = (summary: string) => {
+    postMessage({ command: "updateSummary", summary });
   };
 
-  const handleUpdateAssignee = (accountId: string | null) => {
-    postMessage({ command: "updateAssignee", assigneeId: accountId });
+  const handleUpdateDescription = (description: string) => {
+    postMessage({ command: "updateDescription", description });
   };
 
-  const handleAddComment = () => {
-    if (commentBody.trim()) {
-      postMessage({ command: "addComment", body: commentBody.trim() });
-      setCommentBody("");
-    }
+  const handleUpdateAssignee = (assigneeId: string | null) => {
+    postMessage({ command: "updateAssignee", assigneeId });
+  };
+
+  const handleLoadUsers = (projectKey: string) => {
+    postMessage({ command: "loadUsers", projectKey });
+  };
+
+  const handleSearchUsers = (searchTerm: string) => {
+    postMessage({ command: "searchUsers", searchTerm, projectKey: issue?.project.key });
+  };
+
+  const handleOpenInJira = () => {
+    postMessage({ command: "openInJira" });
+  };
+
+  const handleRefresh = () => {
+    postMessage({ command: "refresh" });
+  };
+
+  const handleCopyKey = () => {
+    postMessage({ command: "copyKey" });
+  };
+
+  const handleCopyUrl = () => {
+    postMessage({ command: "copyUrl" });
   };
 
   if (!issue) {
     return (
       <div className={styles.container}>
-        <div className={styles.loading}>Loading issue...</div>
+        <p className={styles.emptyState}>Loading issue...</p>
       </div>
     );
   }
 
   return (
     <div className={styles.container}>
-      {/* Header */}
-      <div className={styles.header}>
-        <div className={styles.headerTop}>
-          <div className={styles.issueKey}>{issue.key}</div>
-          <button
-            className={styles.openButton}
-            onClick={() => postMessage({ command: "openInJira" })}
-          >
-            Open in Jira
-          </button>
-        </div>
+      <TicketHeader
+        issueKey={issue.key}
+        summary={issue.summary}
+        statusName={issue.status.name}
+        statusCategory={issue.status.statusCategory.key}
+        issueType={issue.issueType.name}
+        issueTypeIcon={issue.issueType.iconUrl}
+        priority={issue.priority}
+        reporter={issue.reporter}
+        assignee={issue.assignee}
+        url={issue.url}
+        onUpdateSummary={handleUpdateSummary}
+      />
 
-        {/* Summary */}
-        {isEditingSummary ? (
-          <div className={styles.summaryEdit}>
-            <input
-              type="text"
-              value={editedSummary}
-              onChange={(e) => setEditedSummary(e.target.value)}
-              onBlur={handleUpdateSummary}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleUpdateSummary();
-                if (e.key === "Escape") {
-                  setEditedSummary(issue.summary);
-                  setIsEditingSummary(false);
-                }
-              }}
-              autoFocus
-              className={styles.summaryInput}
-            />
-          </div>
-        ) : (
-          <h1
-            className={styles.summary}
-            onClick={() => setIsEditingSummary(true)}
-            title="Click to edit"
-          >
-            {issue.summary}
-          </h1>
-        )}
-      </div>
+      <StatusSelector
+        transitions={transitions}
+        currentStatusId={issue.status.id}
+        currentStatusName={issue.status.name}
+        onUpdate={handleUpdateStatus}
+      />
 
-      {/* Metadata */}
-      <div className={styles.metadata}>
-        <div className={styles.metadataItem}>
-          <label>Type:</label>
-          <span>{issue.issueType.name}</span>
-        </div>
-        <div className={styles.metadataItem}>
-          <label>Priority:</label>
-          <span>{issue.priority?.name || "None"}</span>
-        </div>
-        <div className={styles.metadataItem}>
-          <label>Reporter:</label>
-          <span>{issue.reporter.displayName}</span>
-        </div>
-        {issue.dueDate && (
-          <div className={styles.metadataItem}>
-            <label>Due Date:</label>
-            <span>{new Date(issue.dueDate).toLocaleDateString()}</span>
-          </div>
-        )}
-      </div>
+      <AssigneeSelector
+        currentAssignee={issue.assignee}
+        users={users}
+        onUpdateAssignee={handleUpdateAssignee}
+        onLoadUsers={() => handleLoadUsers(issue.project.key)}
+        onSearchUsers={handleSearchUsers}
+      />
 
-      {/* Status Selector */}
-      <div className={styles.section}>
-        <label className={styles.sectionLabel}>Status</label>
-        <select
-          value={issue.status.id}
-          onChange={(e) => {
-            const transition = transitions.find(
-              (t) => t.to.id === e.target.value
-            );
-            if (transition) {
-              handleUpdateStatus(transition.id);
-            }
-          }}
-          className={styles.select}
-        >
-          <option value={issue.status.id}>{issue.status.name}</option>
-          {transitions
-            .filter((t) => t.to.id !== issue.status.id)
-            .map((transition) => (
-              <option key={transition.id} value={transition.to.id}>
-                {transition.to.name}
-              </option>
-            ))}
-        </select>
-      </div>
+      <ActionButtons
+        onOpenInJira={handleOpenInJira}
+        onRefresh={handleRefresh}
+        onCopyKey={handleCopyKey}
+        onCopyUrl={handleCopyUrl}
+      />
 
-      {/* Assignee Selector */}
-      <div className={styles.section}>
-        <label className={styles.sectionLabel}>Assignee</label>
-        <select
-          value={issue.assignee?.accountId || ""}
-          onChange={(e) =>
-            handleUpdateAssignee(e.target.value || null)
-          }
-          className={styles.select}
-        >
-          <option value="">Unassigned</option>
-          {users.map((user) => (
-            <option key={user.accountId} value={user.accountId}>
-              {user.displayName}
-            </option>
-          ))}
-        </select>
-      </div>
+      <TicketMetadata
+        created={issue.created}
+        updated={issue.updated}
+        projectName={issue.project.name}
+        dueDate={issue.dueDate}
+        labels={issue.labels}
+      />
 
-      {/* Labels */}
-      {issue.labels.length > 0 && (
-        <div className={styles.section}>
-          <label className={styles.sectionLabel}>Labels</label>
-          <div className={styles.labels}>
-            {issue.labels.map((label) => (
-              <span key={label} className={styles.label}>
-                {label}
-              </span>
-            ))}
-          </div>
-        </div>
+      {issue.subtasks && issue.subtasks.length > 0 && (
+        <>
+          <div className={styles.divider} />
+          <SubtasksSection subtasks={issue.subtasks} />
+        </>
       )}
 
-      {/* Description */}
-      <div className={styles.section}>
-        <label className={styles.sectionLabel}>Description</label>
-        {isEditingDescription ? (
-          <div className={styles.descriptionEdit}>
-            <textarea
-              value={editedDescription}
-              onChange={(e) => setEditedDescription(e.target.value)}
-              onBlur={handleUpdateDescription}
-              className={styles.descriptionTextarea}
-              rows={10}
-            />
-            <div className={styles.editActions}>
-              <button
-                onClick={handleUpdateDescription}
-                className={styles.saveButton}
-              >
-                Save
-              </button>
-              <button
-                onClick={() => {
-                  setEditedDescription(issue.description);
-                  setIsEditingDescription(false);
-                }}
-                className={styles.cancelButton}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div
-            className={styles.description}
-            onClick={() => setIsEditingDescription(true)}
-            title="Click to edit"
-          >
-            {issue.description || "No description"}
-          </div>
-        )}
-      </div>
+      <div className={styles.divider} />
 
-      {/* Add Comment */}
-      <div className={styles.section}>
-        <label className={styles.sectionLabel}>Add Comment</label>
-        <textarea
-          value={commentBody}
-          onChange={(e) => setCommentBody(e.target.value)}
-          placeholder="Write a comment..."
-          className={styles.commentTextarea}
-          rows={4}
-        />
-        <button
-          onClick={handleAddComment}
-          disabled={!commentBody.trim()}
-          className={styles.addCommentButton}
-        >
-          Add Comment
-        </button>
-      </div>
+      <TicketDescription 
+        description={issue.description} 
+        onUpdateDescription={handleUpdateDescription} 
+      />
 
-      {/* Refresh Button */}
-      <div className={styles.actions}>
-        <button
-          onClick={() => postMessage({ command: "refresh" })}
-          className={styles.refreshButton}
-        >
-          Refresh
-        </button>
-      </div>
+      <div className={styles.divider} />
+
+      <Comments comments={issue.comments || []} />
+
+      <div className={styles.divider} />
+
+      <CommentForm onSubmit={handleAddComment} />
     </div>
   );
 }

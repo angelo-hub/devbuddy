@@ -77,9 +77,9 @@ export async function generateStandupCommand() {
       // Show detected tickets and allow user to add more
       let ticketList = recentTickets.join(", ") || "None detected";
       const ticketInput = await vscode.window.showInputBox({
-        prompt: "Enter ticket IDs (comma-separated, e.g., OB-123, OB-456)",
+        prompt: "Enter ticket IDs (comma-separated, e.g., ENG-123, PROJ-456)",
         value: ticketList,
-        placeHolder: "OB-123, OB-456",
+        placeHolder: "ENG-123, PROJ-456",
       });
 
       if (!ticketInput) {

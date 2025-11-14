@@ -338,8 +338,11 @@ export class JiraCloudClient extends BaseJiraClient {
         issuetype: { id: input.issueTypeId },
       };
 
-      if (input.description) {
-        // Jira Cloud uses ADF (Atlassian Document Format)
+      if (input.descriptionADF) {
+        // Use provided ADF description (rich format with code blocks, links, etc.)
+        fields.description = input.descriptionADF as unknown as JiraApiADF;
+      } else if (input.description) {
+        // Convert plain text description to simple ADF format
         fields.description = {
           type: "doc",
           version: 1,
@@ -555,7 +558,7 @@ export class JiraCloudClient extends BaseJiraClient {
 
       return {
         id: validated.id,
-        body: this.extractTextFromADF(validated.body),
+        body: this.serializeADF(validated.body),
         author: this.normalizeUser(validated.author),
         created: validated.created,
         updated: validated.updated,
@@ -599,7 +602,7 @@ export class JiraCloudClient extends BaseJiraClient {
       // Validate response with Zod
       const validated = JiraProjectsResponseSchema.parse(response);
 
-      return validated.map((p) => ({
+      return validated.values.map((p) => ({
         id: p.id,
         key: p.key,
         name: p.name,
@@ -701,10 +704,10 @@ export class JiraCloudClient extends BaseJiraClient {
   /**
    * Get issue types for a project
    */
-  async getIssueTypes(projectKey: string): Promise<JiraIssueType[]> {
+  async getIssueTypes(projectKeyOrId: string): Promise<JiraIssueType[]> {
     try {
       const response = await this.request<unknown>(
-        `/issuetype/project?projectId=${projectKey}`
+        `/issuetype/project?projectId=${projectKeyOrId}`
       );
 
       // Validate response with Zod
@@ -719,9 +722,9 @@ export class JiraCloudClient extends BaseJiraClient {
       }));
     } catch (error) {
       if (error instanceof Error && error.name === "ZodError") {
-        logger.error(`Invalid issue types response for ${projectKey}:`, error);
+        logger.error(`Invalid issue types response for ${projectKeyOrId}:`, error);
       } else {
-        logger.error(`Failed to get issue types for ${projectKey}:`, error);
+        logger.error(`Failed to get issue types for ${projectKeyOrId}:`, error);
       }
       return [];
     }
@@ -918,7 +921,7 @@ export class JiraCloudClient extends BaseJiraClient {
       id: issue.id,
       key: issue.key,
       summary: fields.summary,
-      description: this.extractTextFromADF(fields.description),
+      description: this.serializeADF(fields.description),
       issueType: {
         id: fields.issuetype.id,
         name: fields.issuetype.name,
@@ -962,7 +965,7 @@ export class JiraCloudClient extends BaseJiraClient {
       })),
       comments: fields.comment?.comments?.map((c) => ({
         id: c.id,
-        body: this.extractTextFromADF(c.body),
+        body: this.serializeADF(c.body),
         author: this.normalizeUser(c.author),
         created: c.created,
         updated: c.updated,
@@ -992,6 +995,23 @@ export class JiraCloudClient extends BaseJiraClient {
       active: user.active !== false,
       timeZone: user.timeZone,
     };
+  }
+
+  /**
+   * Serialize ADF to JSON string for webview rendering
+   * Keep the ADF structure intact so it can be parsed and rendered with syntax highlighting
+   */
+  private serializeADF(adf: JiraApiADF | string | undefined | null): string {
+    if (!adf) {
+      return "";
+    }
+
+    if (typeof adf === "string") {
+      return adf;
+    }
+
+    // Convert ADF object to JSON string so webview can parse and render it
+    return JSON.stringify(adf);
   }
 
   /**

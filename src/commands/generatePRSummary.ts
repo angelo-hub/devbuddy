@@ -68,7 +68,7 @@ export async function generatePRSummaryCommand() {
 
     // Prompt user for ticket information
     const ticketId = await vscode.window.showInputBox({
-      prompt: 'Ticket ID (e.g., OB-1234)',
+      prompt: 'Ticket ID (e.g., ENG-1234, PROJ-123)',
       value: gitContext.ticketId || '',
       placeHolder: 'Leave empty if no ticket'
     });

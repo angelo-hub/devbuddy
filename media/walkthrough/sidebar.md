@@ -13,11 +13,11 @@ DevBuddy provides a single unified sidebar that works across all platforms:
 
 ### Organized by Status
 Tickets are automatically grouped by their workflow state:
-- 📚 **Backlog** - Not yet prioritized
-- 📝 **Todo** - Ready to start
-- ▶️ **In Progress** - Currently working on
-- ✅ **Done** - Completed tickets
-- 🚫 **Canceled** - Discontinued work
+- **Backlog** - Not yet prioritized
+- **Todo** - Ready to start
+- **In Progress** - Currently working on
+- **Done** - Completed tickets
+- **Canceled** - Discontinued work
 
 *Note: Exact status names depend on your platform's workflow configuration*
 
@@ -33,18 +33,18 @@ Tickets are automatically grouped by their workflow state:
 Each ticket has inline action buttons:
 
 **Linear Tickets:**
-- 🌿 **Start Branch** - Create a new feature branch
-- ✏️ **Change Status** - Update ticket workflow state
-- 🔗 **Associate Branch** - Link existing git branches
-- 🔃 **Open PR** - View pull requests
-- ↩️ **Checkout Branch** - Switch to associated branch
+- **Start Branch** - Create a new feature branch
+- **Change Status** - Update ticket workflow state
+- **Associate Branch** - Link existing git branches
+- **Open PR** - View pull requests
+- **Checkout Branch** - Switch to associated branch
 
 **Jira Issues:**
-- ✏️ **Update Status** - Update workflow transition
-- 👤 **Assign to Me** - Take ownership
-- 💬 **Add Comment** - Add a comment
-- 🔗 **Open Issue** - View in browser
-- 📋 **Copy** - Copy issue key or URL
+- **Update Status** - Update workflow transition
+- **Assign to Me** - Take ownership
+- **Add Comment** - Add a comment
+- **Open Issue** - View in browser
+- **Copy** - Copy issue key or URL
 
 ### Click to View Details
 
