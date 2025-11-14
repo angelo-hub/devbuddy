@@ -33,15 +33,15 @@
     "commands": [
       {
         "command": "devBuddy.generatePRSummary",
-        "title": "DevBuddy: Generate PR Summary"
+        "title": "DevBuddy: Generate PR Summary (Beta) 💎"
       },
       {
         "command": "devBuddy.generateStandup",
-        "title": "DevBuddy: Generate Standup Update"
+        "title": "DevBuddy: Generate Standup Update (Beta) 💎"
       },
       {
         "command": "devBuddy.openStandupBuilder",
-        "title": "DevBuddy: Open Standup Builder",
+        "title": "DevBuddy: Open Standup Builder (Beta) 💎",
         "icon": "$(notebook)",
         "category": "DevBuddy"
       },
@@ -218,31 +218,31 @@
       },
       {
         "command": "devBuddy.activateProLicense",
-        "title": "DevBuddy: Activate Pro License 💎",
+        "title": "DevBuddy: Activate Pro License (Beta) 💎",
         "icon": "$(star)",
         "category": "DevBuddy Pro"
       },
       {
         "command": "devBuddy.showLicenseInfo",
-        "title": "DevBuddy: Show License Info",
+        "title": "DevBuddy: Show License Info (Beta)",
         "icon": "$(info)",
         "category": "DevBuddy Pro"
       },
       {
         "command": "devBuddy.deactivateProLicense",
-        "title": "DevBuddy: Deactivate Pro License",
+        "title": "DevBuddy: Deactivate Pro License (Beta)",
         "icon": "$(close)",
         "category": "DevBuddy Pro"
       },
       {
         "command": "devBuddy.showProFeatures",
-        "title": "DevBuddy: View Pro Features 💎",
+        "title": "DevBuddy: View Pro Features (Beta) 💎",
         "icon": "$(star-full)",
         "category": "DevBuddy Pro"
       },
       {
         "command": "devBuddy.pro.openAdvancedAnalytics",
-        "title": "DevBuddy Pro: Open Advanced Analytics 💎",
+        "title": "DevBuddy Pro: Open Advanced Analytics (Beta) 💎",
         "icon": "$(graph)",
         "category": "DevBuddy Pro"
       }
