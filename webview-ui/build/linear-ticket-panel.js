@@ -30251,8 +30251,8 @@
         return { label: "", className: "" };
     }
   }
-  var SubIssues = ({ children, parent, onOpenIssue }) => {
-    if (!children && !parent) {
+  var SubIssues = ({ childrenIssues, parent, onOpenIssue }) => {
+    if (!childrenIssues && !parent) {
       return null;
     }
     const handleClick = (e, issueId) => {
@@ -30281,14 +30281,14 @@
           }
         )
       ] }),
-      children && children.nodes.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime17.jsxs)("div", { className: SubIssues_default.childrenSection, children: [
+      childrenIssues && childrenIssues.nodes.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime17.jsxs)("div", { className: SubIssues_default.childrenSection, children: [
         /* @__PURE__ */ (0, import_jsx_runtime17.jsxs)("h3", { className: SubIssues_default.title, children: [
           /* @__PURE__ */ (0, import_jsx_runtime17.jsx)("span", { className: SubIssues_default.titleIcon, children: "\u2B07\uFE0F" }),
           "Sub-issues (",
-          children.nodes.length,
+          childrenIssues.nodes.length,
           ")"
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime17.jsx)("div", { className: SubIssues_default.subIssuesList, children: children.nodes.map((subIssue) => {
+        /* @__PURE__ */ (0, import_jsx_runtime17.jsx)("div", { className: SubIssues_default.subIssuesList, children: childrenIssues.nodes.map((subIssue) => {
           const priorityInfo = getPriorityInfo(subIssue.priority);
           const statusColorClass = getStatusColor2(subIssue.state.type);
           return /* @__PURE__ */ (0, import_jsx_runtime17.jsxs)(
@@ -30784,7 +30784,7 @@
       /* @__PURE__ */ (0, import_jsx_runtime20.jsx)(
         SubIssues,
         {
-          children: issue.children,
+          childrenIssues: issue.children,
           parent: issue.parent,
           onOpenIssue: handleOpenIssue
         }

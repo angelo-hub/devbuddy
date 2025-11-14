@@ -8,7 +8,7 @@
  */
 
 import * as vscode from 'vscode';
-import { requireProLicense } from '../utils/proFeatureGate';
+import { LicenseManager } from '../utils/licenseManager';
 import { getLogger } from '../../shared/utils/logger';
 
 const logger = getLogger();
@@ -16,8 +16,15 @@ const logger = getLogger();
 export class AdvancedAnalyticsCommand {
   constructor(private context: vscode.ExtensionContext) {}
 
-  @requireProLicense('Advanced Analytics')
   async execute() {
+    // Feature gate: Check Pro license
+    const licenseManager = LicenseManager.getInstance(this.context);
+    
+    if (!licenseManager.hasProAccess()) {
+      await licenseManager.promptUpgrade('Advanced Analytics');
+      return;
+    }
+
     logger.info('Opening Advanced Analytics dashboard...');
     
     vscode.window.showInformationMessage(

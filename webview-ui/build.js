@@ -133,7 +133,7 @@ async function main() {
   const ctx = await esbuild.context({
     entryPoints: {
       // Linear webviews
-      "linear-standup-builder": path.resolve(__dirname, "src/linear/standup-builder/index.tsx"),
+      "linear-standup-builder": path.resolve(__dirname, "src/pro/standup-builder/index.tsx"),
       "linear-ticket-panel": path.resolve(__dirname, "src/linear/ticket-panel/index.tsx"),
       "linear-create-ticket": path.resolve(__dirname, "src/linear/create-ticket/index.tsx"),
       // Jira webviews

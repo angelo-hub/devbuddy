@@ -61,14 +61,14 @@ export class UniversalStandupBuilderPanel {
 
   /**
    * Create or show the standup builder panel with platform-specific data provider
+   * Opens in a split panel on the right side (ViewColumn.Beside)
    */
   public static async createOrShow(
     extensionUri: vscode.Uri,
     dataProvider: BaseStandupDataProvider
   ): Promise<void> {
-    const column = vscode.window.activeTextEditor
-      ? vscode.window.activeTextEditor.viewColumn
-      : undefined;
+    // Always open beside the active editor (creates split on right)
+    const column = vscode.ViewColumn.Beside;
 
     // If we already have a panel, show it
     if (UniversalStandupBuilderPanel.currentPanel) {
@@ -79,11 +79,11 @@ export class UniversalStandupBuilderPanel {
       return;
     }
 
-    // Otherwise, create a new panel
+    // Otherwise, create a new panel in split view on the right
     const panel = vscode.window.createWebviewPanel(
       "standupBuilder",
       `Standup Builder (${dataProvider.getPlatformName()})`,
-      column || vscode.ViewColumn.One,
+      column,
       {
         enableScripts: true,
         retainContextWhenHidden: true,

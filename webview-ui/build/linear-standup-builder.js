@@ -24487,10 +24487,10 @@
     }
   });
 
-  // webview-ui/src/linear/standup-builder/index.tsx
+  // webview-ui/src/pro/standup-builder/index.tsx
   var import_client = __toESM(require_client());
 
-  // webview-ui/src/linear/standup-builder/App.tsx
+  // webview-ui/src/pro/standup-builder/App.tsx
   var import_react2 = __toESM(require_react());
 
   // webview-ui/src/shared/hooks/useVSCode.ts
@@ -24530,13 +24530,13 @@
     };
   }
 
-  // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/linear/standup-builder/components/ModeSelector.module.css
+  // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/pro/standup-builder/components/ModeSelector.module.css
   var style = document.createElement("style");
   style.textContent = ".container_ModeSelector {\n  display: flex;\n  gap: 8px;\n  margin-bottom: 16px;\n}\n\n.modeButton_ModeSelector {\n  flex: 1;\n  padding: 12px;\n  text-align: center;\n  border: 2px solid var(--color-border);\n  border-radius: 6px;\n  cursor: pointer;\n  transition: all 0.2s;\n}\n\n.modeButton_ModeSelector.active_ModeSelector {\n  border-color: #007acc;\n  background-color: var(--list-active-background);\n}\n\n.modeButton_ModeSelector:hover {\n  background-color: var(--list-hover-background);\n}\n\n.title_ModeSelector {\n  font-weight: 600;\n}\n\n.hint_ModeSelector {\n  font-size: 11px;\n  color: var(--color-description);\n  margin-top: 4px;\n}\n\n";
   document.head.appendChild(style);
   var ModeSelector_default = { "container": "container_ModeSelector", "modeButton": "modeButton_ModeSelector", "active": "active_ModeSelector", "title": "title_ModeSelector", "hint": "hint_ModeSelector" };
 
-  // webview-ui/src/linear/standup-builder/components/ModeSelector.tsx
+  // webview-ui/src/pro/standup-builder/components/ModeSelector.tsx
   var import_jsx_runtime = __toESM(require_jsx_runtime());
   var ModeSelector = ({
     mode,
@@ -24647,13 +24647,13 @@
   // webview-ui/src/shared/components/Badge.tsx
   var import_jsx_runtime6 = __toESM(require_jsx_runtime());
 
-  // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/linear/standup-builder/components/TicketSelector.module.css
+  // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/pro/standup-builder/components/TicketSelector.module.css
   var style7 = document.createElement("style");
   style7.textContent = ".container_TicketSelector {\n  margin-bottom: 24px;\n}\n\n.ticketContext_TicketSelector {\n  padding: 12px;\n  background-color: var(--color-background);\n  border: 1px solid var(--color-border);\n  border-radius: 6px;\n  margin-top: 12px;\n}\n\n.ticketTitle_TicketSelector {\n  font-weight: 600;\n  margin-bottom: 8px;\n}\n\n.ticketMeta_TicketSelector {\n  display: flex;\n  gap: 12px;\n  font-size: 11px;\n  margin-bottom: 8px;\n  color: var(--color-description);\n}\n\n.ticketDescription_TicketSelector {\n  font-size: 12px;\n  line-height: 1.5;\n  color: var(--color-description);\n  max-height: 100px;\n  overflow-y: auto;\n}\n\n";
   document.head.appendChild(style7);
   var TicketSelector_default = { "container": "container_TicketSelector", "ticketContext": "ticketContext_TicketSelector", "ticketTitle": "ticketTitle_TicketSelector", "ticketMeta": "ticketMeta_TicketSelector", "ticketDescription": "ticketDescription_TicketSelector" };
 
-  // webview-ui/src/linear/standup-builder/components/TicketSelector.tsx
+  // webview-ui/src/pro/standup-builder/components/TicketSelector.tsx
   var import_jsx_runtime7 = __toESM(require_jsx_runtime());
   var TicketSelector = ({
     tickets,
@@ -24699,13 +24699,13 @@
     ] });
   };
 
-  // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/linear/standup-builder/components/StandupForm.module.css
+  // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/pro/standup-builder/components/StandupForm.module.css
   var style8 = document.createElement("style");
   style8.textContent = ".form_StandupForm {\n  margin-bottom: 24px;\n}\n\n.actions_StandupForm {\n  display: flex;\n  gap: 8px;\n  margin-top: 16px;\n}\n\n";
   document.head.appendChild(style8);
   var StandupForm_default = { "form": "form_StandupForm", "actions": "actions_StandupForm" };
 
-  // webview-ui/src/linear/standup-builder/components/StandupForm.tsx
+  // webview-ui/src/pro/standup-builder/components/StandupForm.tsx
   var import_jsx_runtime8 = __toESM(require_jsx_runtime());
   var StandupForm = ({
     timeWindow,
@@ -24757,13 +24757,13 @@
     ] });
   };
 
-  // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/linear/standup-builder/components/ProgressIndicator.module.css
+  // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/pro/standup-builder/components/ProgressIndicator.module.css
   var style9 = document.createElement("style");
   style9.textContent = ".progress_ProgressIndicator {\n  padding: 12px;\n  background-color: var(--vscode-inputValidation-infoBorder);\n  color: var(--color-foreground);\n  border-radius: 4px;\n  margin: 16px 0;\n}\n\n";
   document.head.appendChild(style9);
   var ProgressIndicator_default = { "progress": "progress_ProgressIndicator" };
 
-  // webview-ui/src/linear/standup-builder/components/ProgressIndicator.tsx
+  // webview-ui/src/pro/standup-builder/components/ProgressIndicator.tsx
   var import_jsx_runtime9 = __toESM(require_jsx_runtime());
   var ProgressIndicator = ({
     message,
@@ -24775,13 +24775,13 @@
     return /* @__PURE__ */ (0, import_jsx_runtime9.jsx)("div", { className: ProgressIndicator_default.progress, children: message });
   };
 
-  // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/linear/standup-builder/components/ResultsDisplay.module.css
+  // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/pro/standup-builder/components/ResultsDisplay.module.css
   var style10 = document.createElement("style");
   style10.textContent = ".container_ResultsDisplay {\n  margin-top: 32px;\n}\n\n.divider_ResultsDisplay {\n  height: 1px;\n  background-color: var(--color-border);\n  margin: 24px 0;\n}\n\n.section_ResultsDisplay {\n  margin-bottom: 24px;\n}\n\n.resultBox_ResultsDisplay {\n  padding: 16px;\n  background-color: var(--color-background);\n  border: 1px solid var(--color-border);\n  border-radius: 6px;\n  margin-bottom: 16px;\n}\n\n.resultTitle_ResultsDisplay {\n  font-size: 13px;\n  font-weight: 600;\n  margin-bottom: 8px;\n  color: var(--color-foreground);\n}\n\n.resultContent_ResultsDisplay {\n  white-space: pre-wrap;\n  line-height: 1.6;\n}\n\n.actions_ResultsDisplay {\n  display: flex;\n  gap: 8px;\n}\n\n";
   document.head.appendChild(style10);
   var ResultsDisplay_default = { "container": "container_ResultsDisplay", "divider": "divider_ResultsDisplay", "section": "section_ResultsDisplay", "resultBox": "resultBox_ResultsDisplay", "resultTitle": "resultTitle_ResultsDisplay", "resultContent": "resultContent_ResultsDisplay", "actions": "actions_ResultsDisplay" };
 
-  // webview-ui/src/linear/standup-builder/components/ResultsDisplay.tsx
+  // webview-ui/src/pro/standup-builder/components/ResultsDisplay.tsx
   var import_jsx_runtime10 = __toESM(require_jsx_runtime());
   var ResultsDisplay = ({
     results,
@@ -24814,13 +24814,13 @@
     ] });
   };
 
-  // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/linear/standup-builder/components/CommitsAndFiles.module.css
+  // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/pro/standup-builder/components/CommitsAndFiles.module.css
   var style11 = document.createElement("style");
   style11.textContent = ".container_CommitsAndFiles {\n  margin-top: 24px;\n}\n\n.section_CommitsAndFiles {\n  margin-bottom: 24px;\n}\n\n.sectionTitle_CommitsAndFiles {\n  font-size: 14px;\n  font-weight: 600;\n  margin-bottom: 12px;\n  color: var(--color-foreground);\n}\n\n.commitList_CommitsAndFiles,\n.fileList_CommitsAndFiles {\n  font-size: 12px;\n  padding-left: 20px;\n  margin-top: 8px;\n}\n\n.commitList_CommitsAndFiles li,\n.fileList_CommitsAndFiles li {\n  margin-bottom: 4px;\n}\n\n.ticketsList_CommitsAndFiles {\n  padding: 12px;\n  background-color: var(--color-background);\n  border: 1px solid var(--color-border);\n  border-radius: 6px;\n}\n\n.ticket_CommitsAndFiles {\n  font-size: 13px;\n  margin-bottom: 8px;\n}\n\n.ticket_CommitsAndFiles:last-child {\n  margin-bottom: 0;\n}\n\n";
   document.head.appendChild(style11);
   var CommitsAndFiles_default = { "container": "container_CommitsAndFiles", "section": "section_CommitsAndFiles", "sectionTitle": "sectionTitle_CommitsAndFiles", "commitList": "commitList_CommitsAndFiles", "fileList": "fileList_CommitsAndFiles", "ticketsList": "ticketsList_CommitsAndFiles", "ticket": "ticket_CommitsAndFiles" };
 
-  // webview-ui/src/linear/standup-builder/components/CommitsAndFiles.tsx
+  // webview-ui/src/pro/standup-builder/components/CommitsAndFiles.tsx
   var import_jsx_runtime11 = __toESM(require_jsx_runtime());
   var CommitsAndFiles = ({
     commits,
@@ -24853,13 +24853,13 @@
     ] });
   };
 
-  // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/linear/standup-builder/App.module.css
+  // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/pro/standup-builder/App.module.css
   var style12 = document.createElement("style");
   style12.textContent = ".container_App {\n  max-width: 900px;\n  margin: 0 auto;\n}\n\n.title_App {\n  font-size: 24px;\n  font-weight: 600;\n  margin-bottom: 8px;\n}\n\n.subtitle_App {\n  color: var(--color-description);\n  margin-bottom: 24px;\n}\n\n.section_App {\n  margin-bottom: 24px;\n}\n\n.sectionTitle_App {\n  font-size: 14px;\n  font-weight: 600;\n  margin-bottom: 12px;\n  color: var(--color-foreground);\n}\n\n.error_App {\n  padding: 12px;\n  background-color: var(--vscode-inputValidation-errorBackground);\n  color: var(--vscode-inputValidation-errorForeground);\n  border: 1px solid var(--vscode-inputValidation-errorBorder);\n  border-radius: 4px;\n  margin: 16px 0;\n}\n\n";
   document.head.appendChild(style12);
   var App_default = { "container": "container_App", "title": "title_App", "subtitle": "subtitle_App", "section": "section_App", "sectionTitle": "sectionTitle_App", "error": "error_App" };
 
-  // webview-ui/src/linear/standup-builder/App.tsx
+  // webview-ui/src/pro/standup-builder/App.tsx
   var import_jsx_runtime12 = __toESM(require_jsx_runtime());
   function App() {
     const { postMessage, onMessage } = useVSCode();
@@ -25018,7 +25018,7 @@ ${results.blockers}`;
   }
   var App_default2 = App;
 
-  // webview-ui/src/linear/standup-builder/index.tsx
+  // webview-ui/src/pro/standup-builder/index.tsx
   var import_jsx_runtime13 = __toESM(require_jsx_runtime());
   var container = document.getElementById("root");
   if (container) {
