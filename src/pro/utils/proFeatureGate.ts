@@ -39,7 +39,8 @@ export function requireProLicense(featureName: string) {
       const context = (this as any).context as vscode.ExtensionContext;
       const licenseManager = LicenseManager.getInstance(context);
 
-      if (!licenseManager.hasProAccess()) {
+      const hasAccess = await licenseManager.hasProAccess();
+      if (!hasAccess) {
         logger.info(`Pro feature "${featureName}" access denied - no valid license`);
         await licenseManager.promptUpgrade(featureName);
         return;
@@ -56,9 +57,9 @@ export function requireProLicense(featureName: string) {
 /**
  * Check if Pro feature is available
  */
-export function isProFeatureAvailable(context: vscode.ExtensionContext): boolean {
+export async function isProFeatureAvailable(context: vscode.ExtensionContext): Promise<boolean> {
   const licenseManager = LicenseManager.getInstance(context);
-  return licenseManager.hasProAccess();
+  return await licenseManager.hasProAccess();
 }
 
 /**
@@ -106,7 +107,8 @@ export function wrapProCommand(
     return async () => {
       const licenseManager = LicenseManager.getInstance(context);
 
-      if (!licenseManager.hasProAccess()) {
+      const hasAccess = await licenseManager.hasProAccess();
+      if (!hasAccess) {
         logger.info(`Pro feature "${featureName}" access denied - no valid license`);
         await licenseManager.promptUpgrade(featureName);
         return;
