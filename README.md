@@ -16,10 +16,10 @@
 | Feature | Description | Platforms |
 |---------|-------------|-----------|
 | **Sidebar Management** | View and manage all tickets from VS Code | Linear, Jira |
-| **AI Workflows** | Generate PR summaries and standups automatically | Linear |
-| **TODO Converter** | Convert TODOs to tickets with automatic code permalinks | Linear |
-| **Chat Participant** | Ask `@devbuddy` questions in natural language | Linear, Jira |
-| **Branch Integration** | Create and manage branches directly from tickets | Linear |
+| **AI Workflows** | Generate PR summaries and standups automatically | Linear, Jira |
+| **TODO Converter** | Convert TODOs to tickets with automatic code permalinks | Linear, Jira |
+| **Chat Participant** | Ask `@devbuddy` questions in natural language | Linear (Jira soon) |
+| **Branch Integration** | Create and manage branches directly from tickets | Linear, Jira |
 | **Monorepo Support** | Intelligent package detection and validation | All platforms |
 
 ---
@@ -29,7 +29,7 @@
 | Platform | Status | Features |
 |----------|--------|----------|
 | **Linear** | ✅ Full Support | Complete feature set with AI integration |
-| **Jira Cloud** | ✅ Core Features | CRUD operations, search, workflows |
+| **Jira Cloud** | ✅ Full Support | Feature parity with Linear - AI, branches, webviews |
 | **Jira Server** | ⏳ Coming Soon | Self-hosted Jira support |
 | **Monday.com** | ⏳ Planned | Future release |
 | **ClickUp** | ⏳ Planned | Future release |
@@ -147,17 +147,18 @@ Works across all supported platforms with a consistent interface.
 
 ---
 
-### TODO to Ticket Converter (Linear)
+### TODO to Ticket Converter
 
-Transform TODO comments into fully-tracked Linear tickets with automatic code permalinks.
+Transform TODO comments into fully-tracked tickets with automatic code permalinks. Works with both Linear and Jira Cloud.
 
 ![TODO Converter Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/todo-converter-demo.gif)
 
 **How it works:**
 1. Write a TODO comment in your code
-2. Right-click → "Convert TODO to Linear Ticket"
+2. Right-click → "Convert TODO to Ticket"
 3. Review auto-generated ticket with permalink
 4. Choose: Replace TODO, Add More TODOs, or Link Existing TODOs
+5. Works seamlessly with Linear or Jira Cloud
 
 **What gets included automatically:**
 - File path and line number
@@ -186,9 +187,9 @@ After creating a ticket, use "Add More TODOs" to:
 
 ---
 
-### AI-Powered PR Summaries (Linear)
+### AI-Powered PR Summaries
 
-Generate comprehensive pull request descriptions automatically, with special support for monorepos.
+Generate comprehensive pull request descriptions automatically, with special support for monorepos. Works with both Linear and Jira Cloud.
 
 ![PR Summary Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/pr-summary-demo.gif)
 
@@ -202,7 +203,7 @@ Generate comprehensive pull request descriptions automatically, with special sup
 - High-level overview of changes
 - Per-package breakdown in monorepos
 - Testing notes and checklist
-- Linked Linear tickets
+- Linked tickets (Linear or Jira)
 - Breaking changes detection
 - Migration notes if needed
 
@@ -222,9 +223,9 @@ Generate comprehensive pull request descriptions automatically, with special sup
 
 ---
 
-### AI Standup Generator (Linear)
+### AI Standup Generator
 
-Let AI generate your standup update automatically from commits and Linear activity.
+Let AI generate your standup update automatically from commits and ticket activity. Works with both Linear and Jira Cloud.
 
 ![Standup Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/standup-demo.gif)
 
@@ -237,9 +238,10 @@ Let AI generate your standup update automatically from commits and Linear activi
 
 **What gets analyzed:**
 - Git commits in configurable time window (default: 24 hours)
-- Linear tickets you've updated
+- Tickets you've updated (Linear or Jira)
 - Code changes across packages
 - Commit message context
+- Branch associations
 
 **Customization:**
 - Adjust time window (24 hours, 2 days, since last standup)
@@ -270,9 +272,11 @@ Talk to DevBuddy using the VS Code Chat interface.
 **Natural Language Queries:**
 ```
 @devbuddy what am I working on?
-@devbuddy show me ENG-123
+@devbuddy show me ENG-123 (Linear) or PROJ-456 (Jira)
 @devbuddy create a ticket for authentication bug
 @devbuddy update ENG-456 to in progress
+@devbuddy generate my standup
+@devbuddy generate PR summary
 ```
 
 **Key Benefits:**
@@ -314,31 +318,41 @@ Linear users get the complete DevBuddy experience with full feature support.
 
 ### Jira Cloud Features
 
-Jira Cloud users get core ticket management with workflow support.
+Jira Cloud users get the complete DevBuddy experience with full feature parity to Linear.
 
 | Feature | Status | Description |
 |---------|--------|-------------|
-| View Issues | ✅ | Sidebar with issue organization |
-| Create/Edit Issues | ✅ | Issue management via browser |
+| View Issues | ✅ | Rich sidebar with webview panels |
+| Create/Edit Issues | ✅ | Full issue management interface in VS Code |
 | Status Transitions | ✅ | Full workflow transition support |
+| Branch Creation | ✅ | Create and manage branches from issues |
+| Branch Association | ✅ | Link existing branches to issues |
+| TODO Converter | ✅ | Convert TODOs with automatic code permalinks |
+| AI Standup | ✅ | Generate standup from commits and Jira activity |
+| AI PR Summary | ✅ | Generate PR descriptions with monorepo support |
 | JQL Search | ✅ | Advanced search with Jira Query Language |
 | Comments | ✅ | Read and add comments |
 | Sprints & Boards | ✅ | View and manage sprints |
 | Runtime Validation | ✅ | Production-grade API validation with Zod v4 |
-| Chat Participant | ✅ | Core chat commands |
-| Webview Panels | ⏳ | Coming soon |
-| Branch Integration | ⏳ | Coming soon |
-| AI Features | ⏳ | Coming soon |
+| Chat Participant | ⏳ | Coming soon |
+| Sub-tasks | ✅ | View and manage sub-tasks |
+| Attachments | ✅ | View and download attachments |
 
-**Workflow Management:**
+**Full Feature Set:**
 
 ![Jira Sidebar Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/jira-sidebar-demo.gif)
 
-- View issues organized by status
-- Update status with workflow transitions
-- Quick actions: Add comment, assign, copy issue key
-- JQL search for advanced filtering
-- Sprint management
+- **Manage issues** directly in VS Code without browser context switching
+- **View and edit** issues with rich webview panels
+- **Create branches** with smart naming (conventional, simple, or custom)
+- **Auto-detect associations** based on branch names
+- **Generate standups** from Jira activity and git commits
+- **AI-powered PR summaries** with monorepo intelligence
+- **Convert TODOs to tickets** with automatic code permalinks
+- **Update status** with workflow transitions
+- **Quick actions**: Add comment, assign, copy issue key
+- **JQL search** for advanced filtering
+- **Sprint management** and agile workflows
 
 ---
 
@@ -425,9 +439,8 @@ Work with any configured platform:
 | Command | Description |
 |---------|-------------|
 | `DevBuddy: Update Linear API Key` | Configure Linear authentication |
-| `DevBuddy: Start Branch for Ticket` | Create new branch from ticket |
-| `DevBuddy: Convert TODO to Ticket` | Convert TODO comment to Linear ticket |
-| `DevBuddy: Associate Branch` | Link existing branch to ticket |
+| `DevBuddy: Start Branch for Ticket` | Create new branch from Linear ticket |
+| `DevBuddy: Associate Branch` | Link existing branch to Linear ticket |
 | `DevBuddy: Checkout Branch` | Switch to associated branch |
 
 ### Jira-Specific Commands
@@ -438,6 +451,8 @@ Work with any configured platform:
 | `DevBuddy: Test Jira Connection` | Verify Jira API connection |
 | `DevBuddy: Update Jira Issue Status` | Update issue workflow state |
 | `DevBuddy: Search Jira Issues` | Search with JQL |
+| `DevBuddy: Start Branch for Issue` | Create new branch from Jira issue |
+| `DevBuddy: Associate Branch with Issue` | Link existing branch to Jira issue |
 
 ---
 
@@ -517,12 +532,16 @@ Comprehensive guides for all features:
 - Easy platform switching via settings
 - Unified sidebar interface
 
-### Jira Integration
-- Full CRUD operations for Jira Cloud
-- JQL search support
-- Workflow transitions
-- Sprint and board management
-- Production-grade validation with Zod v4
+### Jira Cloud Feature Parity
+- **Full CRUD operations** - Complete issue management in VS Code
+- **Webview panels** - Rich ticket detail and creation forms
+- **Branch integration** - Create and associate branches with issues
+- **AI features** - PR summaries and standup generation
+- **TODO converter** - Convert TODOs to Jira issues with permalinks
+- **JQL search** - Advanced filtering and search
+- **Workflow transitions** - Full status management
+- **Sprint and board management** - Agile workflows
+- **Production-grade validation** - Runtime safety with Zod v4
 
 ### AI & Chat Enhancements
 - Chat participant with `@devbuddy`
@@ -540,9 +559,9 @@ Comprehensive guides for all features:
 ## Roadmap
 
 ### Short-Term
-- ⏳ Jira webview panels (ticket detail, create form)
-- ⏳ Jira branch integration
-- ⏳ Jira AI features (standup, PR summary)
+- ⏳ Jira Cloud chat participant (@devbuddy integration)
+- ⏳ Enhanced keyboard shortcuts
+- ⏳ Improved offline support
 
 ### Medium-Term
 - ⏳ Jira Server/Data Center support
