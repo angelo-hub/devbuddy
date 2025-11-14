@@ -2,11 +2,13 @@
  * License Manager for DevBuddy Pro Features
  * 
  * This module handles license validation, trial management, and pro feature access.
+ * Integrates with Lemon Squeezy for license management and GitHub for user verification.
  * 
  * @license Commercial - See LICENSE.pro
  */
 
 import * as vscode from 'vscode';
+import axios from 'axios';
 import { getLogger } from '../../shared/utils/logger';
 
 const logger = getLogger();
@@ -20,6 +22,52 @@ export interface LicenseInfo {
   isTrial: boolean;
   trialEndsAt?: Date;
   features: string[];
+  githubId?: string;
+  githubUsername?: string;
+}
+
+interface LemonSqueezyValidateResponse {
+  valid: boolean;
+  license_key: {
+    id: string;
+    status: 'active' | 'inactive' | 'expired' | 'disabled';
+    key: string;
+    activation_limit: number;
+    activation_usage: number;
+    expires_at: string | null;
+    test_mode: boolean;
+    customer: {
+      email: string;
+      name: string;
+    };
+  };
+  instance: {
+    id: string;
+    name: string;
+    created_at: string;
+  } | null;
+  meta: {
+    store_id: number;
+    order_id: number;
+    order_item_id: number;
+    product_id: number;
+    product_name: string;
+    variant_id: number;
+    variant_name: string;
+    github_id?: string;
+    github_username?: string;
+  };
+}
+
+interface LemonSqueezyActivateResponse {
+  activated: boolean;
+  license_key: LemonSqueezyValidateResponse['license_key'];
+  instance: {
+    id: string;
+    name: string;
+    created_at: string;
+  };
+  meta: LemonSqueezyValidateResponse['meta'];
 }
 
 export class LicenseManager {
@@ -28,14 +76,19 @@ export class LicenseManager {
   private licenseInfo: LicenseInfo | null = null;
   
   private readonly LICENSE_KEY = 'devBuddy.pro.licenseKey';
+  private readonly LICENSE_METADATA_KEY = 'devBuddy.pro.licenseMetadata';
   private readonly TRIAL_START_KEY = 'devBuddy.pro.trialStartDate';
   private readonly LAST_VALIDATION_KEY = 'devBuddy.pro.lastValidation';
   
-  // TODO: Replace with your actual backend URL when ready
-  private readonly LICENSE_API = 'https://api.devbuddy.dev/v1/validate';
+  // Lemon Squeezy Configuration
+  // TODO: Set these via VS Code settings or environment variables for production
+  private readonly LEMONSQUEEZY_API_KEY = process.env.LEMONSQUEEZY_API_KEY || '';
+  private readonly LEMONSQUEEZY_STORE_ID = process.env.LEMONSQUEEZY_STORE_ID || '';
+  private readonly LEMONSQUEEZY_API_URL = 'https://api.lemonsqueezy.com/v1';
   
   private readonly TRIAL_DAYS = 30;
   private readonly OFFLINE_GRACE_DAYS = 7;
+  private readonly REVALIDATION_HOURS = 24;
 
   private constructor(context: vscode.ExtensionContext) {
     this.context = context;
@@ -57,8 +110,8 @@ export class LicenseManager {
     const storedKey = await this.context.secrets.get(this.LICENSE_KEY);
     
     if (storedKey) {
-      logger.debug('Found stored license key, validating...');
-      await this.validateLicense(storedKey);
+      logger.debug('Found stored license key, loading from cache...');
+      this.licenseInfo = await this.getCachedLicenseInfo();
     } else {
       logger.debug('No license key found, checking trial status...');
       await this.initializeTrial();
@@ -69,95 +122,345 @@ export class LicenseManager {
   }
 
   /**
-   * Activate a license key
+   * Activate a license key with GitHub verification
    */
   async activateLicense(licenseKey: string): Promise<boolean> {
-    logger.info('Attempting to activate license...');
+    logger.info('Attempting to activate license with GitHub verification...');
     
-    const isValid = await this.validateLicense(licenseKey);
-    
-    if (isValid) {
-      await this.context.secrets.store(this.LICENSE_KEY, licenseKey);
+    // Step 1: Authenticate with GitHub
+    let githubSession;
+    try {
+      githubSession = await vscode.authentication.getSession(
+        'github',
+        ['user:email'],
+        { createIfNone: true }
+      );
+    } catch (error) {
+      vscode.window.showErrorMessage(
+        '❌ GitHub authentication is required to activate DevBuddy Pro. Please sign in to GitHub in VS Code.'
+      );
+      logger.error('GitHub authentication failed:', error);
+      return false;
+    }
+
+    if (!githubSession) {
+      vscode.window.showErrorMessage(
+        '❌ Failed to authenticate with GitHub. Please try again.'
+      );
+      return false;
+    }
+
+    const githubUsername = githubSession.account.label;
+    logger.debug(`GitHub user authenticated: ${githubUsername}`);
+
+    // Step 2: Get GitHub user ID
+    const githubId = await this.getGitHubUserId(githubSession.accessToken);
+    if (!githubId) {
+      vscode.window.showErrorMessage(
+        '❌ Failed to retrieve GitHub user information. Please try again.'
+      );
+      return false;
+    }
+
+    // Step 3: Check if license is already associated with a different GitHub account
+    try {
+      const validationResponse = await this.validateLicenseWithLemonSqueezy(licenseKey);
+      
+      if (!validationResponse) {
+        vscode.window.showErrorMessage(
+          '❌ Invalid license key. Please check and try again.'
+        );
+        return false;
+      }
+
+      const existingGitHubId = validationResponse.meta?.github_id;
+
+      if (existingGitHubId && existingGitHubId !== githubId) {
+        const choice = await vscode.window.showErrorMessage(
+          `❌ This license is already associated with another GitHub account. ` +
+          `If you own both accounts, you can transfer the license.`,
+          'Contact Support',
+          'Cancel'
+        );
+
+        if (choice === 'Contact Support') {
+          vscode.env.openExternal(
+            vscode.Uri.parse('mailto:support@angelogirardi.com?subject=DevBuddy Pro License Transfer Request')
+          );
+        }
+        return false;
+      }
+
+      // Step 4: Activate license with Lemon Squeezy
+      const activationResult = await this.activateLicenseWithLemonSqueezy(
+        licenseKey,
+        githubUsername,
+        githubId
+      );
+
+      if (!activationResult) {
+        return false;
+      }
+
+      // Step 5: Store license info locally
+      await this.storeLicenseInfo({
+        key: licenseKey,
+        email: validationResponse.license_key.customer.email,
+        type: 'personal', // TODO: Determine type from product
+        expiresAt: validationResponse.license_key.expires_at 
+          ? new Date(validationResponse.license_key.expires_at)
+          : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year default
+        isValid: true,
+        isTrial: false,
+        features: ['all'],
+        githubId: githubId,
+        githubUsername: githubUsername,
+      });
+
       await this.context.globalState.update(this.LAST_VALIDATION_KEY, new Date().toISOString());
-      
-      vscode.window.showInformationMessage('✨ DevBuddy Pro activated successfully!');
-      logger.success('License activated successfully');
-      
+
+      vscode.window.showInformationMessage(
+        `✨ DevBuddy Pro activated successfully for @${githubUsername}!`
+      );
+      logger.success(`License activated for GitHub user: ${githubUsername} (ID: ${githubId})`);
+
       return true;
-    } else {
-      vscode.window.showErrorMessage('❌ Invalid license key. Please check and try again.');
-      logger.error('License validation failed');
+
+    } catch (error: any) {
+      logger.error('License activation error:', error);
+      
+      if (error.response?.status === 422) {
+        vscode.window.showErrorMessage(
+          '❌ License activation limit reached. Please deactivate on another machine first.'
+        );
+      } else if (error.response?.status === 404) {
+        vscode.window.showErrorMessage(
+          '❌ Invalid license key. Please check and try again.'
+        );
+      } else {
+        vscode.window.showErrorMessage(
+          '❌ Failed to activate license. Please try again or contact support.'
+        );
+      }
       
       return false;
     }
   }
 
   /**
-   * Validate license with backend
-   * 
-   * TODO: Implement actual backend validation when ready
-   * For now, this is a mock implementation that always validates
+   * Validate license with Lemon Squeezy
    */
-  private async validateLicense(licenseKey: string): Promise<boolean> {
+  private async validateLicenseWithLemonSqueezy(
+    licenseKey: string
+  ): Promise<LemonSqueezyValidateResponse | null> {
     try {
-      logger.debug('Validating license key...');
+      logger.debug('Validating license with Lemon Squeezy...');
+
+      // For development/testing without API key
+      if (!this.LEMONSQUEEZY_API_KEY || this.LEMONSQUEEZY_API_KEY === '') {
+        logger.warn('No Lemon Squeezy API key configured, using mock validation');
+        return this.mockLemonSqueezyValidation(licenseKey);
+      }
+
+      const response = await axios.post<LemonSqueezyValidateResponse>(
+        `${this.LEMONSQUEEZY_API_URL}/licenses/validate`,
+        {
+          license_key: licenseKey,
+          instance_name: vscode.env.machineId,
+        },
+        {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          timeout: 10000,
+        }
+      );
+
+      if (response.data.valid && response.data.license_key.status === 'active') {
+        logger.debug('License validated successfully');
+        return response.data;
+      }
+
+      logger.warn(`License validation failed: ${response.data.license_key.status}`);
+      return null;
+
+    } catch (error: any) {
+      logger.error('Lemon Squeezy validation error:', error);
       
-      // TODO: Remove this mock validation and implement real backend call
-      // For now, we'll accept any license key for development purposes
-      if (process.env.NODE_ENV === 'development' || !this.LICENSE_API.includes('devbuddy.dev')) {
-        logger.warn('Using mock license validation (development mode)');
+      // Check offline grace period
+      if (await this.checkOfflineGracePeriod()) {
+        logger.info('License validation failed but offline grace period is active');
+        // Return cached license info if available
+        const cached = await this.getCachedLicenseInfo();
+        if (cached) {
+          return this.mockLemonSqueezyValidation(cached.key);
+        }
+      }
+      
+      throw error;
+    }
+  }
+
+  /**
+   * Activate license with Lemon Squeezy
+   */
+  private async activateLicenseWithLemonSqueezy(
+    licenseKey: string,
+    githubUsername: string,
+    githubId: string
+  ): Promise<boolean> {
+    try {
+      logger.debug('Activating license with Lemon Squeezy...');
+
+      // For development/testing without API key
+      if (!this.LEMONSQUEEZY_API_KEY || this.LEMONSQUEEZY_API_KEY === '') {
+        logger.warn('No Lemon Squeezy API key configured, using mock activation');
+        return true;
+      }
+
+      const response = await axios.post<LemonSqueezyActivateResponse>(
+        `${this.LEMONSQUEEZY_API_URL}/licenses/activate`,
+        {
+          license_key: licenseKey,
+          instance_name: `${githubUsername}@${vscode.env.machineId}`,
+        },
+        {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          timeout: 10000,
+        }
+      );
+
+      if (response.data.activated) {
+        logger.debug('License activated successfully');
         
-        this.licenseInfo = {
-          key: licenseKey,
-          email: 'dev@example.com',
-          type: 'personal',
-          expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
-          isValid: true,
-          isTrial: false,
-          features: ['all'],
-        };
+        // TODO: Update license metadata with GitHub ID via your serverless endpoint
+        // This requires a backend endpoint since we can't update metadata from client-side
+        // await this.updateLicenseMetadata(licenseKey, { github_id: githubId, github_username: githubUsername });
         
         return true;
       }
 
-      // TODO: Implement actual API call when backend is ready
-      // const response = await fetch(this.LICENSE_API, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({
-      //     licenseKey,
-      //     product: 'devbuddy',
-      //     version: vscode.extensions.getExtension('angelogirardi.dev-buddy')?.packageJSON.version,
-      //   }),
-      // });
+      return false;
 
-      // if (!response.ok) {
-      //   return false;
-      // }
-
-      // const data = await response.json();
-      // this.licenseInfo = {
-      //   key: licenseKey,
-      //   email: data.email,
-      //   type: data.type,
-      //   expiresAt: new Date(data.expiresAt),
-      //   isValid: data.isValid,
-      //   isTrial: data.isTrial,
-      //   trialEndsAt: data.trialEndsAt ? new Date(data.trialEndsAt) : undefined,
-      //   features: data.features || ['all'],
-      // };
-
-      // return data.isValid;
-      
-      return false; // Return false until backend is ready
-      
-    } catch (error) {
-      logger.error('License validation error:', error);
-      // Offline grace period: allow if validated within last 7 days
-      return this.checkOfflineGracePeriod();
+    } catch (error: any) {
+      logger.error('Lemon Squeezy activation error:', error);
+      throw error;
     }
+  }
+
+  /**
+   * Get GitHub user ID from access token
+   */
+  private async getGitHubUserId(accessToken: string): Promise<string | null> {
+    try {
+      logger.debug('Fetching GitHub user ID...');
+
+      const response = await axios.get('https://api.github.com/user', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: 'application/vnd.github.v3+json',
+        },
+        timeout: 10000,
+      });
+
+      const userId = response.data.id.toString();
+      logger.debug(`GitHub user ID retrieved: ${userId}`);
+      
+      return userId;
+
+    } catch (error) {
+      logger.error('Failed to retrieve GitHub user ID:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Store license info securely
+   */
+  private async storeLicenseInfo(info: LicenseInfo): Promise<void> {
+    await this.context.secrets.store(this.LICENSE_KEY, info.key);
+    
+    const metadata = {
+      email: info.email,
+      type: info.type,
+      expiresAt: info.expiresAt.toISOString(),
+      isValid: info.isValid,
+      isTrial: info.isTrial,
+      trialEndsAt: info.trialEndsAt?.toISOString(),
+      features: info.features,
+      githubId: info.githubId,
+      githubUsername: info.githubUsername,
+      lastValidation: new Date().toISOString(),
+    };
+    
+    await this.context.globalState.update(this.LICENSE_METADATA_KEY, metadata);
+    
+    this.licenseInfo = info;
+  }
+
+  /**
+   * Get cached license info
+   */
+  private async getCachedLicenseInfo(): Promise<LicenseInfo | null> {
+    const key = await this.context.secrets.get(this.LICENSE_KEY);
+    const metadata = this.context.globalState.get<any>(this.LICENSE_METADATA_KEY);
+
+    if (!key || !metadata) {
+      return null;
+    }
+
+    return {
+      key,
+      email: metadata.email,
+      type: metadata.type,
+      expiresAt: new Date(metadata.expiresAt),
+      isValid: metadata.isValid,
+      isTrial: metadata.isTrial,
+      trialEndsAt: metadata.trialEndsAt ? new Date(metadata.trialEndsAt) : undefined,
+      features: metadata.features,
+      githubId: metadata.githubId,
+      githubUsername: metadata.githubUsername,
+    };
+  }
+
+  /**
+   * Mock Lemon Squeezy validation for development
+   */
+  private mockLemonSqueezyValidation(licenseKey: string): LemonSqueezyValidateResponse {
+    return {
+      valid: true,
+      license_key: {
+        id: 'mock-id',
+        status: 'active',
+        key: licenseKey,
+        activation_limit: 3,
+        activation_usage: 1,
+        expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        test_mode: true,
+        customer: {
+          email: 'dev@example.com',
+          name: 'Development User',
+        },
+      },
+      instance: {
+        id: 'mock-instance',
+        name: vscode.env.machineId,
+        created_at: new Date().toISOString(),
+      },
+      meta: {
+        store_id: 0,
+        order_id: 0,
+        order_item_id: 0,
+        product_id: 0,
+        product_name: 'DevBuddy Pro (Dev)',
+        variant_id: 0,
+        variant_name: 'Personal',
+      },
+    };
   }
 
   /**
@@ -236,7 +539,7 @@ export class LicenseManager {
   /**
    * Check offline grace period (7 days)
    */
-  private checkOfflineGracePeriod(): boolean {
+  private async checkOfflineGracePeriod(): Promise<boolean> {
     const lastValidation = this.context.globalState.get<string>(this.LAST_VALIDATION_KEY);
     
     if (!lastValidation) {
@@ -257,10 +560,106 @@ export class LicenseManager {
   }
 
   /**
-   * Check if Pro features are available
+   * Check if Pro features are available (with GitHub verification)
    */
-  public hasProAccess(): boolean {
-    return this.licenseInfo?.isValid ?? false;
+  public async hasProAccess(): Promise<boolean> {
+    // Load license info if not already loaded
+    if (!this.licenseInfo) {
+      this.licenseInfo = await this.getCachedLicenseInfo();
+    }
+
+    if (!this.licenseInfo || !this.licenseInfo.isValid) {
+      return false;
+    }
+
+    // Check if license has expired
+    if (this.licenseInfo.expiresAt && this.licenseInfo.expiresAt < new Date()) {
+      logger.warn('License has expired');
+      await this.showExpiredLicenseNotification();
+      return false;
+    }
+
+    // Verify GitHub account still matches (if GitHub ID is stored)
+    if (this.licenseInfo.githubId) {
+      try {
+        const githubSession = await vscode.authentication.getSession(
+          'github',
+          ['user:email'],
+          { createIfNone: false } // Don't force sign-in
+        );
+
+        if (githubSession) {
+          const currentGitHubId = await this.getGitHubUserId(githubSession.accessToken);
+          
+          if (currentGitHubId && currentGitHubId !== this.licenseInfo.githubId) {
+            vscode.window.showWarningMessage(
+              `⚠️ You are signed in with a different GitHub account. ` +
+              `Please sign in with @${this.licenseInfo.githubUsername} to use Pro features.`
+            );
+            return false;
+          }
+        } else {
+          // No GitHub session - allow grace period for offline usage
+          logger.debug('No GitHub session available, checking offline grace period');
+          return await this.checkOfflineGracePeriod();
+        }
+      } catch (error) {
+        // GitHub auth failed, allow grace period
+        logger.warn('GitHub verification failed, using offline mode');
+        return await this.checkOfflineGracePeriod();
+      }
+    }
+
+    // Check if we need to revalidate (every 24 hours)
+    const lastValidation = this.context.globalState.get<string>(this.LAST_VALIDATION_KEY);
+    if (lastValidation) {
+      const hoursSinceValidation = 
+        (Date.now() - new Date(lastValidation).getTime()) / (1000 * 60 * 60);
+      
+      if (hoursSinceValidation > this.REVALIDATION_HOURS) {
+        logger.debug('License needs revalidation (24 hours passed)');
+        
+        try {
+          // Revalidate in background
+          const validation = await this.validateLicenseWithLemonSqueezy(this.licenseInfo.key);
+          
+          if (validation) {
+            await this.context.globalState.update(this.LAST_VALIDATION_KEY, new Date().toISOString());
+            logger.debug('License revalidated successfully');
+          } else {
+            // Validation failed, check grace period
+            return await this.checkOfflineGracePeriod();
+          }
+        } catch (error) {
+          // Revalidation failed (offline?), use grace period
+          logger.warn('License revalidation failed, checking grace period');
+          return await this.checkOfflineGracePeriod();
+        }
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Show expired license notification
+   */
+  private async showExpiredLicenseNotification(): Promise<void> {
+    const choice = await vscode.window.showWarningMessage(
+      '⚠️ Your DevBuddy Pro license has expired. Please renew to continue using Pro features.',
+      'Renew License',
+      'Contact Support'
+    );
+
+    if (choice === 'Renew License') {
+      vscode.env.openExternal(
+        vscode.Uri.parse('https://github.com/angelo-hub/devbuddy#pricing')
+      );
+    } else if (choice === 'Contact Support') {
+      vscode.env.openExternal(
+        vscode.Uri.parse('mailto:support@angelogirardi.com?subject=DevBuddy Pro License Renewal')
+      );
+    }
   }
 
   /**
