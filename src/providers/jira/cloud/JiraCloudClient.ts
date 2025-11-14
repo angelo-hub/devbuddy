@@ -55,7 +55,7 @@ import {
   JiraApiSprint,
   JiraApiCreateResponse,
 } from "./schemas";
-import { getLogger } from "../../../shared/utils/logger";
+import { getLogger } from "@shared/utils/logger";
 
 const logger = getLogger();
 

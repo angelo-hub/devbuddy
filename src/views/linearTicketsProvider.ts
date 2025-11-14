@@ -3,9 +3,9 @@ import {
   LinearClient,
   LinearIssue,
   LinearProject,
-} from "../utils/linearClient";
-import { BranchAssociationManager } from "../utils/branchAssociationManager";
-import { getLogger } from "../utils/logger";
+} from "@utils/linearClient";
+import { BranchAssociationManager } from "@shared/git/branchAssociationManager";
+import { getLogger } from "@shared/utils/logger";
 
 export class LinearTicketTreeItem extends vscode.TreeItem {
   constructor(
@@ -328,7 +328,7 @@ export class LinearTicketsProvider
           // These are subsection headers (non-collapsible labels)
           return [];
 
-        case "statusHeader":
+        case "statusHeader": {
           const status = element.issue.state.name;
           const statusIssues = this.issues.filter(
             (issue) => issue.state.name === status
@@ -342,6 +342,7 @@ export class LinearTicketsProvider
                 this.branchManager
               )
           );
+        }
 
         default:
           return [];

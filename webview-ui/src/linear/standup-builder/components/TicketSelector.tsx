@@ -1,6 +1,6 @@
 import React from "react";
-import { Select } from "../../../shared/components/index.ts";
-import { LinearTicket } from "../../shared/types/messages";
+import { Select } from "@shared/components";
+import { LinearTicket } from "@shared/types/messages";
 import styles from "./TicketSelector.module.css";
 
 interface TicketSelectorProps {

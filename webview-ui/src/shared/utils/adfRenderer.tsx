@@ -121,7 +121,7 @@ function renderTextNode(node: ADFNode, key: number): React.ReactNode {
         case "underline":
           element = <u key={key}>{element}</u>;
           break;
-        case "link":
+        case "link": {
           const attrs = mark.attrs as { href?: string };
           element = (
             <a
@@ -135,6 +135,7 @@ function renderTextNode(node: ADFNode, key: number): React.ReactNode {
             </a>
           );
           break;
+        }
       }
     }
   }
@@ -389,7 +390,7 @@ export function renderADF(adf: ADFDocument | string): React.ReactNode {
 
     return (
       <div style={{ lineHeight: "1.6" }}>
-        {doc.content.map((node, idx) => renderNode(node, idx))}
+        {doc.content.map((node: ADFNode, idx: number) => renderNode(node, idx))}
       </div>
     );
   } catch (error) {

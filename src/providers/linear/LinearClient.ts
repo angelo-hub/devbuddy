@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { BaseTicketProvider, CreateTicketInput, TicketFilter } from "../../shared/base/BaseTicketProvider";
-import { getLogger } from "../../shared/utils/logger";
+import { BaseTicketProvider, CreateTicketInput, TicketFilter } from "@shared/base/BaseTicketProvider";
+import { getLogger } from "@shared/utils/logger";
 import { LinearIssue, LinearUser, LinearProject, LinearTeam, LinearTemplate } from "./types";
 
 export class LinearClient extends BaseTicketProvider<
@@ -330,7 +330,20 @@ export class LinearClient extends BaseTicketProvider<
 
     try {
       const response = await this.executeQuery(query);
-      return response.data.issue;
+      const issue = response.data.issue;
+      
+      // Debug logging to see Linear's native description format
+      if (issue && issue.description) {
+        console.log('[Linear Debug] Fetched issue description:');
+        console.log('Issue ID:', issue.identifier);
+        console.log('Description length:', issue.description.length);
+        console.log('First 500 chars:', issue.description.substring(0, 500));
+        console.log('Has code block markers (```)?', issue.description.includes('```'));
+        console.log('Has newlines?', issue.description.includes('\n'));
+        console.log('Raw description:', issue.description);
+      }
+      
+      return issue;
     } catch (error) {
       console.error(
         `[Linear Buddy] Failed to fetch issue ${idOrIdentifier}:`,
@@ -447,11 +460,20 @@ export class LinearClient extends BaseTicketProvider<
       return false;
     }
 
+    // Properly escape the description for GraphQL
+    const escapeForGraphQL = (str: string): string => {
+      return str
+        .replace(/\\/g, '\\\\')  // Escape backslashes
+        .replace(/\n/g, '\\n')    // Escape newlines
+        .replace(/\r/g, '\\r')    // Escape carriage returns
+        .replace(/"/g, '\\"');     // Escape quotes
+    };
+
     const mutation = `
       mutation {
         issueUpdate(
           id: "${issueId}",
-          input: { description: "${description.replace(/"/g, '\\"')}" }
+          input: { description: "${escapeForGraphQL(description)}" }
         ) {
           success
           issue {
@@ -619,6 +641,27 @@ export class LinearClient extends BaseTicketProvider<
       return null;
     }
 
+    // Debug logging to see what we're sending to Linear
+    if (input.description) {
+      console.log('[Linear Debug] Creating issue with description:');
+      console.log('Description length:', input.description.length);
+      console.log('First 500 chars:', input.description.substring(0, 500));
+      console.log('Has code block markers (```)?', input.description.includes('```'));
+      console.log('Raw description being sent:', input.description);
+    }
+
+    // Properly escape the description for GraphQL:
+    // 1. Replace backslashes first (must be first to avoid double-escaping)
+    // 2. Replace newlines with \n
+    // 3. Replace quotes with \"
+    const escapeForGraphQL = (str: string): string => {
+      return str
+        .replace(/\\/g, '\\\\')  // Escape backslashes
+        .replace(/\n/g, '\\n')    // Escape newlines
+        .replace(/\r/g, '\\r')    // Escape carriage returns
+        .replace(/"/g, '\\"');     // Escape quotes
+    };
+
     const mutation = `
       mutation {
         issueCreate(
@@ -627,7 +670,7 @@ export class LinearClient extends BaseTicketProvider<
             title: "${input.title.replace(/"/g, '\\"')}"
             ${
               input.description
-                ? `description: "${input.description.replace(/"/g, '\\"')}"`
+                ? `description: "${escapeForGraphQL(input.description)}"`
                 : ""
             }
             ${input.priority !== undefined ? `priority: ${input.priority}` : ""}
@@ -666,7 +709,15 @@ export class LinearClient extends BaseTicketProvider<
     try {
       const response = await this.executeQuery(mutation);
       if (response.data.issueCreate.success) {
-        return response.data.issueCreate.issue;
+        const createdIssue = response.data.issueCreate.issue;
+        
+        // Debug log what came back
+        if (createdIssue && createdIssue.description) {
+          console.log('[Linear Debug] Created issue returned with description:');
+          console.log('Description:', createdIssue.description);
+        }
+        
+        return createdIssue;
       }
       return null;
     } catch (error) {

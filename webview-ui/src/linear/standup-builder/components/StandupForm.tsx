@@ -1,5 +1,5 @@
 import React from "react";
-import { Input, Button } from "../../../shared/components/index.ts";
+import { Input, Button } from "@shared/components";
 import styles from "./StandupForm.module.css";
 
 interface StandupFormProps {

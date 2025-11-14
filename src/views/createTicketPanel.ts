@@ -4,7 +4,7 @@ import {
   LinearClient,
   LinearIssue,
   LinearTemplate,
-} from "../utils/linearClient";
+} from "@utils/linearClient";
 
 export class CreateTicketPanel {
   public static currentPanel: CreateTicketPanel | undefined;

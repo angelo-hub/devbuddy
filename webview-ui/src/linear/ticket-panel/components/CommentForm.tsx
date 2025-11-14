@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { TextArea, Button } from "../../../shared/components/index.ts";
+import { TextArea, Button } from "@shared/components";
 import styles from "./CommentForm.module.css";
 
 interface CommentFormProps {

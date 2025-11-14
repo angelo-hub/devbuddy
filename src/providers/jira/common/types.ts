@@ -76,7 +76,7 @@ export interface JiraPriority {
   iconUrl?: string;
 }
 
-import { ADFDocument } from "../../../shared/jira/adfTypes";
+import { ADFDocument } from "@shared/jira/adfTypes";
 
 /**
  * Jira User

@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "../../../shared/components/index.ts";
+import { Button } from "@shared/components";
 import styles from "./ActionButtons.module.css";
 
 interface ActionButtonsProps {

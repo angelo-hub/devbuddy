@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
-import { GitAnalyzer } from "../shared/git/gitAnalyzer";
-import { PackageDetector } from "../shared/utils/packageDetector";
-import { AISummarizer } from "../shared/ai/aiSummarizer";
+import { GitAnalyzer } from "@shared/git/gitAnalyzer";
+import { PackageDetector } from "@shared/utils/packageDetector";
+import { AISummarizer } from "@shared/ai/aiSummarizer";
 
 export async function generateStandupCommand() {
   try {
@@ -75,7 +75,7 @@ export async function generateStandupCommand() {
       );
 
       // Show detected tickets and allow user to add more
-      let ticketList = recentTickets.join(", ") || "None detected";
+      const ticketList = recentTickets.join(", ") || "None detected";
       const ticketInput = await vscode.window.showInputBox({
         prompt: "Enter ticket IDs (comma-separated, e.g., ENG-123, PROJ-456)",
         value: ticketList,

@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import simpleGit from "simple-git";
-import { getLogger } from "../../shared/utils/logger";
+import { getLogger } from "@shared/utils/logger";
 
 export interface BranchAssociation {
   ticketId: string;

@@ -26148,7 +26148,7 @@
       ] }),
       labels && labels.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { className: TicketMetadata_default.section, children: [
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("h3", { className: TicketMetadata_default.heading, children: "Labels" }),
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: TicketMetadata_default.labels, children: labels.map((label) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(Badge, { text: label, color: "#6366f1" }, label)) })
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: TicketMetadata_default.labels, children: labels.map((label) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(Badge, { color: "#6366f1", children: label }, label)) })
       ] })
     ] });
   };
@@ -29285,7 +29285,7 @@
           case "underline":
             element = /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("u", { children: element }, key);
             break;
-          case "link":
+          case "link": {
             const attrs = mark.attrs;
             element = /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
               "a",
@@ -29299,6 +29299,7 @@
               key
             );
             break;
+          }
         }
       }
     }
@@ -29799,7 +29800,7 @@
   function App() {
     const { postMessage, onMessage } = useVSCode();
     const [issue, setIssue] = (0, import_react6.useState)(
-      window.__INITIAL_STATE__?.issue || null
+      window.__JIRA_INITIAL_STATE__?.issue || null
     );
     const [transitions, setTransitions] = (0, import_react6.useState)([]);
     const [users, setUsers] = (0, import_react6.useState)([]);

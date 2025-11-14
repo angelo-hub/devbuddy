@@ -9,7 +9,7 @@ import * as vscode from "vscode";
 function parseLinearOrg(url: string): string | null {
   try {
     // Remove protocol and www if present
-    let cleaned = url.replace(/^https?:\/\//, "").replace(/^www\./, "");
+    const cleaned = url.replace(/^https?:\/\//, "").replace(/^www\./, "");
     
     // Check if it's a linear.app URL
     if (!cleaned.startsWith("linear.app/")) {

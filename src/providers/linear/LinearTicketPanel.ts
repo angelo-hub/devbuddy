@@ -2,8 +2,8 @@ import * as vscode from "vscode";
 import * as path from "path";
 import { LinearClient } from "./LinearClient";
 import { LinearIssue } from "./types";
-import { BranchAssociationManager } from "../../shared/git/branchAssociationManager";
-import { getLogger } from "../../shared/utils/logger";
+import { BranchAssociationManager } from "@shared/git/branchAssociationManager";
+import { getLogger } from "@shared/utils/logger";
 
 /**
  * Convert Linear web URL to desktop app URL if preference is enabled
@@ -553,7 +553,7 @@ export class LinearTicketPanel {
 <body>
   <div id="root"></div>
   <script nonce="${nonce}">
-    window.__INITIAL_STATE__ = ${JSON.stringify(initialState)};
+    window.__LINEAR_INITIAL_STATE__ = ${JSON.stringify(initialState)};
   </script>
   <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>

@@ -716,7 +716,7 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile && npm run compile:webview",
-    "compile": "tsc -p ./",
+    "compile": "tsc -p ./ && tsc-alias -p ./tsconfig.json",
     "compile:webview": "node webview-ui/build.js",
     "watch": "tsc -watch -p ./",
     "watch:webview": "node webview-ui/build.js --watch",
@@ -752,6 +752,7 @@
     "prettier": "^3.4.2",
     "sharp": "^0.34.5",
     "standard-version": "^9.5.0",
+    "tsc-alias": "^1.8.16",
     "typescript": "^5.9.3"
   },
   "dependencies": {

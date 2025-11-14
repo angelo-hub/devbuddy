@@ -17,7 +17,8 @@ export class TemplateParser {
     const sections: TemplateSection[] = [];
     let currentSection: Partial<TemplateSection> | null = null;
     let currentContent: string[] = [];
-    let lineIndex = 0;
+    // TODO: Is this index used?
+    const lineIndex = 0;
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];

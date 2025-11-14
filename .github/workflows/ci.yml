@@ -31,9 +31,8 @@ jobs:
       - name: Run type check
         run: npm run type-check
         
-      # TODO: Re-enable once ESLint is configured
-      # - name: Run lint
-      #   run: npm run lint
+      - name: Run lint
+        run: npm run lint
         
       - name: Compile extension
         run: npm run compile

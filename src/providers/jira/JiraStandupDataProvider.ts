@@ -1,4 +1,4 @@
-import { BaseStandupDataProvider, StandupTicket } from "../../shared/base/BaseStandupDataProvider";
+import { BaseStandupDataProvider, StandupTicket } from "@shared/base/BaseStandupDataProvider";
 import { JiraCloudClient } from "./cloud/JiraCloudClient";
 
 /**

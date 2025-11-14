@@ -448,6 +448,7 @@ export class TelemetryManager {
    */
   private sanitizeString(str: string): string {
     // Remove file paths
+    // eslint-disable-next-line no-useless-escape
     str = str.replace(/\/[\w\/\-_.]+/g, "[PATH]");
     // Remove URLs
     str = str.replace(/https?:\/\/[^\s]+/g, "[URL]");

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button } from "../../../shared/components/Button";
+import { Button } from "@shared/components/Button";
 import styles from "./TicketHeader.module.css";
 
 interface TicketHeaderProps {

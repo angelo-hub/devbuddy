@@ -124,6 +124,7 @@ export class GitPermalinkGenerator {
 
   /**
    * Format code context for markdown
+   * Returns a properly formatted markdown code block without baked-in line numbers
    */
   formatCodeContextForMarkdown(
     context: CodeContext,
@@ -135,13 +136,8 @@ export class GitPermalinkGenerator {
       ...context.contextAfter,
     ];
 
-    const startLineNum = context.lineNumber - context.contextBefore.length;
-    const numberedLines = allLines.map((line, index) => {
-      const lineNum = startLineNum + index;
-      return `${lineNum}  ${line}`;
-    });
-
-    const codeBlock = numberedLines.join("\n");
+    // Just join the lines without line numbers - markdown renderers handle this better
+    const codeBlock = allLines.join("\n");
 
     // Detect language from file extension if not provided
     if (!language) {
@@ -149,6 +145,8 @@ export class GitPermalinkGenerator {
       language = this.getLanguageFromExtension(ext || "");
     }
 
+    // Return properly formatted markdown code block
+    // The language hint helps with syntax highlighting
     return `\`\`\`${language}\n${codeBlock}\n\`\`\``;
   }
 
