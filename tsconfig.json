@@ -10,7 +10,18 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@core/*": ["core/*"],
+      "@pro/*": ["pro/*"],
+      "@shared/*": ["shared/*"],
+      "@providers/*": ["providers/*"],
+      "@commands/*": ["commands/*"],
+      "@chat/*": ["chat/*"],
+      "@utils/*": ["utils/*"],
+      "@views/*": ["views/*"]
+    }
   },
   "exclude": ["node_modules", ".vscode-test", "webview-ui"]
 }

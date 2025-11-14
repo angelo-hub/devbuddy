@@ -128,3 +128,4 @@ A: Azure Portal → Your Application Insights resource → Logs. Use query: `cus
 
 **Need help?** Check the detailed guides above or open an issue on GitHub.
 
+
