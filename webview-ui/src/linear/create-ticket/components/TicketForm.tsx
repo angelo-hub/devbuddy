@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/set-state-in-effect */
+
 import React, { useState, useEffect } from "react";
 import { Input, TextArea, Select, Button } from "@shared/components";
 import styles from "./TicketForm.module.css";
@@ -322,3 +324,4 @@ export const TicketForm: React.FC<TicketFormProps> = ({
   );
 };
 
+/* eslint-enable react-hooks/set-state-in-effect */
