@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.5.0](https://github.com/angelo-hub/devbuddy/compare/v0.4.0...v0.5.0) (2025-11-14)
+
+
+### ✨ Features
+
+* seperate features to pro ([d23a924](https://github.com/angelo-hub/devbuddy/commit/d23a9241f664e00f0cf97da6cbe26ea230a84848))
+
+
+### 🐛 Bug Fixes
+
+* linting ([cb87c29](https://github.com/angelo-hub/devbuddy/commit/cb87c293e67c9bd2d87196b4a42e95c11f7f5212))
+* update the components ([5435640](https://github.com/angelo-hub/devbuddy/commit/543564016ce64edae63658cf88424c00c7b927f2))
+
 ## [0.4.0](https://github.com/angelo-hub/devbuddy/compare/v0.3.0...v0.4.0) (2025-11-14)
 
 
