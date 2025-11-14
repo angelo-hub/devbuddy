@@ -384,7 +384,7 @@ export class JiraIssuePanel {
 <body>
   <div id="root"></div>
   <script nonce="${nonce}">
-    window.__INITIAL_STATE__ = ${JSON.stringify(initialState)};
+    window.__JIRA_INITIAL_STATE__ = ${JSON.stringify(initialState)};
   </script>
   <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>

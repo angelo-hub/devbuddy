@@ -30621,13 +30621,13 @@
   function App() {
     const { postMessage, onMessage } = useVSCode();
     const [issue, setIssue] = (0, import_react10.useState)(
-      window.__INITIAL_STATE__?.issue || null
+      window.__LINEAR_INITIAL_STATE__?.issue || null
     );
     const [workflowStates, setWorkflowStates] = (0, import_react10.useState)(
-      window.__INITIAL_STATE__?.workflowStates || []
+      window.__LINEAR_INITIAL_STATE__?.workflowStates || []
     );
     const [users, setUsers] = (0, import_react10.useState)(
-      window.__INITIAL_STATE__?.users || []
+      window.__LINEAR_INITIAL_STATE__?.users || []
     );
     const [branchInfo, setBranchInfo] = (0, import_react10.useState)(null);
     const [allBranches, setAllBranches] = (0, import_react10.useState)(null);

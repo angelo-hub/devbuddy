@@ -135,7 +135,7 @@ type MessageFromWebview =
 // Get initial state from window object (passed from extension)
 declare global {
   interface Window {
-    __INITIAL_STATE__?: {
+    __JIRA_INITIAL_STATE__?: {
       issue: JiraIssue;
     };
   }
@@ -148,7 +148,7 @@ function App() {
   >();
 
   const [issue, setIssue] = useState<JiraIssue | null>(
-    window.__INITIAL_STATE__?.issue || null
+    window.__JIRA_INITIAL_STATE__?.issue || null
   );
   const [transitions, setTransitions] = useState<JiraTransition[]>([]);
   const [users, setUsers] = useState<JiraUser[]>([]);

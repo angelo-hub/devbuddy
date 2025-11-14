@@ -91,7 +91,8 @@ export const TicketForm: React.FC<TicketFormProps> = ({
     }
   }, [selectedTemplateId, templates]);
 
-  const handleTeamChange = (value: string) => {
+  const handleTeamChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
     setSelectedTeamId(value);
     setSelectedTemplateId("");
     onTeamChange(value);
@@ -151,7 +152,7 @@ export const TicketForm: React.FC<TicketFormProps> = ({
           <label className={styles.label}>Template (Optional)</label>
           <Select
             value={selectedTemplateId}
-            onChange={(value) => setSelectedTemplateId(value)}
+            onChange={(e) => setSelectedTemplateId(e.target.value)}
           >
             <option value="">No template</option>
             {templates.map((template) => (
@@ -207,8 +208,8 @@ export const TicketForm: React.FC<TicketFormProps> = ({
             <label className={styles.label}>Priority</label>
             <Select
               value={priority?.toString() || ""}
-              onChange={(value) =>
-                setPriority(value ? parseInt(value, 10) : undefined)
+              onChange={(e) =>
+                setPriority(e.target.value ? parseInt(e.target.value, 10) : undefined)
               }
             >
               <option value="">No Priority</option>
@@ -225,7 +226,7 @@ export const TicketForm: React.FC<TicketFormProps> = ({
               <label className={styles.label}>Status</label>
               <Select
                 value={stateId || ""}
-                onChange={(value) => setStateId(value || undefined)}
+                onChange={(e) => setStateId(e.target.value || undefined)}
               >
                 <option value="">Default status</option>
                 {workflowStates.map((state) => (
@@ -243,7 +244,7 @@ export const TicketForm: React.FC<TicketFormProps> = ({
               <label className={styles.label}>Assignee</label>
               <Select
                 value={assigneeId || ""}
-                onChange={(value) => setAssigneeId(value || undefined)}
+                onChange={(e) => setAssigneeId(e.target.value || undefined)}
               >
                 <option value="">Unassigned</option>
                 {users.map((user) => (
@@ -261,7 +262,7 @@ export const TicketForm: React.FC<TicketFormProps> = ({
               <label className={styles.label}>Project</label>
               <Select
                 value={projectId || ""}
-                onChange={(value) => setProjectId(value || undefined)}
+                onChange={(e) => setProjectId(e.target.value || undefined)}
               >
                 <option value="">No project</option>
                 {projects.map((project) => (

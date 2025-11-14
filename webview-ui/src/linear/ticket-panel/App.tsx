@@ -24,7 +24,7 @@ import styles from "./App.module.css";
 // Get initial state from window object (passed from extension)
 declare global {
   interface Window {
-    __INITIAL_STATE__?: {
+    __LINEAR_INITIAL_STATE__?: {
       issue: LinearIssue;
       workflowStates: WorkflowState[];
       users?: LinearUser[];
@@ -39,13 +39,13 @@ function App() {
   >();
 
   const [issue, setIssue] = useState<LinearIssue | null>(
-    window.__INITIAL_STATE__?.issue || null
+    window.__LINEAR_INITIAL_STATE__?.issue || null
   );
   const [workflowStates, setWorkflowStates] = useState<WorkflowState[]>(
-    window.__INITIAL_STATE__?.workflowStates || []
+    window.__LINEAR_INITIAL_STATE__?.workflowStates || []
   );
   const [users, setUsers] = useState<LinearUser[]>(
-    window.__INITIAL_STATE__?.users || []
+    window.__LINEAR_INITIAL_STATE__?.users || []
   );
   const [branchInfo, setBranchInfo] = useState<{
     branchName: string | null;

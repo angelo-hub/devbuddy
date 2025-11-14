@@ -553,7 +553,7 @@ export class LinearTicketPanel {
 <body>
   <div id="root"></div>
   <script nonce="${nonce}">
-    window.__INITIAL_STATE__ = ${JSON.stringify(initialState)};
+    window.__LINEAR_INITIAL_STATE__ = ${JSON.stringify(initialState)};
   </script>
   <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>
