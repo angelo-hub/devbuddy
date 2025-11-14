@@ -109,6 +109,12 @@ export class JiraTicketPanel {
       }
     );
 
+    // Use custom ticket icons for light and dark themes
+    panel.iconPath = {
+      light: vscode.Uri.joinPath(extensionUri, 'resources', 'ticket-icon-light.svg'),
+      dark: vscode.Uri.joinPath(extensionUri, 'resources', 'ticket-icon-dark.svg')
+    };
+
     JiraTicketPanel.currentPanel = new JiraTicketPanel(
       panel,
       extensionUri,

@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/set-state-in-effect */
+
 import React, { useState, useEffect } from "react";
 import { Input, TextArea, Select, Button } from "@shared/components";
 import styles from "./TicketForm.module.css";
@@ -70,6 +72,8 @@ export const TicketForm: React.FC<TicketFormProps> = ({
   useEffect(() => {
     if (teams.length === 1 && !selectedTeamId) {
       const teamId = teams[0].id;
+      // TODO: This is a bit hacky, we should probably lift the state up to the parent component and handle this logic there instead of in the form component
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedTeamId(teamId);
       onTeamChange(teamId);
     }
@@ -81,6 +85,8 @@ export const TicketForm: React.FC<TicketFormProps> = ({
       const template = templates.find((t) => t.id === selectedTemplateId);
       if (template?.templateData) {
         const data = template.templateData;
+        // TODO: This is a bit hacky, we should probably lift the state up to the parent component and handle this logic there instead of in the form component
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (data.title) setTitle(data.title);
         if (data.description) setDescription(data.description);
         if (data.priority !== undefined) setPriority(data.priority);
@@ -318,3 +324,4 @@ export const TicketForm: React.FC<TicketFormProps> = ({
   );
 };
 
+/* eslint-enable react-hooks/set-state-in-effect */
