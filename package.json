@@ -215,6 +215,36 @@
         "title": "DevBuddy: Copy Issue URL",
         "icon": "$(link)",
         "category": "Jira"
+      },
+      {
+        "command": "devBuddy.activateProLicense",
+        "title": "DevBuddy: Activate Pro License 💎",
+        "icon": "$(star)",
+        "category": "DevBuddy Pro"
+      },
+      {
+        "command": "devBuddy.showLicenseInfo",
+        "title": "DevBuddy: Show License Info",
+        "icon": "$(info)",
+        "category": "DevBuddy Pro"
+      },
+      {
+        "command": "devBuddy.deactivateProLicense",
+        "title": "DevBuddy: Deactivate Pro License",
+        "icon": "$(close)",
+        "category": "DevBuddy Pro"
+      },
+      {
+        "command": "devBuddy.showProFeatures",
+        "title": "DevBuddy: View Pro Features 💎",
+        "icon": "$(star-full)",
+        "category": "DevBuddy Pro"
+      },
+      {
+        "command": "devBuddy.pro.openAdvancedAnalytics",
+        "title": "DevBuddy Pro: Open Advanced Analytics 💎",
+        "icon": "$(graph)",
+        "category": "DevBuddy Pro"
       }
     ],
     "viewsContainers": {
@@ -747,8 +777,8 @@
     "@vscode/vsce": "^3.6.2",
     "esbuild": "^0.25.12",
     "eslint": "^8.56.0",
-    "eslint-plugin-react": "^7.37.2",
-    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
     "prettier": "^3.4.2",
     "sharp": "^0.34.5",
     "standard-version": "^9.5.0",
