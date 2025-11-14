@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import { renderMarkdown } from "@shared/utils/markdownRenderer";
 import styles from "./TicketDescription.module.css";
 
 interface TicketDescriptionProps {
@@ -24,6 +25,11 @@ export const TicketDescription: React.FC<TicketDescriptionProps> = ({
     setEditedDescription(description || "");
     setIsEditing(false);
   };
+
+  // Memoize the rendered markdown to prevent infinite re-renders
+  const renderedDescription = useMemo(() => {
+    return description ? renderMarkdown(description) : null;
+  }, [description]);
 
   return (
     <div className={styles.section}>
@@ -72,8 +78,8 @@ export const TicketDescription: React.FC<TicketDescriptionProps> = ({
         </>
       ) : (
         <>
-          {description ? (
-            <div className={styles.description}>{description}</div>
+          {renderedDescription ? (
+            <div className={styles.description}>{renderedDescription}</div>
           ) : (
             <div className={styles.emptyState}>No description provided</div>
           )}

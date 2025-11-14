@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useMemo } from "react";
+import { renderMarkdown } from "@shared/utils/markdownRenderer";
 import styles from "./Comments.module.css";
 
 interface Comment {
@@ -31,6 +32,14 @@ function formatRelativeTime(dateString: string): string {
   if (seconds < 2592000) return `${Math.floor(seconds / 604800)}w ago`;
   return date.toLocaleDateString();
 }
+
+// Memoized comment renderer to prevent re-renders
+const CommentBody: React.FC<{ body: string }> = React.memo(({ body }) => {
+  const renderedBody = useMemo(() => renderMarkdown(body), [body]);
+  return <>{renderedBody}</>;
+});
+
+CommentBody.displayName = 'CommentBody';
 
 export const Comments: React.FC<CommentsProps> = ({ comments }) => {
   const commentCount = comments?.nodes?.length || 0;
@@ -83,7 +92,9 @@ export const Comments: React.FC<CommentsProps> = ({ comments }) => {
                     </span>
                   </div>
                 </div>
-                <div className={styles.commentBody}>{comment.body}</div>
+                <div className={styles.commentBody}>
+                  <CommentBody body={comment.body} />
+                </div>
               </div>
             </div>
           ))}

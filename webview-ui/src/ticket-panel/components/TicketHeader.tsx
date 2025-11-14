@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Badge } from "../../shared/components";
+import { Badge } from "@shared/components";
 import { ShareButton } from "./ShareButton";
 import styles from "./TicketHeader.module.css";
 

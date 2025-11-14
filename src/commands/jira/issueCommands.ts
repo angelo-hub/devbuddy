@@ -5,9 +5,9 @@
  */
 
 import * as vscode from "vscode";
-import { JiraCloudClient } from "../../providers/jira/cloud/JiraCloudClient";
-import { JiraIssue } from "../../providers/jira/common/types";
-import { getLogger } from "../../shared/utils/logger";
+import { JiraCloudClient } from "@providers/jira/cloud/JiraCloudClient";
+import { JiraIssue } from "@providers/jira/common/types";
+import { getLogger } from "@shared/utils/logger";
 
 const logger = getLogger();
 

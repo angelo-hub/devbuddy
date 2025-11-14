@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
-import { BaseTicketProvider } from "../base/BaseTicketProvider";
-import { LinearClient } from "../../providers/linear/LinearClient";
-import { JiraCloudClient } from "../../providers/jira/cloud/JiraCloudClient";
-import { BaseJiraClient } from "../../providers/jira/common/BaseJiraClient";
+import { BaseTicketProvider } from "@shared/base/BaseTicketProvider";
+import { LinearClient } from "@providers/linear/LinearClient";
+import { JiraCloudClient } from "@providers/jira/cloud/JiraCloudClient";
+import { BaseJiraClient } from "@providers/jira/common/BaseJiraClient";
 
 /**
  * Supported platform types

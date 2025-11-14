@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
-import { GitAnalyzer } from "../git/gitAnalyzer";
-import { AISummarizer } from "../ai/aiSummarizer";
-import { BaseStandupDataProvider, StandupGenerationOptions, StandupTicket } from "../base/BaseStandupDataProvider";
-import { formatTicketReferencesInText } from "../utils/linkFormatter";
-import { getLogger } from "../utils/logger";
+import { GitAnalyzer } from "@shared/git/gitAnalyzer";
+import { AISummarizer } from "@shared/ai/aiSummarizer";
+import { BaseStandupDataProvider, StandupGenerationOptions, StandupTicket } from "@shared/base/BaseStandupDataProvider";
+import { formatTicketReferencesInText } from "@shared/utils/linkFormatter";
+import { getLogger } from "@shared/utils/logger";
 
 const logger = getLogger();
 

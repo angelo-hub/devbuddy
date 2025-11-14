@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { FallbackSummarizer } from "./fallbackSummarizer";
-import { getLogger } from "../utils/logger";
+import { getLogger } from "@shared/utils/logger";
 
 export interface AISummaryRequest {
   commits: Array<{ hash: string; message: string; branch?: string }>;

@@ -6,7 +6,7 @@
  */
 
 import * as vscode from "vscode";
-import { getLogger } from "../../../shared/utils/logger";
+import { getLogger } from "@shared/utils/logger";
 import { JiraCloudClient } from "./JiraCloudClient";
 
 const logger = getLogger();

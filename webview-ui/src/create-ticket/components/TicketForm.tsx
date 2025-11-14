@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Input, TextArea, Select, Button } from "../../shared/components";
+import { Input, TextArea, Select, Button } from "@shared/components";
 import styles from "./TicketForm.module.css";
 
 interface TicketFormProps {

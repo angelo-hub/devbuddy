@@ -3,9 +3,9 @@ import {
   LinearClient,
   LinearIssue,
   LinearProject,
-} from "../utils/linearClient";
-import { BranchAssociationManager } from "../utils/branchAssociationManager";
-import { getLogger } from "../utils/logger";
+} from "@utils/linearClient";
+import { BranchAssociationManager } from "@shared/git/branchAssociationManager";
+import { getLogger } from "@shared/utils/logger";
 
 export class LinearTicketTreeItem extends vscode.TreeItem {
   constructor(

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useVSCode } from "../../shared/hooks/useVSCode";
+import { useVSCode } from "@shared/hooks/useVSCode";
 import {
   TicketPanelMessageFromWebview,
   TicketPanelMessageFromExtension,

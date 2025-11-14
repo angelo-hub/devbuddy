@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useVSCode } from "../shared/hooks/useVSCode";
-import { Button } from "../shared/components";
+import { useVSCode } from "@shared/hooks/useVSCode";
+import { Button } from "@shared/components";
 import { TicketForm } from "./components/TicketForm";
 import styles from "./App.module.css";
 

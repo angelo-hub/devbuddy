@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "../../../shared/components/index.ts";
+import { Button } from "@shared/components";
 import styles from "./ResultsDisplay.module.css";
 
 interface ResultsData {

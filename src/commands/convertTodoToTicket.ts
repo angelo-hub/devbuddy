@@ -1,12 +1,89 @@
 import * as vscode from "vscode";
-import { LinearClient } from "../providers/linear/LinearClient";
-import { LinearTeam } from "../providers/linear/types";
-import { JiraCloudClient } from "../providers/jira/cloud/JiraCloudClient";
-import { JiraProject, CreateJiraIssueInput } from "../providers/jira/common/types";
-import { GitPermalinkGenerator, CodeContext, CodePermalink } from "../shared/git/gitPermalinkGenerator";
-import { getCurrentPlatform } from "../shared/utils/platformDetector";
-import { ADFDocument } from "../shared/jira/adfTypes";
-import { ADFBuilder, adf, getADFLanguageFromExtension } from "../shared/jira/adfBuilder";
+import { LinearClient } from "@providers/linear/LinearClient";
+import { LinearTeam } from "@providers/linear/types";
+import { JiraCloudClient } from "@providers/jira/cloud/JiraCloudClient";
+import { JiraProject, CreateJiraIssueInput } from "@providers/jira/common/types";
+import { GitPermalinkGenerator, CodeContext, CodePermalink } from "@shared/git/gitPermalinkGenerator";
+import { getCurrentPlatform } from "@shared/utils/platformDetector";
+import { ADFDocument } from "@shared/jira/adfTypes";
+import { ADFBuilder, adf, getADFLanguageFromExtension } from "@shared/jira/adfBuilder";
+import { MarkdownBuilder, md } from "@shared/markdown/markdownBuilder";
+
+/**
+ * Helper to convert TODO information to Linear Markdown format
+ * Creates a rich, formatted description with code context and permalinks
+ */
+function convertToLinearMarkdown(
+  description: string,
+  permalinkInfo: CodePermalink | null,
+  codeContext: CodeContext | null,
+  fileName: string,
+  lineNumber: number,
+  language?: string
+): string {
+  const builder = new MarkdownBuilder();
+
+  if (permalinkInfo && codeContext) {
+    // Location section
+    builder.heading('📍 Location', 2);
+    builder.paragraph();
+    builder.paragraph(`**File:** \`${fileName}\``);
+    builder.paragraph(`**Line:** ${lineNumber}`);
+    builder.paragraph();
+
+    // Links section
+    builder.heading('🔗 Links', 2);
+    builder.paragraph();
+    const providerName = permalinkInfo.provider === "github" 
+      ? "GitHub" 
+      : permalinkInfo.provider.charAt(0).toUpperCase() + permalinkInfo.provider.slice(1);
+    builder.paragraph(md.link(`View in ${providerName}`, permalinkInfo.url));
+    builder.paragraph();
+    builder.paragraph(`**Branch:** \`${permalinkInfo.branch}\``);
+    builder.paragraph(`**Commit:** \`${permalinkInfo.commitSha.substring(0, 7)}\``);
+
+    // Code context section
+    builder.heading('📝 Code Context', 2);
+    builder.paragraph();
+
+    // Build code block
+    const codeLines = [
+      ...codeContext.contextBefore,
+      codeContext.lineContent,
+      ...codeContext.contextAfter,
+    ];
+    const codeText = codeLines.join("\n");
+    builder.codeBlock(codeText, language || "text");
+
+    // Add user's additional description if provided
+    if (description && description.trim()) {
+      builder.paragraph();
+      builder.heading('📋 Additional Notes', 2);
+      builder.paragraph();
+      builder.paragraph(description.trim());
+    }
+
+    // Footer
+    builder.paragraph();
+    builder.horizontalRule();
+    builder.paragraph(`*Created by **DevBuddy** for VS Code*`);
+  } else {
+    // Simple fallback without permalink/code context
+    builder.paragraph(`**Found in:** \`${fileName}:${lineNumber}\``);
+    builder.paragraph();
+    
+    if (description && description.trim()) {
+      builder.paragraph(description);
+    }
+
+    // Footer
+    builder.paragraph();
+    builder.horizontalRule();
+    builder.paragraph(`*Created by **DevBuddy** for VS Code*`);
+  }
+
+  return builder.build();
+}
 
 /**
  * Helper to convert TODO information to Jira ADF format
@@ -208,37 +285,50 @@ async function convertTodoToJiraTicket() {
         // Step 2: Get description
         progress.report({ message: "Enter description..." });
 
-        // Build description with permalink and code context
-        let defaultDescription = "";
+        // Ask user for their own description (simple input)
+        const userDescription = await vscode.window.showInputBox({
+          prompt: "Additional Notes (optional)",
+          placeHolder: "Add any additional context or notes about this issue...",
+        });
+
+        if (token.isCancellationRequested) {
+          return;
+        }
+
+        // Build the full description with generated context + user notes
+        let fullDescription = "";
 
         if (permalinkInfo && codeContext && permalinkGenerator) {
           const language = permalinkGenerator.getLanguageFromExtension(
             todoInfo.fileName.split(".").pop() || ""
           );
 
-          defaultDescription = `📍 Location: ${todoInfo.fileName}:${todoInfo.lineNumber}\n`;
-          defaultDescription += `🔗 View in code: ${permalinkInfo.url}\n`;
-          defaultDescription += `🌿 Branch: ${permalinkInfo.branch}\n`;
-          defaultDescription += `📝 Commit: ${permalinkInfo.commitSha.substring(0, 7)}\n\n`;
-          defaultDescription += `Code context:\n\n`;
-          // Note: For Jira, we'll convert this to plain text in ADF format later
-          defaultDescription += permalinkGenerator.formatCodeContextForMarkdown(
+          // Generate the structured context (location, links, code)
+          fullDescription = convertToLinearMarkdown(
+            "", // Empty - we'll add user description separately
+            permalinkInfo,
             codeContext,
+            todoInfo.fileName,
+            todoInfo.lineNumber,
             language
           );
+
+          // Prepend user's description if they provided one
+          if (userDescription && userDescription.trim()) {
+            fullDescription = `${userDescription.trim()}\n\n${fullDescription}`;
+          }
         } else {
           // Fallback if no permalink available
-          defaultDescription = `Found in: ${todoInfo.fileName}:${todoInfo.lineNumber}\n\n${todoInfo.context}`;
-        }
-
-        const description = await vscode.window.showInputBox({
-          prompt: "Issue Description (optional)",
-          value: defaultDescription,
-          placeHolder: "Add additional context or details",
-        });
-
-        if (token.isCancellationRequested) {
-          return;
+          if (userDescription && userDescription.trim()) {
+            fullDescription = userDescription.trim() + "\n\n";
+          }
+          fullDescription += convertToLinearMarkdown(
+            todoInfo.context,
+            null,
+            null,
+            todoInfo.fileName,
+            todoInfo.lineNumber
+          );
         }
 
         // Step 3: Get projects
@@ -346,7 +436,7 @@ async function convertTodoToJiraTicket() {
 
         // Create ADF description for rich formatting
         const descriptionADF = convertToJiraADF(
-          description || "",
+          userDescription || "",
           permalinkInfo,
           codeContext,
           todoInfo.fileName,
@@ -489,45 +579,50 @@ async function convertTodoToLinearTicket() {
         // Step 2: Get description
         progress.report({ message: "Enter description..." });
 
-        // Build description with permalink and code context
-        let defaultDescription = "";
+        // Ask user for their own description (simple input)
+        const userDescription = await vscode.window.showInputBox({
+          prompt: "Additional Notes (optional)",
+          placeHolder: "Add any additional context or notes about this ticket...",
+        });
+
+        if (token.isCancellationRequested) {
+          return;
+        }
+
+        // Build the full description with generated context + user notes
+        let fullDescription = "";
 
         if (permalinkInfo && codeContext && permalinkGenerator) {
           const language = permalinkGenerator.getLanguageFromExtension(
             todoInfo.fileName.split(".").pop() || ""
           );
 
-          defaultDescription = `📍 **Location:** \`${todoInfo.fileName}:${todoInfo.lineNumber}\`\n`;
-          defaultDescription += `🔗 **View in code:** [${
-            permalinkInfo.provider === "github"
-              ? "GitHub"
-              : permalinkInfo.provider
-          }](${permalinkInfo.url})\n`;
-          defaultDescription += `🌿 **Branch:** \`${permalinkInfo.branch}\`\n`;
-          defaultDescription += `📝 **Commit:** \`${permalinkInfo.commitSha.substring(
-            0,
-            7
-          )}\`\n\n`;
-          defaultDescription += `**Code context:**\n\n`;
-          defaultDescription += permalinkGenerator.formatCodeContextForMarkdown(
+          // Generate the structured context (location, links, code)
+          fullDescription = convertToLinearMarkdown(
+            "", // Empty - we'll add user description separately
+            permalinkInfo,
             codeContext,
+            todoInfo.fileName,
+            todoInfo.lineNumber,
             language
           );
+
+          // Prepend user's description if they provided one
+          if (userDescription && userDescription.trim()) {
+            fullDescription = `${userDescription.trim()}\n\n${fullDescription}`;
+          }
         } else {
           // Fallback if no permalink available
-          defaultDescription = `Found in: ${todoInfo.fileName}:${todoInfo.lineNumber}\n\n${todoInfo.context}`;
-        }
-
-        const description = await vscode.window.showInputBox({
-          prompt: "Ticket Description (optional)",
-          value: defaultDescription,
-          placeHolder: "Add additional context or details",
-          // Upgrade to multiline after updating vscode engine
-          // multiline: true,
-        });
-
-        if (token.isCancellationRequested) {
-          return;
+          if (userDescription && userDescription.trim()) {
+            fullDescription = userDescription.trim() + "\n\n";
+          }
+          fullDescription += convertToLinearMarkdown(
+            todoInfo.context,
+            null,
+            null,
+            todoInfo.fileName,
+            todoInfo.lineNumber
+          );
         }
 
         // Step 3: Get teams
@@ -624,7 +719,7 @@ async function convertTodoToLinearTicket() {
         const issue = await linearClient.createIssue({
           teamId: selectedTeam.id,
           title: title,
-          description: description || undefined,
+          description: fullDescription || undefined,
           priority: priority,
         });
 

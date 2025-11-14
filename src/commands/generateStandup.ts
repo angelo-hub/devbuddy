@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
-import { GitAnalyzer } from "../shared/git/gitAnalyzer";
-import { PackageDetector } from "../shared/utils/packageDetector";
-import { AISummarizer } from "../shared/ai/aiSummarizer";
+import { GitAnalyzer } from "@shared/git/gitAnalyzer";
+import { PackageDetector } from "@shared/utils/packageDetector";
+import { AISummarizer } from "@shared/ai/aiSummarizer";
 
 export async function generateStandupCommand() {
   try {

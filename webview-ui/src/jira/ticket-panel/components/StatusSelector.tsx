@@ -1,5 +1,5 @@
 import React from "react";
-import { Select } from "../../../shared/components/Select";
+import { Select } from "@shared/components/Select";
 import styles from "./StatusSelector.module.css";
 
 interface StatusSelectorProps {

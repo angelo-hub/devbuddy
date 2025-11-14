@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
 import * as path from "path";
-import { GitAnalyzer } from "../utils/gitAnalyzer";
-import { AISummarizer } from "../utils/aiSummarizer";
-import { LinearClient } from "../utils/linearClient";
-import { formatTicketReferencesInText } from "../utils/linkFormatter";
+import { GitAnalyzer } from "@shared/git/gitAnalyzer";
+import { AISummarizer } from "@shared/ai/aiSummarizer";
+import { LinearClient } from "@utils/linearClient";
+import { formatTicketReferencesInText } from "@shared/utils/linkFormatter";
 
 export class StandupBuilderPanel {
   public static currentPanel: StandupBuilderPanel | undefined;

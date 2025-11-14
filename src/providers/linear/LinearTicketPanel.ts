@@ -2,8 +2,8 @@ import * as vscode from "vscode";
 import * as path from "path";
 import { LinearClient } from "./LinearClient";
 import { LinearIssue } from "./types";
-import { BranchAssociationManager } from "../../shared/git/branchAssociationManager";
-import { getLogger } from "../../shared/utils/logger";
+import { BranchAssociationManager } from "@shared/git/branchAssociationManager";
+import { getLogger } from "@shared/utils/logger";
 
 /**
  * Convert Linear web URL to desktop app URL if preference is enabled
