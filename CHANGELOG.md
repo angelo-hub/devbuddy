@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.4.0](https://github.com/angelo-hub/devbuddy/compare/v0.3.0...v0.4.0) (2025-11-14)
+
+
+### ✨ Features
+
+* improved the walkthroughs ([57f58b8](https://github.com/angelo-hub/devbuddy/commit/57f58b8d67cc1288fc8fecfbd0e5aaf884e0b664))
+* linear and jira first class support ([f9d5015](https://github.com/angelo-hub/devbuddy/commit/f9d50155dff4dbf99a8e4d00823ad91553cf9527))
+* more updates to jira support ([b6d04c0](https://github.com/angelo-hub/devbuddy/commit/b6d04c059aab0a2662a5cea6c4dcce5d9644458a))
+
+
+### 🐛 Bug Fixes
+
+* first time setup ([26b2419](https://github.com/angelo-hub/devbuddy/commit/26b24199419405acb24c5aab9f4d25f0a585b5d2))
+* linting enabled ([c3eccd8](https://github.com/angelo-hub/devbuddy/commit/c3eccd89da9ac56b9106f8095a6bfee6b504ca5a))
+* typecheck now runs ([ff79e71](https://github.com/angelo-hub/devbuddy/commit/ff79e713b3f9216c07ebac7ecea0a2a49b93a384))
+* typecheck now runs ([73e376f](https://github.com/angelo-hub/devbuddy/commit/73e376f08aeca6ff923119ac52256e316a70ab51))
+* typecheck now runs ([0401745](https://github.com/angelo-hub/devbuddy/commit/04017459176dca504b21bcb1e462eb17261cdee2))
+
 ## 0.3.0 (2025-11-10)
 
 
