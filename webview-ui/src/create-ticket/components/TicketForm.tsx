@@ -70,6 +70,7 @@ export const TicketForm: React.FC<TicketFormProps> = ({
   useEffect(() => {
     if (teams.length === 1 && !selectedTeamId) {
       const teamId = teams[0].id;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedTeamId(teamId);
       onTeamChange(teamId);
     }
