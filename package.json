@@ -2,7 +2,7 @@
   "name": "dev-buddy",
   "displayName": "DevBuddy",
   "description": "Multi-platform ticket management for Linear, Jira, and more. AI-powered workflow automation for PRs, standups, and development tasks.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "publisher": "angelogirardi",
   "license": "SEE LICENSE IN LICENSE",
   "icon": "resources/icon.png",
