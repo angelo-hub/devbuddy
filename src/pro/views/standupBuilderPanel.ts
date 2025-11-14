@@ -2,8 +2,18 @@ import * as vscode from "vscode";
 import * as path from "path";
 import { GitAnalyzer } from "@shared/git/gitAnalyzer";
 import { AISummarizer } from "@shared/ai/aiSummarizer";
-import { LinearClient } from "./LinearClient";
+import { LinearClient } from "@providers/linear/LinearClient";
 import { formatTicketReferencesInText } from "@shared/utils/linkFormatter";
+import { LicenseManager } from "@pro/utils/licenseManager";
+
+/**
+ * Standup Builder Panel - PRO FEATURE
+ * 
+ * AI-powered standup generation panel for Linear.
+ * Requires valid DevBuddy Pro license or active trial.
+ * 
+ * @license Commercial - See LICENSE.pro
+ */
 
 export class StandupBuilderPanel {
   public static currentPanel: StandupBuilderPanel | undefined;

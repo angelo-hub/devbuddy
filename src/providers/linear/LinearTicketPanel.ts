@@ -155,8 +155,11 @@ export class LinearTicketPanel {
       }
     );
 
-    // Note: WebviewPanel iconPath only supports Uri (file paths), not ThemeIcon
-    // To add icons, we would need to bundle SVG/PNG files in the extension
+    // Use custom ticket icons for light and dark themes
+    panel.iconPath = {
+      light: vscode.Uri.joinPath(extensionUri, 'resources', 'ticket-icon-light.svg'),
+      dark: vscode.Uri.joinPath(extensionUri, 'resources', 'ticket-icon-dark.svg')
+    };
 
     LinearTicketPanel.currentPanel = new LinearTicketPanel(
       panel,

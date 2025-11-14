@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { generatePRSummaryCommand } from "@commands/generatePRSummary";
-import { generateStandupCommand } from "@commands/generateStandup";
+import { generatePRSummaryCommand } from "@pro/commands/ai/generatePRSummary";
+import { generateStandupCommand } from "@pro/commands/ai/generateStandup";
 import { convertTodoToTicket } from "@commands/convertTodoToTicket";
 import { TodoToTicketCodeActionProvider } from "@utils/todoCodeActionProvider";
 import { showFirstTimeSetup } from "@providers/linear/firstTimeSetup";
