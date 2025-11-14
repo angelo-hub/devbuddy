@@ -1287,7 +1287,7 @@ export function activate(context: vscode.ExtensionContext) {
             );
             break;
 
-          case "docs":
+          case "docs": {
             const readmeUri = vscode.Uri.joinPath(
               context.extensionUri,
               "README.md"
@@ -1297,7 +1297,7 @@ export function activate(context: vscode.ExtensionContext) {
               readmeUri
             );
             break;
-
+          }
           case "config":
             await vscode.commands.executeCommand(
               "workbench.action.openSettings",
