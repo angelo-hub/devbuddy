@@ -49,8 +49,8 @@ DevBuddy is a multi-platform ticket management extension for VS Code. This matri
 | Feature | Linear | Jira Cloud | Jira Server | Monday | ClickUp |
 |---------|--------|------------|-------------|--------|---------|
 | **Sidebar Tree View** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
-| **Detail Webview Panel** | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
-| **Create Issue Form** | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
+| **Detail Webview Panel** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| **Create Issue Form** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 | **Command Palette** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 | **Context Menus** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 | **Status Bar** | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
@@ -61,25 +61,25 @@ DevBuddy is a multi-platform ticket management extension for VS Code. This matri
 
 | Feature | Linear | Jira Cloud | Jira Server | Monday | ClickUp |
 |---------|--------|------------|-------------|--------|---------|
-| **Branch Creation** | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
-| **Branch Naming Convention** | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
-| **Branch Association** | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
-| **Auto-detect Branches** | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
-| **Branch Analytics** | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
-| **Checkout Branch** | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
-| **PR Detection** | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
-| **Commit Links** | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
+| **Branch Creation** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| **Branch Naming Convention** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| **Branch Association** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| **Auto-detect Branches** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| **Branch Analytics** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| **Checkout Branch** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| **PR Detection** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| **Commit Links** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 
 ### 4. AI Features
 
 | Feature | Linear | Jira Cloud | Jira Server | Monday | ClickUp |
 |---------|--------|------------|-------------|--------|---------|
-| **PR Summary Generation** | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
-| **Standup Generation** | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
-| **Commit Analysis** | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
-| **Monorepo Detection** | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
-| **Multi-Ticket Standup** | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
-| **Writing Tone Options** | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
+| **PR Summary Generation** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| **Standup Generation** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| **Commit Analysis** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| **Monorepo Detection** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| **Multi-Ticket Standup** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| **Writing Tone Options** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 | **AI Model Selection** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 | **Privacy Mode (No AI)** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 | **Fallback Summarizer** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
@@ -100,9 +100,9 @@ DevBuddy is a multi-platform ticket management extension for VS Code. This matri
 
 | Feature | Linear | Jira Cloud | Jira Server | Monday | ClickUp |
 |---------|--------|------------|-------------|--------|---------|
-| **TODO → Ticket Conversion** | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
-| **Code Permalinks** | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
-| **Multi-TODO Linking** | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
+| **TODO → Ticket Conversion** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| **Code Permalinks** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| **Multi-TODO Linking** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 | **Custom Fields** | ✅ | ⏳ | ⏳ | 🔄 | 🔄 |
 | **Sub-tasks/Issues** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 | **Attachments** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
@@ -201,11 +201,10 @@ These features work the same across all platforms:
 
 | Feature | Target Platform | Priority |
 |---------|----------------|----------|
-| **Jira Webview Panels** | Jira Cloud | High |
-| **Jira TODO Converter** | Jira Cloud | High |
-| **Jira Branch Integration** | Jira Cloud | Medium |
+| **Jira Standup Builder** | Jira Cloud | High |
+| **Jira Branch Integration** | Jira Cloud | High |
 | **Jira PR Summaries** | Jira Cloud | Medium |
-| **Jira Standup Builder** | Jira Cloud | Medium |
+| **Jira Chat Participant** | Jira Cloud | Medium |
 
 ### Medium-Term
 
@@ -231,15 +230,17 @@ These features work the same across all platforms:
 
 ## Development Status Summary
 
-### ✅ Production Ready (v0.1.0)
-- Linear: Full feature set
-- Jira Cloud: Core CRUD operations
+### ✅ Production Ready (v0.2.0)
+- **Linear**: Full feature set with AI automation and git integration
+- **Jira Cloud**: Complete issue management, git integration, and AI features - no browser needed!
 
 ### 🚧 In Development
-- Jira Cloud: Webview panels, advanced features
-- Jira Server: Initial implementation
+- Jira Cloud: Chat participant
+- Status bar integration
+- Custom fields UI
 
 ### ⏳ Planned
+- Jira Server/Data Center support
 - Monday.com integration
 - ClickUp integration
 - Additional platform support
@@ -254,9 +255,10 @@ These features work the same across all platforms:
 - **Missing**: Some admin features, webhooks
 
 ### Jira Cloud REST API v3
-- **Coverage**: ~70%
-- **Endpoints**: Issues, Projects, Users, Transitions, Comments, Boards, Sprints
-- **Missing**: Components, Versions, Custom fields UI, Filters
+- **Coverage**: ~85%
+- **Endpoints**: Issues, Projects, Users, Transitions, Comments, Boards, Sprints, Metadata
+- **User Benefits**: View, edit, and create issues directly in VS Code without browser context switching
+- **Missing**: Components, Versions, Custom fields UI, Advanced filters
 
 ### Jira Server REST API v2
 - **Coverage**: 0% (not implemented)
@@ -269,10 +271,10 @@ These features work the same across all platforms:
 | Platform | Unit Tests | Integration Tests | Manual Testing |
 |----------|------------|-------------------|----------------|
 | **Linear** | ❌ | ❌ | ✅ |
-| **Jira Cloud** | ❌ | ❌ | ⏳ |
+| **Jira Cloud** | ❌ | ❌ | ✅ |
 | **Jira Server** | ❌ | ❌ | ❌ |
 
-**Note**: Automated testing is planned for future releases.
+**Note**: Automated testing is planned for future releases. Jira Cloud webview panels have been manually tested and validated.
 
 ---
 
@@ -288,19 +290,103 @@ These features work the same across all platforms:
 
 ---
 
+## 🎯 Path to 100% Feature Parity
+
+### Linear - Missing Features (95% Complete)
+
+**Low Priority - Both Platforms:**
+| Feature | Priority | Reason |
+|---------|----------|---------|
+| **Bulk Operations** | Low | Not common in daily workflow |
+| **Velocity Tracking** | Low | Better done in platform UI |
+| **Burndown Charts** | Low | Better done in platform UI |
+| **Offline Mode** | Medium | Nice-to-have but complex |
+| **Runtime Validation** | Low | Already has TypeScript safety |
+
+**Linear is essentially feature-complete** for daily development workflow.
+
+---
+
+### Jira Cloud - Missing Features (90% Complete)
+
+**High Priority - Core Workflow:**
+| Feature | Status | Impact | Notes |
+|---------|--------|--------|-------|
+| **Status Bar Integration** | ⏳ | Medium | Show active ticket in status bar |
+
+**Medium Priority - Chat Integration:**
+| Feature | Status | Impact | Notes |
+|---------|--------|--------|-------|
+| **Chat Participant** | ⏳ | Medium | @devbuddy in VS Code chat |
+
+**Low Priority - Advanced Features:**
+| Feature | Status | Impact | Notes |
+|---------|--------|--------|-------|
+| **Custom Fields UI** | ⏳ | Low | Most custom fields work via API |
+| **Watchers** | ❌ | Low | Not common in Jira |
+| **Rate Limiting** | ⏳ | Low | Add request throttling |
+| **Bulk Operations** | ❌ | Low | Not common workflow |
+
+---
+
+### Feature Gaps Summary
+
+**What Jira Cloud Needs for 100%:**
+
+1. **Chat Participant (7 features)** - Natural language interface
+   - View tickets via chat
+   - Create tickets via chat
+   - Update status via chat
+   - Generate standups
+   - Generate PR summaries
+   - Natural language parsing
+   - Slash commands
+
+2. **Quality of Life (2 features)**
+   - Status bar integration
+   - Rate limiting
+
+**Total Missing for Jira Cloud: ~9 features**
+**Priority Breakdown:**
+- High Priority: 0 features
+- Medium Priority: 8 features (Chat participant + Status bar)
+- Low Priority: 1 feature (Rate limiting)
+
+**Major Wins in This Update:**
+- ✅ **Git Integration (8 features)** - Branch creation, association, analytics - NOW COMPLETE!
+- ✅ **AI Features (6 features)** - PR summaries, standup generation, commit analysis - NOW COMPLETE!
+- ✅ **TODO Converter (3 features)** - TODO to ticket conversion, code permalinks, multi-TODO linking - NOW COMPLETE!
+
+---
+
+### Realistic 100% Targets
+
+**Linear: Already 95% Complete**
+- Only missing nice-to-have features (bulk ops, charts, offline mode)
+- Core workflow is 100% complete
+
+**Jira Cloud: Needs 1 Sprint**
+- Sprint 1: Chat participant + Status bar integration
+
+**After this 1 sprint, Jira Cloud would be 95%+ complete** for daily development workflow.
+
+---
+
 ## Recommendations for Users
 
 ### Choose Linear if:
 - You want the most complete feature set
 - You use Linear for project management
 - You need AI-powered PR/standup features
-- You want branch association tracking
+- You want to avoid context switching between VS Code and browser
 
 ### Choose Jira Cloud if:
 - Your team uses Jira Cloud
-- You need basic issue management
-- You want production-grade validation (Zod)
-- You can wait for advanced features
+- You want to manage issues without leaving VS Code
+- You need to view and edit tickets in your editor
+- You want to avoid context switching between apps
+- You need TODO to ticket conversion with code permalinks
+- You can wait for AI chat features (coming soon)
 
 ### Wait for Future Release if:
 - You use Jira Server/Data Center
@@ -310,7 +396,7 @@ These features work the same across all platforms:
 
 ---
 
-**Last Updated**: November 8, 2025  
-**Extension Version**: 0.1.0  
-**Supported Platforms**: Linear (full), Jira Cloud (core)
+**Last Updated**: November 11, 2025  
+**Extension Version**: 0.2.0  
+**Supported Platforms**: Linear (full), Jira Cloud (full in-editor management)
 

@@ -1,0 +1,58 @@
+.container {
+  padding: 16px 20px;
+}
+
+.heading {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vscode-descriptionForeground);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 12px 0;
+}
+
+.subtasksList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.subtask {
+  padding: 10px;
+  background-color: var(--vscode-editor-background);
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.subtask:hover {
+  background-color: var(--vscode-list-hoverBackground);
+}
+
+.subtaskHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.subtaskKey {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vscode-descriptionForeground);
+}
+
+.subtaskStatus {
+  font-size: 11px;
+  padding: 2px 8px;
+  background-color: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+  border-radius: 10px;
+}
+
+.subtaskSummary {
+  font-size: 13px;
+  color: var(--vscode-foreground);
+}
+

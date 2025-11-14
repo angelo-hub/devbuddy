@@ -1,7 +1,10 @@
 .container {
-  padding: 24px;
-  max-width: 700px;
+  padding: 20px;
+  max-width: 800px;
   margin: 0 auto;
+  background-color: var(--vscode-sideBar-background);
+  color: var(--vscode-foreground);
+  font-family: var(--vscode-font-family);
 }
 
 .title {
@@ -14,7 +17,7 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
 .field {
@@ -24,62 +27,71 @@
 }
 
 .label {
-  font-weight: 500;
-  color: var(--vscode-foreground);
   font-size: 13px;
+  font-weight: 600;
+  color: var(--vscode-descriptionForeground);
 }
 
 .required {
   color: var(--vscode-errorForeground);
 }
 
-.input,
 .select,
-.textarea {
-  padding: 8px;
-  background: var(--vscode-input-background);
+.input {
+  padding: 8px 12px;
+  background-color: var(--vscode-input-background);
   color: var(--vscode-input-foreground);
   border: 1px solid var(--vscode-input-border);
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 14px;
   font-family: var(--vscode-font-family);
+  outline: none;
 }
 
-.input:focus,
 .select:focus,
-.textarea:focus {
-  outline: none;
+.input:focus {
   border-color: var(--vscode-focusBorder);
 }
 
 .textarea {
+  padding: 12px;
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border);
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: var(--vscode-font-family);
   resize: vertical;
-  min-height: 100px;
+  outline: none;
+}
+
+.textarea:focus {
+  border-color: var(--vscode-focusBorder);
 }
 
 .actions {
   margin-top: 8px;
   display: flex;
-  gap: 12px;
+  gap: 8px;
 }
 
 .createButton {
-  background: var(--vscode-button-background);
+  padding: 10px 20px;
+  background-color: var(--vscode-button-background);
   color: var(--vscode-button-foreground);
   border: none;
-  padding: 10px 20px;
   border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 .createButton:hover:not(:disabled) {
-  background: var(--vscode-button-hoverBackground);
+  background-color: var(--vscode-button-hoverBackground);
 }
 
 .createButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-

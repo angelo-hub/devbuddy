@@ -144,7 +144,7 @@ export abstract class BaseJiraClient {
   /**
    * Get issue types for a project
    */
-  abstract getIssueTypes(projectKey: string): Promise<JiraIssueType[]>;
+  abstract getIssueTypes(projectKeyOrId: string): Promise<JiraIssueType[]>;
 
   /**
    * Get priorities

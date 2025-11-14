@@ -1,6 +1,8 @@
 # AI-Powered PR Summaries
 
-Generate comprehensive, well-structured pull request descriptions automatically. Perfect for monorepos with multiple packages!
+Generate comprehensive, well-structured pull request descriptions automatically. Perfect for monorepos with multiple packages.
+
+![PR Summary Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/pr-summary-demo.gif)
 
 ## How It Works
 
@@ -14,11 +16,11 @@ Or ask in chat:
 ```
 
 ### Monorepo Intelligence
-Linear Buddy is built for monorepos and automatically:
-- 📦 **Detects affected packages** (apps/, packages/, libs/)
-- 🔍 **Analyzes changes per package** separately
-- 📊 **Shows scope** of your changes
-- ⚠️ **Warns** if too many packages are modified
+DevBuddy is built for monorepos and automatically:
+- **Detects affected packages** (apps/, packages/, libs/)
+- **Analyzes changes per package** separately
+- **Shows scope** of your changes
+- **Warns** if too many packages are modified
 
 ### AI Analysis
 The AI examines:
@@ -28,7 +30,7 @@ The AI examines:
 - Code patterns and intent
 
 ### PR Template Integration
-If you have a PR template (`.github/pull_request_template.md`), Linear Buddy:
+If you have a PR template (`.github/pull_request_template.md`), DevBuddy:
 - **Reads your template** automatically
 - **Fills in sections** based on the template structure
 - **Preserves formatting** and checkboxes
@@ -74,13 +76,13 @@ Control how the PR description sounds:
 - **Technical** - Detailed, implementation-focused
 - **Concise** - Brief, essential info only
 
-**Settings** → **Linear Buddy** → **Writing Tone**
+**Settings** → **DevBuddy** → **Writing Tone**
 
 ### Package Paths
-Tell Linear Buddy where your packages live:
+Tell DevBuddy where your packages live:
 ```json
 {
-  "linearBuddy.packagesPaths": [
+  "devBuddy.packagesPaths": [
     "packages/",
     "apps/",
     "libs/",
@@ -89,39 +91,39 @@ Tell Linear Buddy where your packages live:
 }
 ```
 
-**Settings** → **Linear Buddy** → **Packages Paths**
+**Settings** → **DevBuddy** → **Packages Paths**
 
 ### Base Branch
 Set your default base branch:
 ```json
 {
-  "linearBuddy.baseBranch": "main"  // or "master", "develop"
+  "devBuddy.baseBranch": "main"  // or "master", "develop"
 }
 ```
 
-**Settings** → **Linear Buddy** → **Base Branch**
+**Settings** → **DevBuddy** → **Base Branch**
 
 ### Max Package Scope
 Get warnings if your PR is too large:
 ```json
 {
-  "linearBuddy.maxPackageScope": 2  // Warn if > 2 packages modified
+  "devBuddy.maxPackageScope": 2  // Warn if > 2 packages modified
 }
 ```
 
-**Settings** → **Linear Buddy** → **Max Package Scope**
+**Settings** → **DevBuddy** → **Max Package Scope**
 
 ## What Gets Included
 
 The generated PR summary includes:
 
 ### Automatic Sections
-- 📋 **Overview** - High-level description
-- 📦 **Package Changes** - Per-package breakdown
-- 🧪 **Testing Notes** - How to test
-- 🎫 **Related Tickets** - Linked Linear issues
-- ⚠️ **Breaking Changes** - If any
-- 📝 **Migration Notes** - If needed
+- **Overview** - High-level description
+- **Package Changes** - Per-package breakdown
+- **Testing Notes** - How to test
+- **Related Tickets** - Linked Linear issues
+- **Breaking Changes** - If any
+- **Migration Notes** - If needed
 
 ### Smart Detection
 - Detects if changes are breaking
@@ -147,5 +149,5 @@ After generating the summary:
 4. Add screenshots or additional context
 5. Submit!
 
-Linear Buddy makes writing thorough PR descriptions effortless, even for large monorepo changes!
+DevBuddy makes writing thorough PR descriptions effortless, even for large monorepo changes.
 
