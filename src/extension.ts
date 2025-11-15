@@ -36,98 +36,264 @@ import { JiraStandupDataProvider } from "@providers/jira/JiraStandupDataProvider
 import { JiraCloudClient } from "@providers/jira/cloud/JiraCloudClient";
 import { getCurrentPlatform } from "@shared/utils/platformDetector";
 
-export function activate(context: vscode.ExtensionContext) {
-  // Initialize logger first
+export async function activate(context: vscode.ExtensionContext) {
+  // Initialize logger first (must succeed)
   const logger = getLogger();
-  logger.info("DevBuddy extension is now active");
+  logger.info("DevBuddy extension is starting activation...");
 
   // Add output channel to disposables
   context.subscriptions.push(logger.getOutputChannel());
 
-  // Load development credentials if in dev mode (before anything else)
+  // ==================== Store Context Globally ====================
+  // Store globally so firstTimeSetup and clients can access it (needed early)
+  (global as any).devBuddyContext = context;
+  
+  // Declare variables that need to be accessible throughout
+  let ticketsProvider: UniversalTicketsProvider | undefined;
+  let telemetryManager: ReturnType<typeof getTelemetryManager> | undefined;
+
+  // Load development credentials if in dev mode (non-blocking)
   loadDevCredentials(context).then(() => {
-    // Show dev mode warning banner
     showDevModeWarning();
+  }).catch((error) => {
+    logger.error("Failed to load dev credentials (non-critical)", error);
   });
 
-  // Initialize telemetry manager
-  const telemetryManager = getTelemetryManager();
-  telemetryManager.initialize(context);
-
-  // Show telemetry opt-in prompt after first-time setup
-  // Give user a chance to use the extension first before asking
-  setTimeout(async () => {
-    const config = vscode.workspace.getConfiguration("devBuddy");
-    const showPrompt = config.get<boolean>("telemetry.showPrompt", true);
-
-    if (showPrompt && !(await telemetryManager.hasBeenAsked())) {
-      await telemetryManager.showOptInPrompt();
+  // Check for test mode: simulate fresh install
+  if (process.env.DEVBUDDY_TEST_FRESH_INSTALL === "true") {
+    logger.warn("TEST MODE: Simulating fresh install...");
+    
+    // Reset everything silently
+    const secretsToDelete = ["linearApiToken", "jiraCloudApiToken", "jiraServerPassword"];
+    for (const secret of secretsToDelete) {
+      try {
+        await context.secrets.delete(secret);
+      } catch (error) {
+        // Ignore errors
+      }
     }
-  }, 10000); // Wait 10 seconds after activation
+    
+    const config = vscode.workspace.getConfiguration("devBuddy");
+    const settingsToReset = [
+      "provider", "linearOrganization", "linearTeamId", "linearDefaultTeamId",
+      "jira.type", "jira.cloud.siteUrl", "jira.cloud.email", "jira.defaultProject",
+      "ai.model", "ai.disabled", "writingTone", "branchNamingConvention",
+      "firstTimeSetupComplete", "preferDesktopApp", "linkFormat",
+      "telemetry.enabled", "telemetry.showPrompt"
+    ];
+    for (const setting of settingsToReset) {
+      try {
+        await config.update(setting, undefined, vscode.ConfigurationTarget.Global);
+      } catch (error) {
+        // Ignore errors  
+      }
+    }
+    
+    logger.info("Fresh install simulation complete");
+  }
 
-  // Track activation
-  telemetryManager.trackEvent("extension_activated");
+  // Initialize telemetry manager (non-blocking)
+  try {
+    telemetryManager = getTelemetryManager();
+    telemetryManager.initialize(context);
+    telemetryManager.trackEvent("extension_activated");
 
-  // Initialize secure storage for Linear API token
-  LinearClient.initializeSecretStorage(context.secrets);
+    // TODO: Re-enable telemetry prompt once Pro features are fully implemented
+    // Show telemetry opt-in prompt after delay (non-blocking)
+    // setTimeout(async () => {
+    //   try {
+    //     const config = vscode.workspace.getConfiguration("devBuddy");
+    //     const showPrompt = config.get<boolean>("telemetry.showPrompt", true);
+    //     
+    //     if (showPrompt && telemetryManager && !(await telemetryManager.hasBeenAsked())) {
+    //       await telemetryManager.showOptInPrompt();
+    //     }
+    //   } catch (error) {
+    //     logger.error("Failed to show telemetry prompt (non-critical)", error);
+    //   }
+    // }, 10000);
+  } catch (error) {
+    logger.error("Failed to initialize telemetry (non-critical)", error);
+  }
 
-  // Initialize Branch Association Manager
+  // Initialize secure storage for Linear API token (must succeed)
+  try {
+    LinearClient.initializeSecretStorage(context.secrets);
+  } catch (error) {
+    logger.error("Failed to initialize Linear secret storage", error);
+  }
+
+  // Initialize Branch Association Manager (must succeed)
   const branchManager = new BranchAssociationManager(context);
 
-  // Show first-time setup if needed
-  showFirstTimeSetup();
+  // Show first-time setup if needed (non-blocking)
+  try {
+    showFirstTimeSetup();
+  } catch (error) {
+    logger.error("Failed to show first-time setup (non-critical)", error);
+  }
 
-  // Development mode: Auto-open walkthrough or help menu
+  // Development mode: Auto-open walkthrough or help menu (non-blocking)
   if (process.env.DEVBUDDY_OPEN_WALKTHROUGH === "true") {
-    // Give extension time to fully activate
     setTimeout(() => {
       vscode.commands.executeCommand(
         "workbench.action.openWalkthrough",
         "angelogirardi.dev-buddy#devBuddy.gettingStarted",
         false
-      );
+      ).then(undefined, (error) => {
+        logger.error("Failed to open walkthrough", error);
+      });
     }, 1000);
   } else if (process.env.DEVBUDDY_OPEN_HELP === "true") {
-    // Give extension time to fully activate
     setTimeout(() => {
-      vscode.commands.executeCommand("devBuddy.showHelp");
+      vscode.commands.executeCommand("devBuddy.showHelp").then(undefined, (error) => {
+        logger.error("Failed to open help", error);
+      });
     }, 1000);
   }
 
-  // ==================== Store Context Globally ====================
-  // Store globally so firstTimeSetup and clients can access it
-  (global as any).devBuddyContext = context;
-
-  // ==================== Initialize Universal Tickets Tree View ====================
-  const ticketsProvider = new UniversalTicketsProvider(context);
-  const treeView = vscode.window.createTreeView("myTickets", {
-    treeDataProvider: ticketsProvider,
-    showCollapseAll: true,
+  // ==================== Set Context Keys for UI ====================
+  // These control when toolbar buttons and menus are visible
+  const updateContextKeys = async () => {
+    try {
+      const config = vscode.workspace.getConfiguration("devBuddy");
+      const provider = config.get<string>("provider");
+      const hasProvider = !!provider;
+      
+      // Set context for whether any provider is configured
+      await vscode.commands.executeCommand("setContext", "devBuddy.hasProvider", hasProvider);
+      
+      // Check if Linear is configured
+      if (provider === "linear") {
+        try {
+          const linearToken = await LinearClient.getApiToken();
+          await vscode.commands.executeCommand("setContext", "devBuddy.linearConfigured", !!linearToken);
+        } catch (error) {
+          logger.debug("Could not check Linear token status");
+          await vscode.commands.executeCommand("setContext", "devBuddy.linearConfigured", false);
+        }
+      } else {
+        await vscode.commands.executeCommand("setContext", "devBuddy.linearConfigured", false);
+      }
+      
+      // Check if Jira is configured
+      if (provider === "jira") {
+        try {
+          const jiraToken = await context.secrets.get("jiraCloudApiToken");
+          await vscode.commands.executeCommand("setContext", "devBuddy.jiraConfigured", !!jiraToken);
+        } catch (error) {
+          logger.debug("Could not check Jira token status");
+          await vscode.commands.executeCommand("setContext", "devBuddy.jiraConfigured", false);
+        }
+      } else {
+        await vscode.commands.executeCommand("setContext", "devBuddy.jiraConfigured", false);
+      }
+      
+      logger.debug(`Context keys updated: hasProvider=${hasProvider}, provider=${provider}`);
+    } catch (error) {
+      logger.error("Failed to update context keys (non-critical)", error);
+    }
+  };
+  
+  // Update context keys initially (non-blocking)
+  updateContextKeys().catch((error) => {
+    logger.error("Initial context key update failed (non-critical)", error);
   });
-  context.subscriptions.push(treeView);
-
-  // Trigger refresh when the tree view becomes visible
-  treeView.onDidChangeVisibility((e) => {
-    if (e.visible) {
-      logger.debug("Universal tree view became visible, triggering refresh");
-      ticketsProvider.refresh();
+  
+  // Update context keys when configuration changes
+  vscode.workspace.onDidChangeConfiguration((e) => {
+    if (e.affectsConfiguration("devBuddy.provider")) {
+      updateContextKeys().catch((error) => {
+        logger.error("Context key update on config change failed (non-critical)", error);
+      });
+    }
+  });
+  
+  // Update context keys when secrets change (token added/removed)
+  // This is just a placeholder for cleanup
+  context.subscriptions.push({
+    dispose: () => {
+      logger.debug("Extension cleanup - context keys");
     }
   });
 
-  // Initialize Chat Participant
-  const chatParticipant = new DevBuddyChatParticipant();
-  context.subscriptions.push(chatParticipant.register(context));
+  // ==================== Initialize Universal Tickets Tree View (CRITICAL) ====================
+  logger.info("Registering tree view provider...");
+  try {
+    ticketsProvider = new UniversalTicketsProvider(context);
+    const treeView = vscode.window.createTreeView("myTickets", {
+      treeDataProvider: ticketsProvider,
+      showCollapseAll: true,
+    });
+    context.subscriptions.push(treeView);
 
-  // Register Code Action Provider for TODOs (lightbulb suggestions)
-  const todoCodeActionProvider = vscode.languages.registerCodeActionsProvider(
-    { scheme: "file" }, // All file types
-    new TodoToTicketCodeActionProvider(),
-    {
-      providedCodeActionKinds:
-        TodoToTicketCodeActionProvider.providedCodeActionKinds,
+    // Trigger refresh when the tree view becomes visible
+    treeView.onDidChangeVisibility((e) => {
+      if (e.visible) {
+        logger.debug("Universal tree view became visible, triggering refresh");
+        ticketsProvider?.refresh();
+      }
+    });
+    
+    // Update context keys when tree view refreshes (in case token was added)
+    try {
+      ticketsProvider.onDidRefresh(() => {
+        updateContextKeys().catch((error) => {
+          const errorMsg = error instanceof Error ? error.message : String(error);
+          logger.debug(`Context key update on refresh failed (non-critical): ${errorMsg}`);
+        });
+      });
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      logger.debug(`Could not register refresh listener (non-critical): ${errorMsg}`);
     }
-  );
-  context.subscriptions.push(todoCodeActionProvider);
+    
+    logger.success("Tree view registered successfully");
+  } catch (error) {
+    logger.error("CRITICAL: Failed to register tree view", error);
+    vscode.window.showErrorMessage(
+      `DevBuddy: Failed to initialize sidebar. Please check the Output panel (DevBuddy channel) for details.`,
+      "Open Output",
+      "Reload Window"
+    ).then(selection => {
+      if (selection === "Open Output") {
+        logger.show();
+      } else if (selection === "Reload Window") {
+        vscode.commands.executeCommand("workbench.action.reloadWindow");
+      }
+    });
+    
+    // Don't return - continue to register commands so at least those work
+  }
+
+  // Initialize Chat Participant (optional, may not be available)
+  try {
+    const chatParticipant = new DevBuddyChatParticipant();
+    context.subscriptions.push(chatParticipant.register(context));
+    logger.info("Chat participant registered successfully");
+  } catch (error) {
+    // Chat participant might not be available in all VS Code versions
+    logger.debug("Chat participant not available (this is OK)");
+  }
+
+  // Register Code Action Provider for TODOs (should succeed)
+  try {
+    const todoCodeActionProvider = vscode.languages.registerCodeActionsProvider(
+      { scheme: "file" },
+      new TodoToTicketCodeActionProvider(),
+      {
+        providedCodeActionKinds:
+          TodoToTicketCodeActionProvider.providedCodeActionKinds,
+      }
+    );
+    context.subscriptions.push(todoCodeActionProvider);
+    logger.info("TODO code action provider registered successfully");
+  } catch (error) {
+    logger.error("Failed to register TODO code action provider", error);
+  }
+
+  // ==================== Register Commands (CRITICAL) ====================
+  logger.info("Registering commands...");
 
   // Register existing commands
   context.subscriptions.push(
@@ -176,7 +342,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Register new Linear commands
   context.subscriptions.push(
     vscode.commands.registerCommand("devBuddy.refreshTickets", () => {
-      ticketsProvider.refresh();
+      ticketsProvider?.refresh();
     }),
 
     vscode.commands.registerCommand(
@@ -215,7 +381,7 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.showInformationMessage(
               `Started work on ${issue.identifier}`
             );
-            ticketsProvider.refresh();
+            ticketsProvider?.refresh();
           }
         } else {
           vscode.window.showWarningMessage(
@@ -246,7 +412,7 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.showInformationMessage(
               `Completed ${issue.identifier}! 🎉`
             );
-            ticketsProvider.refresh();
+            ticketsProvider?.refresh();
           }
         } else {
           vscode.window.showWarningMessage("Could not find 'Completed' state");
@@ -364,7 +530,7 @@ export function activate(context: vscode.ExtensionContext) {
           vscode.window.showInformationMessage(
             "Linear API token configured securely! 🎉"
           );
-          ticketsProvider.refresh();
+          ticketsProvider?.refresh();
         }
       }
     ),
@@ -464,7 +630,7 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.showInformationMessage(
               `${issue.identifier} status updated to ${selected.state.name} ✓`
             );
-            ticketsProvider.refresh();
+            ticketsProvider?.refresh();
           } else {
             vscode.window.showErrorMessage(
               "Failed to update status. This transition may not be allowed by your workflow."
@@ -756,7 +922,7 @@ export function activate(context: vscode.ExtensionContext) {
                   vscode.window.showInformationMessage(
                     `${identifier} status updated to In Progress`
                   );
-                  ticketsProvider.refresh();
+                  ticketsProvider?.refresh();
                 }
               }
             } else if (currentPlatform === "jira") {
@@ -777,7 +943,7 @@ export function activate(context: vscode.ExtensionContext) {
                   vscode.window.showInformationMessage(
                     `${identifier} status updated to In Progress`
                   );
-                  ticketsProvider.refresh();
+                  ticketsProvider?.refresh();
                 }
               }
             }
@@ -872,7 +1038,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         try {
           await branchManager.checkoutBranch(identifier);
-          ticketsProvider.refresh();
+          ticketsProvider?.refresh();
         } catch (error) {
           console.error("[DevBuddy] Failed to checkout branch:", error);
           vscode.window.showErrorMessage(
@@ -989,7 +1155,7 @@ export function activate(context: vscode.ExtensionContext) {
                 vscode.window.showInformationMessage(
                   `Associated ${identifier} with ${branchName} ✓`
                 );
-                ticketsProvider.refresh();
+                ticketsProvider?.refresh();
               } else {
                 vscode.window.showErrorMessage("Failed to associate branch");
               }
@@ -1049,7 +1215,7 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.showInformationMessage(
               `Associated ${detected.length} branch(es) with tickets! 🎉`
             );
-            ticketsProvider.refresh();
+            ticketsProvider?.refresh();
           } else if (choice === "Review Each") {
             let associated = 0;
             for (const { ticketId, branchName } of detected) {
@@ -1071,7 +1237,7 @@ export function activate(context: vscode.ExtensionContext) {
               vscode.window.showInformationMessage(
                 `Associated ${associated} branch(es) with tickets!`
               );
-              ticketsProvider.refresh();
+              ticketsProvider?.refresh();
             }
           }
         } catch (error) {
@@ -1224,7 +1390,7 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.showInformationMessage(
               `Cleaned up ${removed} stale branch association(s)! 🧹`
             );
-            ticketsProvider.refresh();
+            ticketsProvider?.refresh();
           } else if (choice === "View Details") {
             await vscode.window.showQuickPick(items, {
               placeHolder: "Cleanup Suggestions",
@@ -1280,11 +1446,19 @@ export function activate(context: vscode.ExtensionContext) {
       if (choice) {
         switch (choice.value) {
           case "walkthrough":
-            await             vscode.commands.executeCommand(
-              "workbench.action.openWalkthrough",
-              "angelogirardi.dev-buddy#devBuddy.gettingStarted",
-              false
-            );
+            // Open the DevBuddy walkthrough
+            logger.info("Attempting to open DevBuddy walkthrough...");
+            try {
+              await vscode.commands.executeCommand(
+                "workbench.action.openWalkthrough",
+                "angelogirardi.dev-buddy#devBuddy.gettingStarted",
+                false
+              );
+              logger.success("Walkthrough command executed successfully");
+            } catch (error) {
+              logger.error(`Failed to open walkthrough: ${error instanceof Error ? error.message : String(error)}`);
+              vscode.window.showErrorMessage(`Failed to open walkthrough. Try: Help > Welcome > DevBuddy`);
+            }
             break;
 
           case "docs": {
@@ -1316,10 +1490,477 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }),
 
+    // Select Provider Command for Walkthrough
+    vscode.commands.registerCommand("devBuddy.selectProvider", async () => {
+      const choice = await vscode.window.showQuickPick(
+        [
+          {
+            label: "$(symbol-namespace) Linear",
+            description: "Full feature support with AI workflows",
+            detail: "Best for: Linear users who want complete integration",
+            value: "linear",
+          },
+          {
+            label: "$(symbol-class) Jira Cloud",
+            description: "Core features with workflow transitions",
+            detail: "Best for: Jira Cloud users",
+            value: "jira",
+          },
+          {
+            label: "$(clock) More platforms coming soon...",
+            description: "Monday.com, ClickUp, and others",
+            detail: "We're actively expanding platform support!",
+            value: "none",
+          },
+        ],
+        {
+          placeHolder: "Which ticket management platform do you use?",
+          title: "Choose Your Platform",
+          ignoreFocusOut: true,
+        }
+      );
+
+      if (choice && choice.value !== "none") {
+        const config = vscode.workspace.getConfiguration("devBuddy");
+        await config.update("provider", choice.value, vscode.ConfigurationTarget.Global);
+        
+        logger.success(`Platform set to: ${choice.value}`);
+        
+        // Show next steps
+        const platform = choice.value === "linear" ? "Linear" : "Jira Cloud";
+        const setupCommand = choice.value === "linear" 
+          ? "devBuddy.walkthroughSetupLinear" 
+          : "devBuddy.walkthroughSetupJira";
+        
+        const action = await vscode.window.showInformationMessage(
+          `✅ ${platform} selected! Ready to connect your workspace?`,
+          `Setup ${platform}`,
+          "Later"
+        );
+        
+        if (action === `Setup ${platform}`) {
+          await vscode.commands.executeCommand(setupCommand);
+        }
+      }
+    }),
+
+    // Walkthrough-specific Linear setup with detailed guidance
+    vscode.commands.registerCommand("devBuddy.walkthroughSetupLinear", async () => {
+      // Check if already configured
+      const existingToken = await context.secrets.get("linearApiToken");
+      const config = vscode.workspace.getConfiguration("devBuddy");
+      const existingOrg = config.get<string>("linearOrganization");
+      
+      if (existingToken && existingOrg) {
+        const action = await vscode.window.showInformationMessage(
+          "✅ Linear is already configured!\n\nYour API token and organization are set up.",
+          "View Tickets",
+          "Reconfigure",
+          "Continue Walkthrough"
+        );
+        
+        if (action === "View Tickets") {
+          await vscode.commands.executeCommand("workbench.view.extension.dev-buddy");
+          return;
+        } else if (action === "Reconfigure") {
+          // Continue with setup below
+        } else {
+          return; // Continue walkthrough
+        }
+      }
+      
+      // Step 1: Get API token
+      const token = await vscode.window.showInputBox({
+        prompt: "Paste your Linear API token",
+        password: true,
+        ignoreFocusOut: true,
+        placeHolder: "lin_api_...",
+        validateInput: (value) => {
+          if (!value || value.trim().length === 0) {
+            return "API token is required";
+          }
+          if (!value.startsWith("lin_api_")) {
+            return "Linear API tokens typically start with 'lin_api_'";
+          }
+          return null;
+        },
+      });
+
+      if (!token) {
+        vscode.window.showWarningMessage("Linear setup cancelled. You can try again anytime!");
+        return;
+      }
+
+      // Store the token
+      await context.secrets.store("linearApiToken", token.trim());
+      logger.success("Linear API token stored securely");
+
+      // Step 2: Get organization
+      await vscode.window.showInformationMessage(
+        "✅ API token saved! Now let's configure your organization settings.",
+        "Continue"
+      );
+
+      const orgSlug = await vscode.window.showInputBox({
+        prompt: "Enter your Linear organization slug (from your Linear URL)",
+        placeHolder: "mycompany (from app.linear.app/mycompany)",
+        ignoreFocusOut: true,
+        value: existingOrg || "",
+        validateInput: (value) => {
+          if (!value || value.trim().length === 0) {
+            return "Organization slug is required";
+          }
+          if (value.includes("/") || value.includes(".")) {
+            return "Enter only the slug (e.g., 'mycompany'), not the full URL";
+          }
+          return null;
+        },
+      });
+
+      if (orgSlug) {
+        await config.update("linearOrganization", orgSlug.trim(), vscode.ConfigurationTarget.Global);
+        logger.success(`Linear organization set to: ${orgSlug}`);
+
+        // Step 3: Ask about team filtering (optional)
+        const setupTeam = await vscode.window.showInformationMessage(
+          "Want to filter tickets by team? (Optional)",
+          "Yes, select team",
+          "No, show all tickets"
+        );
+
+        if (setupTeam === "Yes, select team") {
+          // This will trigger the existing team selection flow
+          await vscode.commands.executeCommand("devBuddy.selectLinearTeam");
+        }
+
+        // Success!
+        const action = await vscode.window.showInformationMessage(
+          "🎉 Linear setup complete! Open the DevBuddy sidebar to see your tickets.",
+          "Open Sidebar",
+          "Continue Walkthrough"
+        );
+
+        if (action === "Open Sidebar") {
+          await vscode.commands.executeCommand("workbench.view.extension.dev-buddy");
+        }
+      }
+    }),
+
+    // Walkthrough-specific Jira setup with detailed guidance
+    vscode.commands.registerCommand("devBuddy.walkthroughSetupJira", async () => {
+      // Check if already configured
+      const existingToken = await context.secrets.get("jiraCloudApiToken");
+      const config = vscode.workspace.getConfiguration("devBuddy");
+      const existingSiteUrl = config.get<string>("jira.cloud.siteUrl");
+      const existingEmail = config.get<string>("jira.cloud.email");
+      
+      if (existingToken && existingSiteUrl && existingEmail) {
+        const action = await vscode.window.showInformationMessage(
+          `✅ Jira Cloud is already configured!\n\nSite: ${existingSiteUrl}\nEmail: ${existingEmail}`,
+          "View Issues",
+          "Reconfigure",
+          "Continue Walkthrough"
+        );
+        
+        if (action === "View Issues") {
+          await vscode.commands.executeCommand("workbench.view.extension.dev-buddy");
+          return;
+        } else if (action === "Reconfigure") {
+          // Continue with setup below
+        } else {
+          return; // Continue walkthrough
+        }
+      }
+      
+      // Step 1: Get site URL (accept any Jira URL)
+      const urlInput = await vscode.window.showInputBox({
+        prompt: "Paste ANY URL from your Jira (e.g., a ticket URL or your Jira homepage)",
+        placeHolder: "https://mycompany.atlassian.net/browse/ENG-123",
+        ignoreFocusOut: true,
+        value: existingSiteUrl || "",
+        validateInput: (value) => {
+          if (!value || value.trim().length === 0) {
+            return "Please paste a URL from your Jira";
+          }
+          if (!value.includes("atlassian.net") && !value.includes("jira")) {
+            return "This doesn't look like a Jira URL. Please paste a URL from your Jira workspace.";
+          }
+          return null;
+        },
+      });
+
+      if (!urlInput) {
+        vscode.window.showWarningMessage("Jira setup cancelled. You can try again anytime!");
+        return;
+      }
+
+      // Extract site URL from any Jira URL
+      const extractSiteUrl = (url: string): string => {
+        try {
+          const urlObj = new URL(url);
+          // Extract just the base URL (e.g., https://mycompany.atlassian.net)
+          return `${urlObj.protocol}//${urlObj.hostname}`;
+        } catch {
+          return url.trim();
+        }
+      };
+
+      const siteUrl = extractSiteUrl(urlInput);
+      
+      await vscode.window.showInformationMessage(
+        `✅ Detected Jira site: ${siteUrl}`,
+        "Continue"
+      );
+
+      // Step 2: Get email
+      const email = await vscode.window.showInputBox({
+        prompt: "Enter your Jira account email",
+        placeHolder: "your.email@company.com",
+        ignoreFocusOut: true,
+        value: existingEmail || "",
+        validateInput: (value) => {
+          if (!value || value.trim().length === 0) {
+            return "Email is required";
+          }
+          if (!value.includes("@")) {
+            return "Please enter a valid email address";
+          }
+          return null;
+        },
+      });
+
+      if (!email) {
+        vscode.window.showWarningMessage("Jira setup cancelled.");
+        return;
+      }
+
+      // Step 3: Get API token
+      const openTokenPage = await vscode.window.showInformationMessage(
+        "Next, you'll need to create an API token from Atlassian.",
+        "Open Token Page",
+        "I already have a token"
+      );
+
+      if (openTokenPage === "Open Token Page") {
+        await vscode.env.openExternal(
+          vscode.Uri.parse("https://id.atlassian.com/manage-profile/security/api-tokens")
+        );
+        await vscode.window.showInformationMessage(
+          "1. Click 'Create API token'\n2. Give it a name (e.g., 'DevBuddy')\n3. Copy the token",
+          "I've copied my token"
+        );
+      }
+
+      const token = await vscode.window.showInputBox({
+        prompt: "Paste your Jira API token",
+        password: true,
+        ignoreFocusOut: true,
+        placeHolder: "Your API token from Atlassian",
+        validateInput: (value) => {
+          if (!value || value.trim().length === 0) {
+            return "API token is required";
+          }
+          return null;
+        },
+      });
+
+      if (!token) {
+        vscode.window.showWarningMessage("Jira setup cancelled.");
+        return;
+      }
+
+      // Save all credentials
+      await config.update("jira.cloud.siteUrl", siteUrl, vscode.ConfigurationTarget.Global);
+      await config.update("jira.cloud.email", email.trim(), vscode.ConfigurationTarget.Global);
+      await context.secrets.store("jiraCloudApiToken", token.trim());
+
+      logger.success("Jira Cloud credentials saved securely");
+
+      // Success!
+      const action = await vscode.window.showInformationMessage(
+        "🎉 Jira setup complete! Open the DevBuddy sidebar to see your issues.",
+        "Open Sidebar",
+        "Continue Walkthrough"
+      );
+
+      if (action === "Open Sidebar") {
+        await vscode.commands.executeCommand("workbench.view.extension.dev-buddy");
+      }
+    }),
+
+    // Direct command to open walkthrough (for debugging)
+    vscode.commands.registerCommand("devBuddy.openWalkthrough", async () => {
+      logger.info("Direct walkthrough command invoked");
+      
+      // Try to get all available commands
+      const allCommands = await vscode.commands.getCommands();
+      const walkthroughCommands = allCommands.filter(cmd => cmd.includes('walkthrough'));
+      logger.debug(`Available walkthrough commands: ${walkthroughCommands.join(', ')}`);
+      
+      try {
+        // Try method 1: Full extension ID format
+        logger.info("Attempting method 1: Full ID format (publisher.extension#walkthroughId)");
+        await vscode.commands.executeCommand(
+          "workbench.action.openWalkthrough",
+          "angelogirardi.dev-buddy#devBuddy.gettingStarted",
+          false
+        );
+        logger.success("Method 1: Walkthrough opened successfully");
+      } catch (error) {
+        logger.error(`Method 1 failed: ${error instanceof Error ? error.message : String(error)}`);
+        
+        // Try method 2: Just the walkthrough ID
+        try {
+          logger.info("Attempting method 2: Just walkthrough ID (devBuddy.gettingStarted)");
+          await vscode.commands.executeCommand(
+            "workbench.action.openWalkthrough",
+            "devBuddy.gettingStarted"
+          );
+          logger.success("Method 2: Walkthrough opened successfully");
+        } catch (error2) {
+          logger.error(`Method 2 failed: ${error2 instanceof Error ? error2.message : String(error2)}`);
+          
+          // Try method 3: Object format
+          try {
+            logger.info("Attempting method 3: Object format with category");
+            await vscode.commands.executeCommand(
+              "workbench.action.openWalkthrough",
+              { category: "angelogirardi.dev-buddy#devBuddy.gettingStarted" }
+            );
+            logger.success("Method 3: Walkthrough opened successfully");
+          } catch (error3) {
+            logger.error(`Method 3 failed: ${error3 instanceof Error ? error3.message : String(error3)}`);
+            
+            // Try alternative: open welcome page
+            try {
+              logger.info("Attempting fallback: workbench.action.openWelcome");
+              await vscode.commands.executeCommand("workbench.action.openWelcome");
+              logger.info("Opened welcome page - look for DevBuddy in the list");
+            } catch (error4) {
+              logger.error(`Fallback failed: ${error4 instanceof Error ? error4.message : String(error4)}`);
+            }
+          }
+        }
+        
+        vscode.window.showErrorMessage(
+          `Failed to open walkthrough with all methods. Check DevBuddy output for details.\n\nTry: Help > Welcome > DevBuddy`
+        );
+      }
+    }),
+
+    // Reset extension for testing (simulate fresh install)
+    vscode.commands.registerCommand("devBuddy.resetExtension", async () => {
+      const confirm = await vscode.window.showWarningMessage(
+        "⚠️ This will delete ALL DevBuddy settings and credentials!\n\nThis simulates a fresh install for testing. Are you sure?",
+        { modal: true },
+        "Yes, Reset Everything",
+        "Cancel"
+      );
+
+      if (confirm !== "Yes, Reset Everything") {
+        return;
+      }
+
+      logger.warn("Resetting DevBuddy extension (simulating fresh install)...");
+
+      // Clear all secrets
+      const secretsToDelete = [
+        "linearApiToken",
+        "jiraCloudApiToken",
+        "jiraServerPassword",
+      ];
+
+      for (const secret of secretsToDelete) {
+        try {
+          await context.secrets.delete(secret);
+          logger.info(`Deleted secret: ${secret}`);
+        } catch (error) {
+          logger.debug(`Secret ${secret} didn't exist or couldn't be deleted`);
+        }
+      }
+
+      // Clear all settings
+      const config = vscode.workspace.getConfiguration("devBuddy");
+      const settingsToReset = [
+        // Platform
+        "provider",
+        // Linear
+        "linearOrganization",
+        "linearTeamId",
+        "linearDefaultTeamId",
+        "preferDesktopApp",
+        "linkFormat",
+        // Jira
+        "jira.type",
+        "jira.cloud.siteUrl",
+        "jira.cloud.email",
+        "jira.defaultProject",
+        "jira.maxResults",
+        "jira.autoRefreshInterval",
+        "jira.openInBrowser",
+        // AI & Features
+        "ai.model",
+        "ai.disabled",
+        "aiModel", // deprecated but reset anyway
+        "writingTone",
+        "enableAISummarization",
+        // Branch Management
+        "branchNamingConvention",
+        "customBranchTemplate",
+        "baseBranch",
+        // Monorepo
+        "packagesPaths",
+        "maxPackageScope",
+        "prTemplatePath",
+        // Standup
+        "standupTimeWindow",
+        // General
+        "debugMode",
+        "autoRefreshInterval",
+        "firstTimeSetupComplete",
+        // Telemetry
+        "telemetry.enabled",
+        "telemetry.showPrompt",
+      ];
+
+      for (const setting of settingsToReset) {
+        try {
+          await config.update(setting, undefined, vscode.ConfigurationTarget.Global);
+          logger.info(`Reset setting: ${setting}`);
+        } catch (error) {
+          logger.debug(`Setting ${setting} couldn't be reset`);
+        }
+      }
+
+      // Clear global state (branch associations, etc.)
+      const stateKeys = context.globalState.keys();
+      for (const key of stateKeys) {
+        if (key.startsWith("devBuddy") || key.startsWith("linearBuddy")) {
+          await context.globalState.update(key, undefined);
+          logger.info(`Cleared state: ${key}`);
+        }
+      }
+
+      logger.success("Extension reset complete!");
+
+      // Prompt to reload
+      const action = await vscode.window.showInformationMessage(
+        "✅ DevBuddy has been reset!\n\nReload the window to simulate a fresh install.",
+        "Reload Window",
+        "Open Walkthrough"
+      );
+
+      if (action === "Reload Window") {
+        await vscode.commands.executeCommand("workbench.action.reloadWindow");
+      } else if (action === "Open Walkthrough") {
+        await vscode.commands.executeCommand("devBuddy.openWalkthrough");
+      }
+    }),
+
     // Telemetry Management Commands
     vscode.commands.registerCommand("devBuddy.manageTelemetry", async () => {
-      const stats = await telemetryManager.getTelemetryStats();
-      const isEnabled = telemetryManager.isEnabled();
+      const stats = await telemetryManager?.getTelemetryStats() ?? { enabled: false, eventsSent: 0, optInDate: null, trialExtensionDays: 0 };
+      const isEnabled = telemetryManager?.isEnabled() ?? false;
 
       const choice = await vscode.window.showQuickPick(
         [
@@ -1367,7 +2008,7 @@ export function activate(context: vscode.ExtensionContext) {
         switch (choice.value) {
           case "toggle":
             if (isEnabled) {
-              await telemetryManager.disableTelemetry();
+              await telemetryManager?.disableTelemetry();
             } else {
               const confirm = await vscode.window.showInformationMessage(
                 "Enable telemetry to help improve DevBuddy?\n\n" +
@@ -1380,7 +2021,7 @@ export function activate(context: vscode.ExtensionContext) {
               );
 
               if (confirm === "Enable") {
-                await telemetryManager.enableTelemetry(
+                await telemetryManager?.enableTelemetry(
                   !stats.trialExtensionDays
                 );
               } else if (confirm === "Learn More") {
@@ -1457,7 +2098,7 @@ export function activate(context: vscode.ExtensionContext) {
       "devBuddy.exportTelemetryData",
       async () => {
         try {
-          const data = await telemetryManager.exportUserData();
+          const data = await telemetryManager?.exportUserData() ?? "";
 
           const uri = await vscode.window.showSaveDialog({
             defaultUri: vscode.Uri.file("linear-buddy-telemetry-data.json"),
@@ -1504,7 +2145,7 @@ export function activate(context: vscode.ExtensionContext) {
         );
 
         if (confirm === "Delete All Data") {
-          await telemetryManager.deleteUserData();
+          await telemetryManager?.deleteUserData();
         }
       }
     )
@@ -1517,14 +2158,14 @@ export function activate(context: vscode.ExtensionContext) {
       // Alias for setupCloud - provides a simpler command name for first-time setup
       const success = await runJiraCloudSetup(context);
       if (success) {
-        ticketsProvider.refresh();
+        ticketsProvider?.refresh();
       }
     }),
 
     vscode.commands.registerCommand("devBuddy.jira.setupCloud", async () => {
       const success = await runJiraCloudSetup(context);
       if (success) {
-        ticketsProvider.refresh();
+        ticketsProvider?.refresh();
       }
     }),
 
@@ -1534,7 +2175,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     vscode.commands.registerCommand("devBuddy.jira.resetConfig", async () => {
       await resetJiraCloudConfig(context);
-      ticketsProvider.refresh();
+      ticketsProvider?.refresh();
     }),
 
     vscode.commands.registerCommand("devBuddy.jira.updateToken", async () => {
@@ -1543,7 +2184,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Jira Issue Commands
     vscode.commands.registerCommand("devBuddy.jira.refreshIssues", () => {
-      ticketsProvider.refresh();
+      ticketsProvider?.refresh();
     }),
 
     vscode.commands.registerCommand("devBuddy.jira.openIssue", async (issue?: JiraIssue) => {
@@ -1598,7 +2239,8 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  logger.success("All features registered successfully");
+  logger.success("All features registered successfully!");
+  logger.info("DevBuddy is now ready to use");
 }
 
 /**
