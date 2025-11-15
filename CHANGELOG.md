@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.5.1](https://github.com/angelo-hub/devbuddy/compare/v0.5.0...v0.5.1) (2025-11-15)
+
+
+### 🐛 Bug Fixes
+
+* launch issues ([6992127](https://github.com/angelo-hub/devbuddy/commit/6992127b946f6a2801b9b9642967773cbdc6fcb6))
+
 ## [0.5.0](https://github.com/angelo-hub/devbuddy/compare/v0.4.0...v0.5.0) (2025-11-14)
 
 
