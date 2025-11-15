@@ -5,7 +5,10 @@
 
 # Source files (only compiled output in out/ should be included)
 src/**
-webview-ui/**
+webview-ui/src/**
+webview-ui/tsconfig.json
+webview-ui/build.js
+!webview-ui/build/**
 !out/**
 !out/**/*.js
 
@@ -49,7 +52,21 @@ DEVBUDDY_REBRAND_COMPLETE.md
 
 # Media files not needed in package
 media/walkthrough/**/*.md
-!media/walkthrough/videos/**
+!media/walkthrough/welcome.md
+!media/walkthrough/platform-selection.md
+!media/walkthrough/status.md
+!media/walkthrough/create-ticket.md
+!media/walkthrough/todo-converter.md
+!media/walkthrough/chat.md
+!media/walkthrough/help.md
+!media/walkthrough/sidebar.md
+!media/walkthrough/branches.md
+!media/walkthrough/standup.md
+!media/walkthrough/pr-summary.md
+!media/walkthrough/setup-linear.md
+!media/walkthrough/setup-jira.md
+!media/walkthrough/setup-connect.md
+!media/walkthrough/jira-features.md
 
 # Test and CI files
 .github/**
