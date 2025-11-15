@@ -157,6 +157,22 @@ export async function runJiraCloudSetup(
     // Small delay to ensure settings are persisted
     await new Promise(resolve => setTimeout(resolve, 100));
 
+    // Show pin reminder
+    const pinAction = await vscode.window.showInformationMessage(
+      "Tip: Pin DevBuddy to your Activity Bar for quick access! Right-click the DevBuddy icon and select 'Pin'.",
+      "Got it",
+      "Show me how"
+    );
+
+    if (pinAction === "Show me how") {
+      // Open the walkthrough at the pin step
+      await vscode.commands.executeCommand(
+        "workbench.action.openWalkthrough",
+        "angelogirardi.dev-buddy#devBuddy.gettingStarted",
+        false
+      );
+    }
+
     // Step 6: Test connection
     const testing = await vscode.window.showInformationMessage(
       "Configuration saved! Test the connection now?",
