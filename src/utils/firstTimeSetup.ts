@@ -339,9 +339,25 @@ export async function showFirstTimeSetup(onTokenSet?: () => void): Promise<void>
     vscode.ConfigurationTarget.Global
   );
 
+  // Show pin reminder
+  const pinAction = await vscode.window.showInformationMessage(
+    "Tip: Pin DevBuddy to your Activity Bar for quick access! Right-click the DevBuddy icon and select 'Pin'.",
+    "Got it",
+    "Show me how"
+  );
+
+  if (pinAction === "Show me how") {
+    // Open the walkthrough at the pin step
+    await vscode.commands.executeCommand(
+      "workbench.action.openWalkthrough",
+      "angelogirardi.dev-buddy#devBuddy.gettingStarted",
+      false
+    );
+  }
+
   // Show summary and offer walkthrough
   const action = await vscode.window.showInformationMessage(
-    "✅ Setup Complete! Would you like a quick tour of Linear Buddy's features?",
+    "✅ Setup Complete! Would you like a quick tour of DevBuddy's features?",
     "Yes, show me around",
     "Maybe later"
   );
