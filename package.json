@@ -127,6 +127,36 @@
         "category": "Help"
       },
       {
+        "command": "devBuddy.openWalkthrough",
+        "title": "DevBuddy: Open Getting Started Walkthrough",
+        "icon": "$(book)",
+        "category": "Help"
+      },
+      {
+        "command": "devBuddy.selectProvider",
+        "title": "DevBuddy: Select Ticket Platform",
+        "icon": "$(symbol-namespace)",
+        "category": "DevBuddy"
+      },
+      {
+        "command": "devBuddy.walkthroughSetupLinear",
+        "title": "DevBuddy: Setup Linear (Guided)",
+        "icon": "$(symbol-namespace)",
+        "category": "DevBuddy"
+      },
+      {
+        "command": "devBuddy.walkthroughSetupJira",
+        "title": "DevBuddy: Setup Jira (Guided)",
+        "icon": "$(symbol-class)",
+        "category": "DevBuddy"
+      },
+      {
+        "command": "devBuddy.resetExtension",
+        "title": "DevBuddy: Reset Extension (Test Mode)",
+        "icon": "$(trash)",
+        "category": "DevBuddy"
+      },
+      {
         "command": "devBuddy.manageTelemetry",
         "title": "DevBuddy: Manage Telemetry Settings",
         "icon": "$(graph)",
@@ -275,17 +305,17 @@
       "view/title": [
         {
           "command": "devBuddy.createTicket",
-          "when": "view == myTickets",
+          "when": "view == myTickets && devBuddy.hasProvider",
           "group": "navigation@1"
         },
         {
           "command": "devBuddy.refreshTickets",
-          "when": "view == myTickets",
+          "when": "view == myTickets && devBuddy.hasProvider",
           "group": "navigation@2"
         },
         {
           "command": "devBuddy.openStandupBuilder",
-          "when": "view == myTickets",
+          "when": "view == myTickets && devBuddy.hasProvider",
           "group": "navigation@3"
         },
         {
@@ -412,28 +442,53 @@
           {
             "id": "setup.platform",
             "title": "Choose Your Platform",
-            "description": "First, select which platform you use for ticket management.\n\n[Open Settings](command:workbench.action.openSettings?%5B%22devBuddy.provider%22%5D)\n\nSet `devBuddy.provider` to:\n• **\"linear\"** - For Linear users\n• **\"jira\"** - For Jira Cloud users\n\nYou can change this anytime!",
+            "description": "Select which platform you use for ticket management. You can change this anytime in settings!",
             "media": {
               "markdown": "media/walkthrough/platform-selection.md"
-            }
+            },
+            "completionEvents": [
+              "onSettingChanged:devBuddy.provider"
+            ],
+            "when": "!config.devBuddy.provider || config.devBuddy.provider == ''",
+            "doneOn": {
+              "command": "devBuddy.selectProvider"
+            },
+            "actions": [
+              {
+                "title": "Select Platform",
+                "command": "devBuddy.selectProvider"
+              }
+            ]
           },
           {
-            "id": "setup.linear",
-            "title": "Connect Linear (Linear Users)",
-            "description": "**If you chose Linear**, connect your workspace with an API key:\n\n1. Get your API key: [linear.app/settings/api](https://linear.app/settings/api)\n2. Run the setup command:\n\n[Configure Linear API Key](command:devBuddy.configureLinearToken)\n\n**Skip this step if you're using Jira.**"
-          },
-          {
-            "id": "setup.jira",
-            "title": "Connect Jira Cloud (Jira Users)",
-            "description": "**If you chose Jira**, connect your Jira Cloud workspace:\n\n1. Run the setup wizard:\n\n[Setup Jira Cloud](command:devBuddy.jira.setup)\n\n2. The wizard will ask for:\n   • **Any URL from your Jira** (e.g., paste a ticket URL like `https://mycompany.atlassian.net/browse/ENG-123`)\n   • Your email address\n   • An API token from [id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens)\n\n**Just like Linear, you can paste any Jira ticket URL and DevBuddy will extract your site URL!**\n\n**Skip this step if you're using Linear.**"
+            "id": "setup.connect",
+            "title": "Connect Your Platform",
+            "description": "Now let's connect your ticket management platform! Choose the guided setup for your platform below.",
+            "media": {
+              "markdown": "media/walkthrough/setup-connect.md"
+            },
+            "when": "config.devBuddy.provider == 'linear' || config.devBuddy.provider == 'jira'",
+            "completionEvents": [
+              "onCommand:devBuddy.walkthroughSetupLinear",
+              "onCommand:devBuddy.walkthroughSetupJira"
+            ],
+            "actions": [
+              {
+                "title": "Setup Linear",
+                "command": "devBuddy.walkthroughSetupLinear"
+              },
+              {
+                "title": "Setup Jira Cloud",
+                "command": "devBuddy.walkthroughSetupJira"
+              }
+            ]
           },
           {
             "id": "explore.sidebar",
             "title": "Explore Your Tickets",
             "description": "The **DevBuddy sidebar** shows all your assigned tickets/issues organized by status.\n\n[Open DevBuddy Sidebar](command:workbench.view.extension.dev-buddy)\n\nClick any ticket to see details, comments, and take actions like updating status or adding comments.\n\n**Works with both Linear and Jira!**",
             "media": {
-              "image": "media/walkthrough/videos/sidebar-demo.gif",
-              "altText": "DevBuddy sidebar showing tickets organized by status with quick actions"
+              "markdown": "media/walkthrough/sidebar.md"
             }
           },
           {
@@ -457,8 +512,7 @@
             "title": "Create Branches from Tickets (Linear)",
             "description": "**Linear users:** Start a branch directly from any ticket!\n\n• Click the branch icon next to any ticket\n• Choose your source branch\n• Review the auto-generated name\n• DevBuddy creates and checks out the branch\n\n**Note:** Branch creation is currently Linear-only. Jira support coming soon!",
             "media": {
-              "image": "media/walkthrough/videos/linear-sidebar-demo.gif",
-              "altText": "Linear sidebar showing ticket details with branch creation and management"
+              "markdown": "media/walkthrough/branches.md"
             }
           },
           {
@@ -466,8 +520,7 @@
             "title": "Convert TODOs to Tickets (Linear)",
             "description": "**Linear users:** Convert TODOs to tickets with automatic code permalinks!\n\n**What you get:**\n• TODO → Linear ticket in one click\n• Automatic GitHub/GitLab/Bitbucket permalink\n• Code context (5 lines before/after)\n• Branch and commit info\n\n[Try Converting a TODO](command:devBuddy.convertTodoToTicket)\n\n**Note:** Currently Linear-only. Jira support coming soon!",
             "media": {
-              "image": "media/walkthrough/videos/todo-converter-demo.gif",
-              "altText": "Converting a TODO comment to a Linear ticket with automatic permalink generation"
+              "markdown": "media/walkthrough/todo-converter.md"
             }
           },
           {
@@ -475,8 +528,7 @@
             "title": "Generate Standup Updates (Linear)",
             "description": "**Linear users:** Let AI generate your standup update from commits and Linear activity!\n\n[Open Standup Builder](command:devBuddy.openStandupBuilder)\n\n• AI analyzes your commits and tickets\n• Generates a summary in your preferred tone\n• Copy and share with your team\n\n**Note:** AI features currently Linear-only. Jira support coming soon!",
             "media": {
-              "image": "media/walkthrough/videos/standup-demo.gif",
-              "altText": "Standup Builder generating daily standup from commits and Linear tickets"
+              "markdown": "media/walkthrough/standup.md"
             }
           },
           {
@@ -484,8 +536,7 @@
             "title": "AI-Powered PR Summaries (Linear)",
             "description": "**Linear users:** Generate comprehensive PR summaries for your changes:\n\n[Generate PR Summary](command:devBuddy.generatePRSummary)\n\n• Detects affected packages in monorepos\n• Analyzes git changes and commits\n• Links to Linear tickets\n• Customizable writing tone\n\n**Note:** AI features currently Linear-only. Jira support coming soon!",
             "media": {
-              "image": "media/walkthrough/videos/pr-summary-demo.gif",
-              "altText": "PR Summary generation with monorepo package detection and analysis"
+              "markdown": "media/walkthrough/pr-summary.md"
             }
           },
           {
@@ -775,7 +826,6 @@
     "@typescript-eslint/eslint-plugin": "^8.21.0",
     "@typescript-eslint/parser": "^8.21.0",
     "@vscode/vsce": "^3.6.2",
-    "axios": "^1.13.2",
     "esbuild": "^0.25.12",
     "eslint": "^8.56.0",
     "eslint-plugin-react": "^7.37.5",
@@ -789,6 +839,7 @@
   "dependencies": {
     "@types/prismjs": "^1.26.5",
     "@vscode/extension-telemetry": "^1.1.0",
+    "axios": "^1.13.2",
     "prismjs": "^1.30.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

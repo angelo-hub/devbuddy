@@ -48,6 +48,9 @@ export class UniversalTicketsProvider
     UniversalTicketTreeItem | undefined | null | void
   > = this._onDidChangeTreeData.event;
 
+  private _onDidRefresh: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
+  readonly onDidRefresh: vscode.Event<void> = this._onDidRefresh.event;
+
   private currentPlatform: Platform = null;
   private branchManager: BranchAssociationManager;
 
@@ -80,6 +83,7 @@ export class UniversalTicketsProvider
    */
   refresh(): void {
     this._onDidChangeTreeData.fire();
+    this._onDidRefresh.fire();
   }
 
   /**
@@ -135,19 +139,33 @@ export class UniversalTicketsProvider
    * Show setup instructions when no platform is configured
    */
   private getSetupInstructions(): UniversalTicketTreeItem[] {
-    const setupItem = new UniversalTicketTreeItem(
-      "⚙️ Choose Your Platform",
+    const walkthroughItem = new UniversalTicketTreeItem(
+      "🚀 Get Started with DevBuddy",
       vscode.TreeItemCollapsibleState.None,
       null
     );
-    setupItem.command = {
+    walkthroughItem.command = {
+      command: "workbench.action.openWalkthrough",
+      title: "Open Walkthrough",
+      arguments: ["angelogirardi.dev-buddy#devBuddy.gettingStarted", false],
+    };
+    walkthroughItem.tooltip = "Click to start the setup walkthrough";
+    walkthroughItem.description = "Click to configure →";
+
+    const settingsItem = new UniversalTicketTreeItem(
+      "⚙️ Or Choose Platform Manually",
+      vscode.TreeItemCollapsibleState.None,
+      null
+    );
+    settingsItem.command = {
       command: "workbench.action.openSettings",
       title: "Open Settings",
       arguments: ["devBuddy.provider"],
     };
-    setupItem.tooltip = "Click to choose Linear or Jira";
+    settingsItem.tooltip = "Open settings to choose Linear or Jira";
+    settingsItem.description = "Linear / Jira";
 
-    return [setupItem];
+    return [walkthroughItem, settingsItem];
   }
 
   // ==================== LINEAR IMPLEMENTATION ====================
