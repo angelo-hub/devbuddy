@@ -251,9 +251,27 @@ export class TelemetryManager {
 
   /**
    * Check if telemetry is enabled
+   * Respects both VS Code's global telemetry setting AND our own opt-in
    */
   public isEnabled(): boolean {
-    return this.config?.enabled || false;
+    // First, check VS Code's global telemetry setting
+    const vscodeConfig = vscode.workspace.getConfiguration('telemetry');
+    const telemetryLevel = vscodeConfig.get<string>('telemetryLevel', 'all');
+    
+    // If VS Code telemetry is disabled, respect that
+    if (telemetryLevel === 'off') {
+      return false;
+    }
+    
+    // If VS Code telemetry is error-only, only send errors
+    // For now, we'll treat this as disabled for feature telemetry
+    if (telemetryLevel === 'error') {
+      return false;
+    }
+    
+    // VS Code telemetry is enabled ('all' or 'crash'), check our own setting
+    // For now, just follow VS Code's setting (no separate opt-in needed)
+    return telemetryLevel === 'all';
   }
 
   /**

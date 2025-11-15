@@ -50,6 +50,22 @@
       }
     },
     {
+      "name": "Run Extension (Fresh Install Test)",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/out/**/*.js"
+      ],
+      "preLaunchTask": "${defaultBuildTask}",
+      "env": {
+        "DEVBUDDY_TEST_FRESH_INSTALL": "true",
+        "DEVBUDDY_OPEN_WALKTHROUGH": "true"
+      }
+    },
+    {
       "name": "Run Extension (Fresh Install)",
       "type": "extensionHost",
       "request": "launch",
