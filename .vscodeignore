@@ -68,6 +68,9 @@ media/walkthrough/**/*.md
 !media/walkthrough/setup-connect.md
 !media/walkthrough/jira-features.md
 
+# Exclude large video/gif files (hosted on GitHub instead)
+media/walkthrough/videos/**
+
 # Test and CI files
 .github/**
 **/*.test.ts
