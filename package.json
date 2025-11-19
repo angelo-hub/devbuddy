@@ -894,7 +894,7 @@
     "@types/prismjs": "^1.26.5",
     "@vscode/extension-telemetry": "^1.1.0",
     "axios": "^1.13.2",
-    "jira2md": "^3.1.5",
+    "jira2md": "^3.0.1",
     "prismjs": "^1.30.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
