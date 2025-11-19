@@ -133,7 +133,12 @@ function convertToJiraWiki(
 
     // Use {code:language} syntax - don't let jira2md convert this
     if (language) {
-      parts.push(`{code:${language}}`);
+      // Map unsupported languages to supported ones for Jira Wiki Markup
+      // Jira supports: actionscript, ada, applescript, bash, c, c#, c++, cpp, css, erlang,
+      // go, groovy, haskell, html, java, javascript, js, json, lua, none, nyan, objc, perl,
+      // php, python, r, rainbow, ruby, scala, sh, sql, swift, visualbasic, xml, yaml
+      const jiraLanguage = language === 'typescript' || language === 'ts' ? 'javascript' : language;
+      parts.push(`{code:${jiraLanguage}}`);
       parts.push(codeText);
       parts.push('{code}');
     } else {
@@ -564,12 +569,9 @@ async function convertTodoToJiraTicket() {
           `✅ Jira issue ${issue.key} created successfully!`
         );
 
-        // Open the ticket in the webview
-        await vscode.commands.executeCommand("devBuddy.openTicket", issue);
-
         // Ask if user wants to replace TODO with ticket reference
         const replaceChoice = await vscode.window.showQuickPick(
-          ["Replace", "Keep TODO", "Open in Browser"],
+          ["Replace", "Keep TODO", "Open in Browser", "Open in VS Code"],
           {
             placeHolder: `Replace TODO comment with ${issue.key} reference?`,
           }
@@ -579,6 +581,9 @@ async function convertTodoToJiraTicket() {
           replaceTodoWithTicketReference(editor, todoInfo, issue.key, issue.url);
         } else if (replaceChoice === "Open in Browser") {
           await vscode.env.openExternal(vscode.Uri.parse(issue.url));
+        } else if (replaceChoice === "Open in VS Code") {
+          // Open the issue in the webview panel
+          await vscode.commands.executeCommand("devBuddy.jira.viewIssueDetails", { issue });
         }
 
         // Refresh tree view

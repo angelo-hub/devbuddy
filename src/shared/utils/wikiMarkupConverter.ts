@@ -24,7 +24,10 @@ export function convertMarkdownToWiki(markdown: string): string {
     wiki = wiki.replace(/```(\w+)\s*\n([\s\S]*?)```/g, (match, lang, code) => {
       // Preserve code exactly as-is, trimming only trailing newlines
       const cleanCode = code.replace(/\n+$/, '');
-      return `{code:${lang}}\n${cleanCode}\n{code}`;
+      // Map unsupported languages to supported ones for Jira Wiki Markup
+      // TypeScript/TS -> JavaScript since Jira doesn't support TypeScript highlighting
+      const jiraLang = (lang === 'typescript' || lang === 'ts') ? 'javascript' : lang;
+      return `{code:${jiraLang}}\n${cleanCode}\n{code}`;
     });
     
     // Match code blocks without language: ```\ncode\n```
