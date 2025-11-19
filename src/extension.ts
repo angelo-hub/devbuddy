@@ -19,15 +19,14 @@ import { UniversalStandupBuilderPanel } from "@shared/views/UniversalStandupBuil
 
 // Jira imports
 import { runJiraCloudSetup, testJiraCloudConnection, resetJiraCloudConfig, updateJiraCloudApiToken } from "@providers/jira/cloud/firstTimeSetup";
+import { runJiraServerSetup, testJiraServerConnection, resetJiraServerConfig, updateJiraServerPassword, showJiraServerInfo } from "@providers/jira/server/firstTimeSetup";
 import {
   openJiraIssue,
-  refreshJiraIssues,
   updateJiraIssueStatus,
   assignJiraIssue,
   addJiraComment,
   copyJiraIssueUrl,
   copyJiraIssueKey,
-  viewJiraIssueDetails,
 } from "@commands/jira/issueCommands";
 import { JiraIssue } from "@providers/jira/common/types";
 import { JiraIssuePanel } from "@providers/jira/cloud/JiraIssuePanel";
@@ -2153,15 +2152,45 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // ==================== Register Jira Commands ====================
   context.subscriptions.push(
-    // Jira Configuration Commands
+    // Jira Configuration Commands - Auto-detect type
     vscode.commands.registerCommand("devBuddy.jira.setup", async () => {
-      // Alias for setupCloud - provides a simpler command name for first-time setup
-      const success = await runJiraCloudSetup(context);
+      // Smart setup - ask user which type
+      const choice = await vscode.window.showQuickPick(
+        [
+          {
+            label: "$(cloud) Jira Cloud",
+            description: "https://yourcompany.atlassian.net",
+            value: "cloud"
+          },
+          {
+            label: "$(server) Jira Server/Data Center",
+            description: "Self-hosted Jira (http://jira.company.com)",
+            value: "server"
+          }
+        ],
+        {
+          title: "Select Jira Type",
+          placeHolder: "Which type of Jira are you using?"
+        }
+      );
+
+      if (!choice) {
+        return;
+      }
+
+      let success = false;
+      if (choice.value === "cloud") {
+        success = await runJiraCloudSetup(context);
+      } else {
+        success = await runJiraServerSetup(context);
+      }
+
       if (success) {
         ticketsProvider?.refresh();
       }
     }),
 
+    // Jira Cloud Commands
     vscode.commands.registerCommand("devBuddy.jira.setupCloud", async () => {
       const success = await runJiraCloudSetup(context);
       if (success) {
@@ -2169,17 +2198,77 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     }),
 
-    vscode.commands.registerCommand("devBuddy.jira.testConnection", async () => {
+    vscode.commands.registerCommand("devBuddy.jira.cloud.testConnection", async () => {
       await testJiraCloudConnection(context);
     }),
 
-    vscode.commands.registerCommand("devBuddy.jira.resetConfig", async () => {
+    vscode.commands.registerCommand("devBuddy.jira.cloud.resetConfig", async () => {
       await resetJiraCloudConfig(context);
       ticketsProvider?.refresh();
     }),
 
-    vscode.commands.registerCommand("devBuddy.jira.updateToken", async () => {
+    vscode.commands.registerCommand("devBuddy.jira.cloud.updateToken", async () => {
       await updateJiraCloudApiToken(context);
+    }),
+
+    // Jira Server Commands
+    vscode.commands.registerCommand("devBuddy.jira.setupServer", async () => {
+      const success = await runJiraServerSetup(context);
+      if (success) {
+        ticketsProvider?.refresh();
+      }
+    }),
+
+    vscode.commands.registerCommand("devBuddy.jira.server.testConnection", async () => {
+      await testJiraServerConnection();
+    }),
+
+    vscode.commands.registerCommand("devBuddy.jira.server.resetConfig", async () => {
+      await resetJiraServerConfig(context);
+      ticketsProvider?.refresh();
+    }),
+
+    vscode.commands.registerCommand("devBuddy.jira.server.updatePassword", async () => {
+      await updateJiraServerPassword(context);
+    }),
+
+    vscode.commands.registerCommand("devBuddy.jira.server.showInfo", async () => {
+      await showJiraServerInfo();
+    }),
+
+    // Legacy commands (kept for backward compatibility)
+    vscode.commands.registerCommand("devBuddy.jira.testConnection", async () => {
+      const config = vscode.workspace.getConfiguration("devBuddy");
+      const jiraType = config.get<string>("jira.type", "cloud");
+      
+      if (jiraType === "server") {
+        await testJiraServerConnection();
+      } else {
+        await testJiraCloudConnection(context);
+      }
+    }),
+
+    vscode.commands.registerCommand("devBuddy.jira.resetConfig", async () => {
+      const config = vscode.workspace.getConfiguration("devBuddy");
+      const jiraType = config.get<string>("jira.type", "cloud");
+      
+      if (jiraType === "server") {
+        await resetJiraServerConfig(context);
+      } else {
+        await resetJiraCloudConfig(context);
+      }
+      ticketsProvider?.refresh();
+    }),
+
+    vscode.commands.registerCommand("devBuddy.jira.updateToken", async () => {
+      const config = vscode.workspace.getConfiguration("devBuddy");
+      const jiraType = config.get<string>("jira.type", "cloud");
+      
+      if (jiraType === "server") {
+        await updateJiraServerPassword(context);
+      } else {
+        await updateJiraCloudApiToken(context);
+      }
     }),
 
     // Jira Issue Commands
@@ -2194,7 +2283,7 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("devBuddy.jira.viewIssueDetails", async (item: { issue?: JiraIssue }) => {
       const issue = item?.issue;
       if (issue) {
-        // Open in webview panel
+        // Use webview panel for both Cloud and Server
         await JiraIssuePanel.createOrShow(context.extensionUri, issue, context);
       }
     }),
@@ -2217,6 +2306,13 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     }),
 
+    vscode.commands.registerCommand("devBuddy.jira.assignToMe", async (item: { issue?: JiraIssue }) => {
+      const issue = item?.issue;
+      if (issue) {
+        await assignJiraIssue(issue);
+      }
+    }),
+
     vscode.commands.registerCommand("devBuddy.jira.addComment", async (item: { issue?: JiraIssue }) => {
       const issue = item?.issue;
       if (issue) {
@@ -2231,7 +2327,21 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     }),
 
+    vscode.commands.registerCommand("devBuddy.jira.copyIssueUrl", async (item: { issue?: JiraIssue }) => {
+      const issue = item?.issue;
+      if (issue) {
+        await copyJiraIssueUrl(issue);
+      }
+    }),
+
     vscode.commands.registerCommand("devBuddy.jira.copyKey", async (item: { issue?: JiraIssue }) => {
+      const issue = item?.issue;
+      if (issue) {
+        await copyJiraIssueKey(issue);
+      }
+    }),
+
+    vscode.commands.registerCommand("devBuddy.jira.copyIssueKey", async (item: { issue?: JiraIssue }) => {
       const issue = item?.issue;
       if (issue) {
         await copyJiraIssueKey(issue);

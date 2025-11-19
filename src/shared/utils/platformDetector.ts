@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { BaseTicketProvider } from "@shared/base/BaseTicketProvider";
 import { LinearClient } from "@providers/linear/LinearClient";
 import { JiraCloudClient } from "@providers/jira/cloud/JiraCloudClient";
+import { JiraServerClient } from "@providers/jira/server/JiraServerClient";
 import { BaseJiraClient } from "@providers/jira/common/BaseJiraClient";
 
 /**
@@ -26,8 +27,8 @@ export function getCurrentPlatform(): PlatformType {
  * Get Jira deployment type (Cloud or Server)
  */
 export function getJiraDeploymentType(): JiraDeploymentType {
-  const config = vscode.workspace.getConfiguration("devBuddy.jira");
-  return config.get<string>("deploymentType", "cloud") as JiraDeploymentType;
+  const config = vscode.workspace.getConfiguration("devBuddy");
+  return config.get<string>("jira.type", "cloud") as JiraDeploymentType;
 }
 
 /**
@@ -46,8 +47,7 @@ export async function getPlatformClient(): Promise<BaseTicketProvider | BaseJira
       if (jiraType === "cloud") {
         return await JiraCloudClient.create();
       } else {
-        // TODO: Implement Jira Server support in Phase 2B
-        throw new Error("Jira Server support not yet implemented. Please select 'cloud' deployment type.");
+        return await JiraServerClient.create();
       }
     }
     case "monday":
@@ -100,8 +100,14 @@ export async function isPlatformConfigured(platform?: PlatformType): Promise<boo
       const client = await LinearClient.create();
       return client.isConfigured();
     } else if (targetPlatform === "jira") {
+      const jiraType = getJiraDeploymentType();
+      if (jiraType === "cloud") {
       const client = await JiraCloudClient.create();
       return client.isConfigured();
+      } else {
+        const client = await JiraServerClient.create();
+        return client.isConfigured();
+      }
     }
     
     return false;

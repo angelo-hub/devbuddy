@@ -2,14 +2,30 @@
  * Jira-specific commands
  * 
  * Command implementations for Jira integration.
+ * Supports both Jira Cloud and Jira Server.
  */
 
 import * as vscode from "vscode";
+import { BaseJiraClient } from "@providers/jira/common/BaseJiraClient";
 import { JiraCloudClient } from "@providers/jira/cloud/JiraCloudClient";
+import { JiraServerClient } from "@providers/jira/server/JiraServerClient";
 import { JiraIssue } from "@providers/jira/common/types";
 import { getLogger } from "@shared/utils/logger";
+import { getJiraDeploymentType } from "@shared/utils/platformDetector";
 
 const logger = getLogger();
+
+/**
+ * Get the appropriate Jira client based on deployment type
+ */
+async function getJiraClient(): Promise<BaseJiraClient> {
+  const jiraType = getJiraDeploymentType();
+  if (jiraType === "cloud") {
+    return await JiraCloudClient.create();
+  } else {
+    return await JiraServerClient.create();
+  }
+}
 
 /**
  * Open a Jira issue in the browser or desktop app
@@ -39,7 +55,7 @@ export async function openJiraIssue(issue?: JiraIssue): Promise<void> {
       }
 
       // Fetch the issue
-      const client = await JiraCloudClient.create();
+      const client = await getJiraClient();
       const fetchedIssue = await client.getIssue(issueKey.toUpperCase());
 
       if (!fetchedIssue) {
@@ -77,7 +93,7 @@ export async function refreshJiraIssues(): Promise<void> {
  */
 export async function updateJiraIssueStatus(issue: JiraIssue): Promise<void> {
   try {
-    const client = await JiraCloudClient.create();
+    const client = await getJiraClient();
 
     // Get available transitions
     const transitions = await client.getTransitions(issue.key);
@@ -135,30 +151,31 @@ export async function updateJiraIssueStatus(issue: JiraIssue): Promise<void> {
  */
 export async function assignJiraIssue(issue: JiraIssue): Promise<void> {
   try {
-    const client = await JiraCloudClient.create();
+    const client = await getJiraClient();
 
-    // Search for users
-    const query = await vscode.window.showInputBox({
-      prompt: `Search for assignee (${issue.key})`,
-      placeHolder: "Enter name or email",
-    });
-
-    if (!query) {
-      return;
-    }
-
-    const users = await client.searchUsers(query, issue.project.key);
+    // Load users directly without asking for search first
+    const users = await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: "Loading users...",
+        cancellable: false,
+      },
+      async () => {
+        // Get all assignable users for the project
+        return await client.searchUsers("", issue.project.key);
+      }
+    );
 
     if (users.length === 0) {
-      vscode.window.showInformationMessage("No users found");
+      vscode.window.showInformationMessage("No users found for this project");
       return;
     }
 
-    // Show quick pick
+    // Show quick pick with all users (VS Code provides built-in filtering)
     const selected = await vscode.window.showQuickPick(
       [
         {
-          label: "$(person) Unassigned",
+          label: "$(circle-slash) Unassigned",
           description: "Remove assignee",
           user: null,
         },
@@ -169,7 +186,8 @@ export async function assignJiraIssue(issue: JiraIssue): Promise<void> {
         })),
       ],
       {
-        placeHolder: `Select assignee for ${issue.key}`,
+        placeHolder: `Select assignee for ${issue.key} (type to filter)`,
+        matchOnDescription: true,
       }
     );
 
@@ -225,7 +243,7 @@ export async function addJiraComment(issue: JiraIssue): Promise<void> {
       return;
     }
 
-    const client = await JiraCloudClient.create();
+    const client = await getJiraClient();
 
     const success = await vscode.window.withProgress(
       {

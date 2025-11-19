@@ -1,24 +1,33 @@
 import { BaseStandupDataProvider, StandupTicket } from "@shared/base/BaseStandupDataProvider";
+import { BaseJiraClient } from "./common/BaseJiraClient";
 import { JiraCloudClient } from "./cloud/JiraCloudClient";
+import { JiraServerClient } from "./server/JiraServerClient";
+import { getJiraDeploymentType } from "@shared/utils/platformDetector";
 
 /**
  * Jira-specific implementation of standup data provider
+ * Supports both Jira Cloud and Jira Server
  */
 export class JiraStandupDataProvider extends BaseStandupDataProvider {
-  private client: JiraCloudClient | null = null;
+  private client: BaseJiraClient | null = null;
 
-  constructor(client?: JiraCloudClient) {
+  constructor(client?: BaseJiraClient) {
     super();
     this.client = client || null;
   }
 
   async initialize(): Promise<void> {
     if (!this.client) {
+      const jiraType = getJiraDeploymentType();
+      if (jiraType === "cloud") {
       this.client = await JiraCloudClient.create();
+      } else {
+        this.client = await JiraServerClient.create();
+      }
     }
   }
 
-  private async getClient(): Promise<JiraCloudClient> {
+  private async getClient(): Promise<BaseJiraClient> {
     if (!this.client) {
       await this.initialize();
     }
