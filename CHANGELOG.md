@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.6.0](https://github.com/angelo-hub/devbuddy/compare/v0.5.1...v0.6.0) (2025-11-19)
+
+
+### ✨ Features
+
+* jira server support ([f6965a4](https://github.com/angelo-hub/devbuddy/commit/f6965a4e3b18784fdae587d9d6e90a8c575768da))
+
+
+### 🐛 Bug Fixes
+
+* add walkthrough content ([34c0517](https://github.com/angelo-hub/devbuddy/commit/34c0517320d76f0eb4f0e597ad276e8ad17f99c2))
+* add walkthrough content part 1 ([2c9e005](https://github.com/angelo-hub/devbuddy/commit/2c9e005aa3e00798791b7f56b27db59215f46c34))
+* linting ([94200d9](https://github.com/angelo-hub/devbuddy/commit/94200d9efd802271f18180763279b0cef7175d86))
+* linting ([6b43d54](https://github.com/angelo-hub/devbuddy/commit/6b43d543472139dac883b75795c011e417bab651))
+
 ### [0.5.1](https://github.com/angelo-hub/devbuddy/compare/v0.5.0...v0.5.1) (2025-11-15)
 
 
