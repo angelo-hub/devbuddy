@@ -960,11 +960,12 @@ export class JiraServerClient extends BaseJiraClient {
       
       // Add appropriate formatting based on node type
       switch (node.type) {
-        case "heading":
+        case "heading": {
           const level = node.attrs?.level || 1;
           lines.push(`${"#".repeat(level)} ${text}`);
           lines.push(""); // Extra line after heading
           break;
+        }
           
         case "paragraph":
           if (text.trim()) {
@@ -973,13 +974,14 @@ export class JiraServerClient extends BaseJiraClient {
           }
           break;
           
-        case "codeBlock":
+        case "codeBlock": {
           const language = node.attrs?.language || "";
           lines.push(`\`\`\`${language}`);
           lines.push(text);
           lines.push("```");
           lines.push("");
           break;
+        }
           
         case "bulletList":
         case "orderedList":
@@ -994,11 +996,12 @@ export class JiraServerClient extends BaseJiraClient {
           lines.push(`- ${text.trim()}`);
           break;
           
-        case "blockquote":
+        case "blockquote": {
           const quoted = text.split("\n").map(line => `> ${line}`).join("\n");
           lines.push(quoted);
           lines.push("");
           break;
+        }
           
         case "rule":
           lines.push("---");
