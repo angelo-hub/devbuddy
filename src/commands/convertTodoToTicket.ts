@@ -1,13 +1,16 @@
 import * as vscode from "vscode";
 import { LinearClient } from "@providers/linear/LinearClient";
 import { LinearTeam } from "@providers/linear/types";
+import { BaseJiraClient } from "@providers/jira/common/BaseJiraClient";
 import { JiraCloudClient } from "@providers/jira/cloud/JiraCloudClient";
+import { JiraServerClient } from "@providers/jira/server/JiraServerClient";
 import { JiraProject, CreateJiraIssueInput } from "@providers/jira/common/types";
 import { GitPermalinkGenerator, CodeContext, CodePermalink } from "@shared/git/gitPermalinkGenerator";
-import { getCurrentPlatform } from "@shared/utils/platformDetector";
+import { getCurrentPlatform, getJiraDeploymentType } from "@shared/utils/platformDetector";
 import { ADFDocument } from "@shared/jira/adfTypes";
 import { ADFBuilder, adf, getADFLanguageFromExtension } from "@shared/jira/adfBuilder";
 import { MarkdownBuilder, md } from "@shared/markdown/markdownBuilder";
+import { convertMarkdownToWiki, formatDescriptionWithPermalinkWiki } from "@shared/utils/wikiMarkupConverter";
 
 /**
  * Helper to convert TODO information to Linear Markdown format
@@ -83,6 +86,115 @@ function convertToLinearMarkdown(
   }
 
   return builder.build();
+}
+
+/**
+ * Helper to convert TODO information to Jira Wiki Markup format
+ * Used for Jira Server instances that use Wiki Markup instead of ADF
+ */
+function convertToJiraWiki(
+  description: string,
+  permalinkInfo: CodePermalink | null,
+  codeContext: CodeContext | null,
+  fileName: string,
+  lineNumber: number,
+  language?: string
+): string {
+  const parts: string[] = [];
+
+  if (permalinkInfo && codeContext) {
+    // Location section
+    parts.push(`*📍 Location:* {{${fileName}:${lineNumber}}}`);
+    parts.push('');
+
+    // View in code link
+    const providerName = permalinkInfo.provider === "github" 
+      ? "GitHub" 
+      : permalinkInfo.provider.charAt(0).toUpperCase() + permalinkInfo.provider.slice(1);
+    parts.push(`*🔗 View in code:* [${providerName}|${permalinkInfo.url}]`);
+    parts.push('');
+
+    // Branch and commit
+    parts.push(`*🌿 Branch:* {{${permalinkInfo.branch}}}`);
+    parts.push(`*📝 Commit:* {{${permalinkInfo.commitSha.substring(0, 7)}}}`);
+    parts.push('');
+
+    // Code context header
+    parts.push('*Code context:*');
+    parts.push('');
+
+    // Code block - use raw Wiki markup syntax directly
+    const codeLines = [
+      ...codeContext.contextBefore,
+      codeContext.lineContent,
+      ...codeContext.contextAfter,
+    ];
+    const codeText = codeLines.join("\n");
+
+    // Use {code:language} syntax - don't let jira2md convert this
+    if (language) {
+      parts.push(`{code:${language}}`);
+      parts.push(codeText);
+      parts.push('{code}');
+    } else {
+      parts.push('{code}');
+      parts.push(codeText);
+      parts.push('{code}');
+    }
+
+    // Add user's additional description if provided
+    if (description && description.trim()) {
+      parts.push('');
+      parts.push('*Additional notes:*');
+      parts.push('');
+      
+      // Convert markdown description to wiki markup
+      // This will handle headers, bold, italic, links, etc.
+      const wikiDescription = convertMarkdownToWiki(description.trim());
+      parts.push(wikiDescription);
+    }
+
+    // Footer
+    parts.push('');
+    parts.push('----');
+    parts.push('_Created by *DevBuddy* for VS Code_');
+  } else {
+    // Simple fallback without permalink/code context
+    parts.push(`*Found in:* {{${fileName}:${lineNumber}}}`);
+    parts.push('');
+    
+    if (description && description.trim()) {
+      const wikiDescription = convertMarkdownToWiki(description);
+      parts.push(wikiDescription);
+    }
+
+    // Footer
+    parts.push('');
+    parts.push('----');
+    parts.push('_Created by *DevBuddy* for VS Code_');
+  }
+
+  return parts.join('\n');
+}
+
+/**
+ * Detect if Jira instance uses Wiki Markup or ADF
+ * Simple rule: Server = Wiki, Cloud = ADF
+ */
+async function shouldUseWikiMarkup(
+  jiraClient: BaseJiraClient,
+  projectKey?: string
+): Promise<boolean> {
+  const jiraType = getJiraDeploymentType();
+  
+  // Jira Cloud always uses ADF
+  if (jiraType === "cloud") {
+    return false;
+  }
+  
+  // Jira Server: always use Wiki Markup (standard format)
+  // This is simpler and more reliable than runtime detection
+  return true;
 }
 
 /**
@@ -202,8 +314,16 @@ export async function convertTodoToTicket() {
  * Convert TODO to Jira issue
  */
 async function convertTodoToJiraTicket() {
-  // Check if Jira is configured
-  const jiraClient = await JiraCloudClient.create();
+  // Get the appropriate Jira client based on deployment type
+  const jiraType = getJiraDeploymentType();
+  console.log(`[TODO Converter] Detected Jira type: ${jiraType}`);
+  
+  const jiraClient: BaseJiraClient = jiraType === "cloud" 
+    ? await JiraCloudClient.create()
+    : await JiraServerClient.create();
+  
+  console.log(`[TODO Converter] Created client: ${jiraClient.constructor.name}`);
+    
   if (!jiraClient.isConfigured()) {
     const configure = await vscode.window.showErrorMessage(
       "Jira API not configured. Configure now?",
@@ -297,7 +417,9 @@ async function convertTodoToJiraTicket() {
 
         // Step 3: Get projects
         progress.report({ message: "Loading projects..." });
+        console.log(`[TODO Converter] Fetching projects using: ${jiraClient.constructor.name}`);
         const projects = await jiraClient.getProjects();
+        console.log(`[TODO Converter] Found ${projects.length} projects`);
 
         if (projects.length === 0) {
           vscode.window.showErrorMessage("No projects found in your Jira workspace");
@@ -398,22 +520,39 @@ async function convertTodoToJiraTicket() {
           todoInfo.fileName.split(".").pop() || ""
         );
 
-        // Create ADF description for rich formatting
-        const descriptionADF = convertToJiraADF(
-          userDescription || "",
-          permalinkInfo,
-          codeContext,
-          todoInfo.fileName,
-          todoInfo.lineNumber,
-          language
-        );
+        // Detect if we should use Wiki Markup or ADF
+        // Server = Wiki, Cloud = ADF
+        const useWiki = await shouldUseWikiMarkup(jiraClient);
 
         const createInput: CreateJiraIssueInput = {
           projectKey: selectedProject.key,
           summary: title,
-          descriptionADF: descriptionADF,
           issueTypeId: selectedIssueType.id,
         };
+
+        if (useWiki) {
+          // Use Wiki Markup for Jira Server
+          const descriptionWiki = convertToJiraWiki(
+            userDescription || "",
+            permalinkInfo,
+            codeContext,
+            todoInfo.fileName,
+            todoInfo.lineNumber,
+            language
+          );
+          createInput.description = descriptionWiki;
+        } else {
+          // Use ADF for Jira Cloud
+          const descriptionADF = convertToJiraADF(
+            userDescription || "",
+            permalinkInfo,
+            codeContext,
+            todoInfo.fileName,
+            todoInfo.lineNumber,
+            language
+          );
+          createInput.descriptionADF = descriptionADF;
+        }
 
         const issue = await jiraClient.createIssue(createInput);
 

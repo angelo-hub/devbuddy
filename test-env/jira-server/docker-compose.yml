@@ -1,0 +1,68 @@
+services:
+  postgres:
+    image: postgres:14
+    container_name: devbuddy-jira-postgres
+    environment:
+      POSTGRES_DB: jiradb
+      POSTGRES_USER: jirauser
+      POSTGRES_PASSWORD: jirapassword
+    volumes:
+      - jira-postgres-data:/var/lib/postgresql/data
+    networks:
+      - jira-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jirauser"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  jira:
+    image: atlassian/jira-software:9.12.0
+    container_name: devbuddy-jira-server
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      # Database connection
+      ATL_JDBC_URL: jdbc:postgresql://postgres:5432/jiradb
+      ATL_JDBC_USER: jirauser
+      ATL_JDBC_PASSWORD: jirapassword
+      ATL_DB_DRIVER: org.postgresql.Driver
+      ATL_DB_TYPE: postgres72
+
+      # Jira settings
+      ATL_PROXY_NAME: localhost
+      ATL_PROXY_PORT: 8080
+      ATL_TOMCAT_SCHEME: http
+      ATL_TOMCAT_SECURE: "false"
+
+      # Memory settings (adjust based on your system)
+      JVM_MINIMUM_MEMORY: 1024m
+      JVM_MAXIMUM_MEMORY: 2048m
+
+      # Optional: Set timezone
+      TZ: America/New_York
+
+    volumes:
+      - jira-data:/var/atlassian/application-data/jira
+    networks:
+      - jira-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+volumes:
+  jira-postgres-data:
+    name: devbuddy-jira-postgres-data
+  jira-data:
+    name: devbuddy-jira-data
+
+networks:
+  jira-network:
+    name: devbuddy-jira-network
+    driver: bridge

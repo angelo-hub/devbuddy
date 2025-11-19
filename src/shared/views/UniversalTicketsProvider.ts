@@ -2,14 +2,16 @@
  * Universal Tickets Provider
  * 
  * Platform-agnostic tree view that shows tickets from the active provider.
- * Supports Linear, Jira Cloud, and future platforms.
+ * Supports Linear, Jira Cloud, Jira Server, and future platforms.
  */
 
 import * as vscode from "vscode";
 import { LinearClient } from "@providers/linear/LinearClient";
 import { LinearIssue } from "@providers/linear/types";
 import { JiraCloudClient } from "@providers/jira/cloud/JiraCloudClient";
+import { JiraServerClient } from "@providers/jira/server/JiraServerClient";
 import { JiraIssue } from "@providers/jira/common/types";
+import { BaseJiraClient } from "@providers/jira/common/BaseJiraClient";
 import { getLogger } from "@shared/utils/logger";
 import { BranchAssociationManager } from "@shared/git/branchAssociationManager";
 
@@ -663,13 +665,32 @@ export class UniversalTicketsProvider
 
   // ==================== JIRA IMPLEMENTATION ====================
 
+  /**
+   * Get Jira client based on configured type (cloud vs server)
+   */
+  private async getJiraClient(): Promise<BaseJiraClient | null> {
+    const config = vscode.workspace.getConfiguration("devBuddy");
+    const jiraType = config.get<string>("jira.type", "cloud");
+
+    try {
+      if (jiraType === "server") {
+        return await JiraServerClient.create();
+      } else {
+        return await JiraCloudClient.create();
+      }
+    } catch (error) {
+      logger.error(`Failed to create ${jiraType} Jira client:`, error);
+      return null;
+    }
+  }
+
   private async getJiraChildren(
     element?: UniversalTicketTreeItem
   ): Promise<UniversalTicketTreeItem[]> {
     try {
-      const client = await JiraCloudClient.create();
+      const client = await this.getJiraClient();
 
-      if (!client.isConfigured()) {
+      if (!client || !client.isConfigured()) {
         return this.getJiraSetupInstructions();
       }
 
@@ -764,7 +785,7 @@ export class UniversalTicketsProvider
   /**
    * Get My Issues section - shows active issues grouped by status
    */
-  private async getJiraMyIssues(client: JiraCloudClient): Promise<UniversalTicketTreeItem[]> {
+  private async getJiraMyIssues(client: BaseJiraClient): Promise<UniversalTicketTreeItem[]> {
     const issues = await client.getMyIssues();
     
     // Filter out done issues
@@ -824,7 +845,7 @@ export class UniversalTicketsProvider
   /**
    * Get Recently Done section - shows last 10 done issues
    */
-  private async getJiraRecentlyDone(client: JiraCloudClient): Promise<UniversalTicketTreeItem[]> {
+  private async getJiraRecentlyDone(client: BaseJiraClient): Promise<UniversalTicketTreeItem[]> {
     const issues = await client.getMyIssues();
     
     // Filter for done issues
@@ -857,7 +878,7 @@ export class UniversalTicketsProvider
   /**
    * Get Your Boards section - shows all boards (teams)
    */
-  private async getJiraBoards(client: JiraCloudClient): Promise<UniversalTicketTreeItem[]> {
+  private async getJiraBoards(client: BaseJiraClient): Promise<UniversalTicketTreeItem[]> {
     const boards = await client.getBoards();
 
     if (boards.length === 0) {
@@ -897,8 +918,8 @@ export class UniversalTicketsProvider
    * Get issues for a specific board
    */
   private async getJiraBoardIssues(
-    client: JiraCloudClient,
-    boardId: number
+    client: BaseJiraClient,
+    _boardId: number
   ): Promise<UniversalTicketTreeItem[]> {
     // Get all issues and filter by board
     // Note: We'd need to implement getBoardIssues in JiraCloudClient for proper filtering
@@ -923,7 +944,7 @@ export class UniversalTicketsProvider
   /**
    * Get Projects section - shows all projects
    */
-  private async getJiraProjects(client: JiraCloudClient): Promise<UniversalTicketTreeItem[]> {
+  private async getJiraProjects(client: BaseJiraClient): Promise<UniversalTicketTreeItem[]> {
     const projects = await client.getProjects();
 
     if (projects.length === 0) {
@@ -954,7 +975,7 @@ export class UniversalTicketsProvider
    * Get issues for a specific status category
    */
   private async getJiraIssuesByStatusCategory(
-    client: JiraCloudClient,
+    client: BaseJiraClient,
     statusCategory: string
   ): Promise<UniversalTicketTreeItem[]> {
     const issues = await client.getMyIssues();
@@ -973,7 +994,7 @@ export class UniversalTicketsProvider
    * Get issues for a specific project
    */
   private async getJiraProjectIssues(
-    client: JiraCloudClient,
+    client: BaseJiraClient,
     projectKey: string
   ): Promise<UniversalTicketTreeItem[]> {
     // Filter issues by project

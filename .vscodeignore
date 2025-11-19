@@ -3,6 +3,9 @@
 .vscode-test/**
 .vscode-test-fresh/**
 
+# Test environments - NEVER package Docker testing infrastructure
+test-env/**
+
 # Source files (only compiled output in out/ should be included)
 src/**
 webview-ui/src/**
