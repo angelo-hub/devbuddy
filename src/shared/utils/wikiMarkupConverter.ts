@@ -14,7 +14,9 @@ import * as j2m from 'jira2md';
  * Custom implementation for better code block handling
  */
 export function convertMarkdownToWiki(markdown: string): string {
-  if (!markdown) return '';
+  if (!markdown) {
+    return '';
+  }
   
   try {
     let wiki = markdown;
@@ -66,10 +68,10 @@ export function convertMarkdownToWiki(markdown: string): string {
       wiki = wiki.replace(/`([^`\n]+)`/g, '{{$1}}');
       
       // Links [text](url)
-      wiki = wiki.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '[$1|$2]');
+      wiki = wiki.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '[$1|$2]');
       
       // Unordered lists
-      wiki = wiki.replace(/^[\*\-]\s+(.+)$/gm, '* $1');
+      wiki = wiki.replace(/^[*-]\s+(.+)$/gm, '* $1');
       
       // Ordered lists
       wiki = wiki.replace(/^\d+\.\s+(.+)$/gm, '# $1');
@@ -94,7 +96,9 @@ export function convertMarkdownToWiki(markdown: string): string {
  * Useful for displaying Jira content in VS Code or other markdown contexts
  */
 export function convertWikiToMarkdown(wiki: string): string {
-  if (!wiki) return '';
+  if (!wiki) {
+    return '';
+  }
   
   try {
     return j2m.to_markdown(wiki);
