@@ -440,6 +440,14 @@
             }
           },
           {
+            "id": "setup.pin",
+            "title": "📌 Pin DevBuddy for Easy Access",
+            "description": "For the best experience, pin DevBuddy to your Activity Bar!\n\n**How to pin:**\n1. Right-click the DevBuddy icon (checklist) in the Activity Bar\n2. Select \"Pin to Activity Bar\"\n\n**Why pin it?**\n• Quick access to your tickets\n• Visual reminders of your work\n• Seamless workflow\n\n[Open DevBuddy Sidebar](command:workbench.view.extension.dev-buddy)\n\n*You can skip this if DevBuddy is already pinned!*",
+            "media": {
+              "markdown": "media/walkthrough/pin-sidebar.md"
+            }
+          },
+          {
             "id": "setup.platform",
             "title": "Choose Your Platform",
             "description": "Select which platform you use for ticket management. You can change this anytime in settings!",
