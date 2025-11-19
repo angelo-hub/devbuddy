@@ -17,7 +17,13 @@ Thumbs.db
 # Environment variables
 .env
 .env.local
+test-env/**/.env
 
 # TypeScript
 *.tsbuildinfo
+
+# Test environments (Docker-based testing)
+test-env/**/data/
+test-env/**/.data/
+test-env/**/volumes/
 

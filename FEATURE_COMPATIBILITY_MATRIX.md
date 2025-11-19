@@ -19,7 +19,7 @@ DevBuddy is a multi-platform ticket management extension for VS Code. This matri
 |----------|--------|----------------|-------------|-------|
 | **Linear** | ✅ Production | API Key | GraphQL | Full feature set |
 | **Jira Cloud** | ✅ Production | Email + API Token | REST API v3 | Full CRUD, Zod validation |
-| **Jira Server** | ⏳ Planned | Personal Access Token | REST API v2 | Phase 2B |
+| **Jira Server (beta)** | 🚧 Beta | Personal Access Token | REST API v2 | Testing phase |
 | **Monday.com** | ⏳ Planned | API Key | GraphQL | Phase 3 |
 | **ClickUp** | ⏳ Planned | API Token | REST API v2 | Phase 4 |
 
@@ -29,7 +29,7 @@ DevBuddy is a multi-platform ticket management extension for VS Code. This matri
 
 ### 1. Ticket Management
 
-| Feature | Linear | Jira Cloud | Jira Server | Monday | ClickUp |
+| Feature | Linear | Jira Cloud | Jira Server (beta) | Monday | ClickUp |
 |---------|--------|------------|-------------|--------|---------|
 | **View Issues/Tickets** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 | **Create Issues/Tickets** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
@@ -46,7 +46,7 @@ DevBuddy is a multi-platform ticket management extension for VS Code. This matri
 
 ### 2. UI Integration
 
-| Feature | Linear | Jira Cloud | Jira Server | Monday | ClickUp |
+| Feature | Linear | Jira Cloud | Jira Server (beta) | Monday | ClickUp |
 |---------|--------|------------|-------------|--------|---------|
 | **Sidebar Tree View** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 | **Detail Webview Panel** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
@@ -59,7 +59,7 @@ DevBuddy is a multi-platform ticket management extension for VS Code. This matri
 
 ### 3. Git Integration
 
-| Feature | Linear | Jira Cloud | Jira Server | Monday | ClickUp |
+| Feature | Linear | Jira Cloud | Jira Server (beta) | Monday | ClickUp |
 |---------|--------|------------|-------------|--------|---------|
 | **Branch Creation** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 | **Branch Naming Convention** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
@@ -72,7 +72,7 @@ DevBuddy is a multi-platform ticket management extension for VS Code. This matri
 
 ### 4. AI Features
 
-| Feature | Linear | Jira Cloud | Jira Server | Monday | ClickUp |
+| Feature | Linear | Jira Cloud | Jira Server (beta) | Monday | ClickUp |
 |---------|--------|------------|-------------|--------|---------|
 | **PR Summary Generation** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 | **Standup Generation** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
@@ -86,7 +86,7 @@ DevBuddy is a multi-platform ticket management extension for VS Code. This matri
 
 ### 5. Chat Participant
 
-| Feature | Linear | Jira Cloud | Jira Server | Monday | ClickUp |
+| Feature | Linear | Jira Cloud | Jira Server (beta) | Monday | ClickUp |
 |---------|--------|------------|-------------|--------|---------|
 | **View Tickets** | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
 | **Create Tickets** | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
@@ -98,7 +98,7 @@ DevBuddy is a multi-platform ticket management extension for VS Code. This matri
 
 ### 6. Advanced Features
 
-| Feature | Linear | Jira Cloud | Jira Server | Monday | ClickUp |
+| Feature | Linear | Jira Cloud | Jira Server (beta) | Monday | ClickUp |
 |---------|--------|------------|-------------|--------|---------|
 | **TODO → Ticket Conversion** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 | **Code Permalinks** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
@@ -112,7 +112,7 @@ DevBuddy is a multi-platform ticket management extension for VS Code. This matri
 
 ### 7. Agile Features
 
-| Feature | Linear | Jira Cloud | Jira Server | Monday | ClickUp |
+| Feature | Linear | Jira Cloud | Jira Server (beta) | Monday | ClickUp |
 |---------|--------|------------|-------------|--------|---------|
 | **Sprints** | ✅ (Cycles) | ✅ | ⏳ | ⏳ | ⏳ |
 | **Boards** | ✅ | ✅ | ⏳ | ✅ | ⏳ |
@@ -123,7 +123,7 @@ DevBuddy is a multi-platform ticket management extension for VS Code. This matri
 
 ### 8. Configuration
 
-| Feature | Linear | Jira Cloud | Jira Server | Monday | ClickUp |
+| Feature | Linear | Jira Cloud | Jira Server (beta) | Monday | ClickUp |
 |---------|--------|------------|-------------|--------|---------|
 | **First-Time Setup** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 | **Connection Test** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
@@ -135,7 +135,7 @@ DevBuddy is a multi-platform ticket management extension for VS Code. This matri
 
 ### 9. Quality & Safety
 
-| Feature | Linear | Jira Cloud | Jira Server | Monday | ClickUp |
+| Feature | Linear | Jira Cloud | Jira Server (beta) | Monday | ClickUp |
 |---------|--------|------------|-------------|--------|---------|
 | **Runtime Validation** | ❌ | ✅ (Zod v4) | ⏳ | ⏳ | ⏳ |
 | **Type Safety** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
@@ -210,7 +210,7 @@ These features work the same across all platforms:
 
 | Feature | Target Platform | Priority |
 |---------|----------------|----------|
-| **Jira Server Support** | Jira Server/DC | High |
+| **Jira Server Support (beta)** | Jira Server/DC | High |
 | **Custom Fields UI** | All Platforms | Medium |
 | **Bulk Operations** | All Platforms | Low |
 | **Offline Caching** | All Platforms | Low |
@@ -240,7 +240,7 @@ These features work the same across all platforms:
 - Custom fields UI
 
 ### ⏳ Planned
-- Jira Server/Data Center support
+- Jira Server/Data Center (beta) - Currently in testing
 - Monday.com integration
 - ClickUp integration
 - Additional platform support
@@ -389,14 +389,14 @@ These features work the same across all platforms:
 - You can wait for AI chat features (coming soon)
 
 ### Wait for Future Release if:
-- You use Jira Server/Data Center
+- You use Jira Server/Data Center (beta available, testing phase)
 - You use Monday.com or ClickUp
 - You need custom fields UI
 - You need offline support
 
 ---
 
-**Last Updated**: November 11, 2025  
+**Last Updated**: November 19, 2025  
 **Extension Version**: 0.2.0  
-**Supported Platforms**: Linear (full), Jira Cloud (full in-editor management)
+**Supported Platforms**: Linear (full), Jira Cloud (full), Jira Server (beta - testing)
 

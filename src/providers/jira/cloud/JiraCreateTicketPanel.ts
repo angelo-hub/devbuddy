@@ -1,7 +1,10 @@
 import * as vscode from "vscode";
+import { BaseJiraClient } from "../common/BaseJiraClient";
 import { JiraCloudClient } from "./JiraCloudClient";
+import { JiraServerClient } from "../server/JiraServerClient";
 import { JiraProject, JiraIssueType, JiraUser } from "../common/types";
 import { getLogger } from "@shared/utils/logger";
+import { getJiraDeploymentType } from "@shared/utils/platformDetector";
 
 const logger = getLogger();
 
@@ -10,7 +13,7 @@ export class JiraCreateTicketPanel {
   private readonly _panel: vscode.WebviewPanel;
   private readonly _extensionUri: vscode.Uri;
   private _disposables: vscode.Disposable[] = [];
-  private _jiraClient: JiraCloudClient | null = null;
+  private _jiraClient: BaseJiraClient | null = null;
 
   private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
     this._panel = panel;
@@ -45,8 +48,13 @@ export class JiraCreateTicketPanel {
 
   private async initializeClient(): Promise<void> {
     try {
+      const jiraType = getJiraDeploymentType();
+      if (jiraType === "cloud") {
       this._jiraClient = await JiraCloudClient.create();
-      logger.debug("Jira client initialized in create ticket panel");
+      } else {
+        this._jiraClient = await JiraServerClient.create();
+      }
+      logger.debug(`Jira ${jiraType} client initialized in create ticket panel`);
     } catch (error) {
       logger.error("Failed to initialize Jira client:", error);
     }
