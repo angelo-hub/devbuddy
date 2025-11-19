@@ -1,8 +1,10 @@
 import * as vscode from "vscode";
-import * as path from "path";
+import { BaseJiraClient } from "../common/BaseJiraClient";
 import { JiraCloudClient } from "./JiraCloudClient";
-import { JiraIssue, JiraTransition, JiraUser, JiraComment } from "../common/types";
+import { JiraServerClient } from "../server/JiraServerClient";
+import { JiraIssue } from "../common/types";
 import { getLogger } from "@shared/utils/logger";
+import { getJiraDeploymentType } from "@shared/utils/platformDetector";
 
 const logger = getLogger();
 
@@ -12,7 +14,7 @@ export class JiraIssuePanel {
   private readonly _extensionUri: vscode.Uri;
   private _disposables: vscode.Disposable[] = [];
   private _issue: JiraIssue | null = null;
-  private _jiraClient: JiraCloudClient | null = null;
+  private _jiraClient: BaseJiraClient | null = null;
 
   private constructor(
     panel: vscode.WebviewPanel,
@@ -85,15 +87,25 @@ export class JiraIssuePanel {
    * Initialize the Jira client asynchronously
    */
   private async initializeClient(): Promise<void> {
+    const jiraType = getJiraDeploymentType();
+    if (jiraType === "cloud") {
     this._jiraClient = await JiraCloudClient.create();
+    } else {
+      this._jiraClient = await JiraServerClient.create();
+    }
   }
 
   /**
    * Get the Jira client, ensuring it's initialized
    */
-  private async getClient(): Promise<JiraCloudClient> {
+  private async getClient(): Promise<BaseJiraClient> {
     if (!this._jiraClient) {
+      const jiraType = getJiraDeploymentType();
+      if (jiraType === "cloud") {
       this._jiraClient = await JiraCloudClient.create();
+      } else {
+        this._jiraClient = await JiraServerClient.create();
+      }
     }
     return this._jiraClient;
   }
@@ -286,8 +298,10 @@ export class JiraIssuePanel {
    * Handle loading users for assignee picker
    */
   private async handleLoadUsers(projectKey: string): Promise<void> {
+    logger.debug(`Loading users for project: ${projectKey}`);
     const client = await this.getClient();
     const users = await client.searchUsers("", projectKey);
+    logger.debug(`Loaded ${users.length} users`);
 
     this._panel.webview.postMessage({
       command: "usersLoaded",
@@ -299,8 +313,10 @@ export class JiraIssuePanel {
    * Handle searching users
    */
   private async handleSearchUsers(searchTerm: string, projectKey?: string): Promise<void> {
+    logger.debug(`Searching users with term: "${searchTerm}" in project: ${projectKey || "all"}`);
     const client = await this.getClient();
     const users = await client.searchUsers(searchTerm, projectKey);
+    logger.debug(`Found ${users.length} users matching "${searchTerm}"`);
 
     this._panel.webview.postMessage({
       command: "usersLoaded",
@@ -367,6 +383,35 @@ export class JiraIssuePanel {
     // Use a nonce to whitelist which scripts can be run
     const nonce = this.getNonce();
 
+    // Build CSP img-src directive that includes Jira Server base URL if using Server
+    const jiraType = getJiraDeploymentType();
+    let imgSrc = "https: data:";
+    
+    if (jiraType === "server") {
+      // Add Jira Server base URL to allow loading issue type icons and avatars
+      const config = vscode.workspace.getConfiguration("devBuddy");
+      const baseUrl = config.get<string>("jira.server.baseUrl", "");
+      const isDevMode = config.get<boolean>("debugMode", false);
+      
+      if (baseUrl) {
+        // Parse URL to get origin (protocol + host + port)
+        try {
+          const url = new URL(baseUrl);
+          // Only allow the specific Jira Server origin
+          // In dev mode with localhost/http, allow http: protocol
+          if (url.protocol === "http:" && (isDevMode || url.hostname === "localhost" || url.hostname === "127.0.0.1")) {
+            imgSrc = `https: data: ${url.origin}`;
+          } else {
+            // Production HTTPS only
+            imgSrc = `https: data: ${url.origin}`;
+          }
+        } catch {
+          // If URL parsing fails, default to https only
+          imgSrc = "https: data:";
+        }
+      }
+    }
+
     // Pass initial state to React
     const initialState = {
       issue: this._issue,
@@ -377,7 +422,7 @@ export class JiraIssuePanel {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${imgSrc}; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}';">
   <link href="${styleUri}" rel="stylesheet">
   <title>${this._issue.key}</title>
 </head>

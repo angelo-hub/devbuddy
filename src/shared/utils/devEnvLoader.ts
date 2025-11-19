@@ -20,9 +20,13 @@ export interface DevEnvironment {
   provider?: "linear" | "jira";
   linearToken?: string;
   linearOrg?: string;
+  jiraType?: "cloud" | "server";
   jiraSiteUrl?: string;
   jiraEmail?: string;
   jiraApiToken?: string;
+  jiraServerBaseUrl?: string;
+  jiraServerUsername?: string;
+  jiraServerPassword?: string;
   debugMode?: boolean;
 }
 
@@ -41,9 +45,13 @@ export function getDevEnvironment(): DevEnvironment {
     provider: process.env.DEV_PROVIDER as "linear" | "jira" | undefined,
     linearToken: process.env.DEV_LINEAR_API_TOKEN,
     linearOrg: process.env.DEV_LINEAR_ORGANIZATION,
+    jiraType: process.env.DEV_JIRA_TYPE as "cloud" | "server" | undefined,
     jiraSiteUrl: process.env.DEV_JIRA_SITE_URL,
     jiraEmail: process.env.DEV_JIRA_EMAIL,
     jiraApiToken: process.env.DEV_JIRA_API_TOKEN,
+    jiraServerBaseUrl: process.env.DEV_JIRA_SERVER_BASE_URL,
+    jiraServerUsername: process.env.DEV_JIRA_SERVER_USERNAME,
+    jiraServerPassword: process.env.DEV_JIRA_SERVER_PASSWORD,
     debugMode: process.env.DEV_DEBUG_MODE === "true",
   };
 }
@@ -88,16 +96,35 @@ export async function loadDevCredentials(context: vscode.ExtensionContext): Prom
   }
 
   // Load Jira credentials
-  if (devEnv.provider === "jira" && devEnv.jiraSiteUrl && devEnv.jiraEmail && devEnv.jiraApiToken) {
-    const config = vscode.workspace.getConfiguration("devBuddy.jira.cloud");
-    await config.update("siteUrl", devEnv.jiraSiteUrl, vscode.ConfigurationTarget.Global);
-    await config.update("email", devEnv.jiraEmail, vscode.ConfigurationTarget.Global);
+  if (devEnv.provider === "jira") {
+    const config = vscode.workspace.getConfiguration("devBuddy");
+    
+    // Set Jira type (cloud or server)
+    const jiraType = devEnv.jiraType || "cloud";
+    await config.update("jira.type", jiraType, vscode.ConfigurationTarget.Global);
+    logger.info(`🎯 Jira type set to: ${jiraType}`);
+    
+    if (jiraType === "cloud" && devEnv.jiraSiteUrl && devEnv.jiraEmail && devEnv.jiraApiToken) {
+      // Load Jira Cloud credentials
+      await config.update("jira.cloud.siteUrl", devEnv.jiraSiteUrl, vscode.ConfigurationTarget.Global);
+      await config.update("jira.cloud.email", devEnv.jiraEmail, vscode.ConfigurationTarget.Global);
     await context.secrets.store("jiraCloudApiToken", devEnv.jiraApiToken);
     
     logger.success("✅ Jira Cloud credentials loaded:");
     logger.success(`   - Site URL: ${devEnv.jiraSiteUrl}`);
     logger.success(`   - Email: ${devEnv.jiraEmail}`);
     logger.success(`   - API Token: ****${devEnv.jiraApiToken.slice(-4)}`);
+    } else if (jiraType === "server" && devEnv.jiraServerBaseUrl && devEnv.jiraServerUsername && devEnv.jiraServerPassword) {
+      // Load Jira Server credentials
+      await config.update("jira.server.baseUrl", devEnv.jiraServerBaseUrl, vscode.ConfigurationTarget.Global);
+      await config.update("jira.server.username", devEnv.jiraServerUsername, vscode.ConfigurationTarget.Global);
+      await context.secrets.store("jiraServerPassword", devEnv.jiraServerPassword);
+      
+      logger.success("✅ Jira Server credentials loaded:");
+      logger.success(`   - Base URL: ${devEnv.jiraServerBaseUrl}`);
+      logger.success(`   - Username: ${devEnv.jiraServerUsername}`);
+      logger.success(`   - Password: ****${devEnv.jiraServerPassword.slice(-4)}`);
+    }
   }
 
   // Small delay to ensure settings are persisted

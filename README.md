@@ -30,7 +30,7 @@
 |----------|--------|----------|
 | **Linear** | ✅ Full Support | Complete feature set with AI integration |
 | **Jira Cloud** | ✅ Full Support | Feature parity with Linear - AI, branches, webviews |
-| **Jira Server** | ⏳ Coming Soon | Self-hosted Jira support |
+| **Jira Server (beta)** | 🚧 Beta | Self-hosted Jira support - testing phase |
 | **Monday.com** | ⏳ Planned | Future release |
 | **ClickUp** | ⏳ Planned | Future release |
 
@@ -564,7 +564,7 @@ Comprehensive guides for all features:
 - ⏳ Improved offline support
 
 ### Medium-Term
-- ⏳ Jira Server/Data Center support
+- 🚧 Jira Server/Data Center (beta) - Currently in testing
 - ⏳ Custom fields UI
 - ⏳ Offline mode
 - ⏳ Advanced keyboard shortcuts
@@ -610,4 +610,4 @@ We welcome contributions! See our [contributing guide](./docs/developer/DEV_ENVI
 
 **Version:** 0.2.0 | **Status:** ✅ Production Ready | **Date:** November 2025
 
-**Platforms:** Linear (Full) | Jira Cloud (Core) | More Coming Soon
+**Platforms:** Linear (Full) | Jira Cloud (Full) | Jira Server (Beta) | More Coming Soon

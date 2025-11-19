@@ -168,22 +168,22 @@ Add Jira support as second platform, proving multi-platform architecture works.
 
 ### 3.1 Jira Provider Implementation
 
-#### Week 1-2: Basic Integration
+#### Week 1-2: Jira Cloud Integration
 ```typescript
-// src/utils/providers/jiraProvider.ts
-class JiraProvider implements TicketProvider {
+// src/providers/jira/JiraCloudClient.ts
+class JiraCloudProvider implements TicketProvider {
   private baseUrl: string;
   private apiToken: string;
   
   async fetchTickets(filter?: TicketFilter): Promise<Ticket[]> {
-    // JQL query
+    // JQL query - Cloud uses /rest/api/3/
     const jql = this.buildJQL(filter);
     const response = await this.request('/rest/api/3/search', { jql });
     return this.normalizeJiraIssues(response.issues);
   }
   
   async createTicket(data: CreateTicketInput): Promise<Ticket | null> {
-    // Jira REST API
+    // Jira Cloud REST API v3
     const response = await this.request('/rest/api/3/issue', {
       method: 'POST',
       body: this.toJiraFormat(data)
@@ -203,12 +203,44 @@ class JiraProvider implements TicketProvider {
 - [ ] Add comments
 - [ ] Basic custom fields support
 
-#### Week 3-4: Advanced Features
-- [ ] Jira Server/Data Center support
-- [ ] Sprint integration
-- [ ] Epic/parent issue support
-- [ ] Advanced JQL filtering
-- [ ] Attachment handling
+#### Week 3-4: Jira Server/Data Center Support
+```typescript
+// src/providers/jira/JiraServerClient.ts
+class JiraServerProvider implements TicketProvider {
+  private serverInfo: JiraServerInfo;
+  private capabilities: JiraCapabilities;
+  
+  async connect(): Promise<boolean> {
+    // Detect version and capabilities
+    this.serverInfo = await this.getServerInfo();
+    this.capabilities = CapabilityDetector.detect(this.serverInfo);
+    
+    // Validate minimum version (8.0+)
+    if (!this.isVersionSupported()) {
+      throw new Error('Jira Server 8.0+ required');
+    }
+    
+    return true;
+  }
+  
+  async fetchTickets(filter?: TicketFilter): Promise<Ticket[]> {
+    // Server uses /rest/api/2/ (note: v2, not v3)
+    const jql = this.buildJQL(filter);
+    const response = await this.request('/rest/api/2/search', { jql });
+    return this.normalizeJiraIssues(response.issues);
+  }
+}
+```
+
+**Features:**
+- [ ] Version detection (support 8.0+)
+- [ ] Capability-based feature flags
+- [ ] Adaptive authentication (PAT vs Basic Auth)
+- [ ] Dynamic field mapping (custom fields vary per instance)
+- [ ] Content negotiation (ADF vs plain text descriptions)
+- [ ] Multi-version testing (Docker matrix: 8.5, 8.20, 9.4, 9.12)
+
+**See:** `docs/planning/JIRA_VERSION_COMPATIBILITY.md` for detailed strategy
 
 ### 3.2 UI Enhancements
 
@@ -574,13 +606,16 @@ TicketBuddy
 
 ## Risk Mitigation
 
-### Risk 1: Jira Complexity
-**Risk:** Jira API is complex, custom fields vary by org  
+### Risk 1: Jira Complexity & Version Fragmentation
+**Risk:** Jira API is complex, custom fields vary by org, Server versions differ  
 **Mitigation:**
-- Start with Jira Cloud (simpler than Server)
-- Focus on core fields first
-- Custom fields as "advanced" feature
-- Comprehensive error handling
+- Start with Jira Cloud (simpler, consistent API v3)
+- Implement version detection for Jira Server (support 8.0+)
+- Use capability flags for version-specific features
+- Dynamic field mapping for custom fields
+- Multi-version Docker testing (8.5, 8.20, 9.4, 9.12)
+- Comprehensive error handling with version context
+- See `docs/planning/JIRA_VERSION_COMPATIBILITY.md`
 
 ### Risk 2: Maintenance Burden
 **Risk:** Multiple APIs to maintain, breaking changes  

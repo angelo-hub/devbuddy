@@ -201,7 +201,7 @@ DevBuddy is built on a multi-platform architecture supporting multiple ticketing
 - Shared commands work across all platforms
 
 **Future Expansion**:
-- Jira Server/Data Center support
+- Jira Server/Data Center (beta) - Currently in testing
 - Monday.com, ClickUp, and other platforms
 - Enhanced AI features for all platforms
 

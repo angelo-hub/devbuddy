@@ -176,8 +176,44 @@
       },
       {
         "command": "devBuddy.jira.setup",
-        "title": "DevBuddy: Setup Jira Cloud",
+        "title": "DevBuddy: Setup Jira (Cloud or Server)",
         "icon": "$(gear)",
+        "category": "Jira"
+      },
+      {
+        "command": "devBuddy.jira.setupCloud",
+        "title": "DevBuddy: Setup Jira Cloud",
+        "icon": "$(cloud)",
+        "category": "Jira"
+      },
+      {
+        "command": "devBuddy.jira.setupServer",
+        "title": "DevBuddy: Setup Jira Server/Data Center (beta)",
+        "icon": "$(server)",
+        "category": "Jira"
+      },
+      {
+        "command": "devBuddy.jira.server.testConnection",
+        "title": "DevBuddy: Test Jira Server Connection (beta)",
+        "icon": "$(debug-disconnect)",
+        "category": "Jira"
+      },
+      {
+        "command": "devBuddy.jira.server.resetConfig",
+        "title": "DevBuddy: Reset Jira Server Configuration (beta)",
+        "icon": "$(trash)",
+        "category": "Jira"
+      },
+      {
+        "command": "devBuddy.jira.server.updatePassword",
+        "title": "DevBuddy: Update Jira Server Password/Token (beta)",
+        "icon": "$(key)",
+        "category": "Jira"
+      },
+      {
+        "command": "devBuddy.jira.server.showInfo",
+        "title": "DevBuddy: Show Jira Server Info (beta)",
+        "icon": "$(info)",
         "category": "Jira"
       },
       {
@@ -193,8 +229,8 @@
         "category": "Jira"
       },
       {
-        "command": "devBuddy.jira.updateApiToken",
-        "title": "DevBuddy: Update Jira API Token",
+        "command": "devBuddy.jira.updateToken",
+        "title": "DevBuddy: Update Jira Credentials",
         "icon": "$(key)",
         "category": "Jira"
       },
@@ -369,32 +405,32 @@
         },
         {
           "command": "devBuddy.jira.openIssue",
-          "when": "view == myTickets && viewItem =~ /jiraTicket.*/",
+          "when": "view == myTickets && viewItem =~ /jira(Ticket|Issue).*/",
           "group": "inline@1"
         },
         {
           "command": "devBuddy.jira.updateStatus",
-          "when": "view == myTickets && viewItem =~ /jiraTicket.*/",
+          "when": "view == myTickets && viewItem =~ /jira(Ticket|Issue).*/",
           "group": "status@1"
         },
         {
           "command": "devBuddy.jira.assignToMe",
-          "when": "view == myTickets && viewItem =~ /jiraTicket.*/",
+          "when": "view == myTickets && viewItem =~ /jira(Ticket|Issue).*/",
           "group": "assign@1"
         },
         {
           "command": "devBuddy.jira.addComment",
-          "when": "view == myTickets && viewItem =~ /jiraTicket.*/",
+          "when": "view == myTickets && viewItem =~ /jira(Ticket|Issue).*/",
           "group": "actions@1"
         },
         {
           "command": "devBuddy.jira.copyIssueKey",
-          "when": "view == myTickets && viewItem =~ /jiraTicket.*/",
+          "when": "view == myTickets && viewItem =~ /jira(Ticket|Issue).*/",
           "group": "copy@1"
         },
         {
           "command": "devBuddy.jira.copyIssueUrl",
-          "when": "view == myTickets && viewItem =~ /jiraTicket.*/",
+          "when": "view == myTickets && viewItem =~ /jira(Ticket|Issue).*/",
           "group": "copy@2"
         }
       ]
@@ -780,6 +816,16 @@
           "default": "",
           "description": "Jira Cloud account email (for API authentication)"
         },
+        "devBuddy.jira.server.baseUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Jira Server/Data Center base URL (e.g., 'http://jira.company.com')"
+        },
+        "devBuddy.jira.server.username": {
+          "type": "string",
+          "default": "",
+          "description": "Jira Server/Data Center username (for authentication)"
+        },
         "devBuddy.jira.defaultProject": {
           "type": "string",
           "default": "",
@@ -848,6 +894,7 @@
     "@types/prismjs": "^1.26.5",
     "@vscode/extension-telemetry": "^1.1.0",
     "axios": "^1.13.2",
+    "jira2md": "^3.1.5",
     "prismjs": "^1.30.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
