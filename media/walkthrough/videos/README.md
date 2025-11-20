@@ -37,7 +37,10 @@ This directory contains large media files (GIFs, MP4s) for documentation and wal
 
 | File | Size | Description | GitHub URL |
 |------|------|-------------|------------|
-| `todo-converter-demo.gif` | 12 MB | Complete TODO to ticket conversion workflow | `https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/todo-converter-demo.gif` |
+| `todo-converter-demo.gif` | ~12 MB | Complete TODO to ticket conversion workflow | `https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/todo-converter-demo.gif` |
+| `start_ticket_branch.gif` | ~12 MB | Creating a branch from a ticket in the sidebar | `https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/start_ticket_branch.gif` |
+| `edit_ticket.gif` | ~10 MB | Editing ticket details directly in VS Code | `https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/edit_ticket.gif` |
+| `standup_builder.gif` | ~15 MB | AI-powered standup generation from commits and tickets | `https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/standup_builder.gif` |
 
 ## Adding New Videos
 
