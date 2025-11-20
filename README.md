@@ -608,6 +608,4 @@ We welcome contributions! See our [contributing guide](./docs/developer/DEV_ENVI
 
 ---
 
-**Version:** 0.2.0 | **Status:** ✅ Production Ready | **Date:** November 2025
-
 **Platforms:** Linear (Full) | Jira Cloud (Full) | Jira Server (Beta) | More Coming Soon
