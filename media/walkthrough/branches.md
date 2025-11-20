@@ -1,5 +1,7 @@
 # Smart Branch Creation
 
+![Start Ticket Branch Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/start_ticket_branch.gif)
+
 Linear Buddy makes it easy to create well-named, conventional branches directly from your tickets.
 
 ## How It Works

@@ -41,6 +41,7 @@ reinstall.sh
 docs/**
 *.md
 !README.md
+!MARKETPLACE_README.md
 !LICENSE
 !LICENSE.pro
 !EULA.md

@@ -1,45 +1,53 @@
-# Walkthrough GIFs TODO
+# Walkthrough GIFs Status
 
 ## Overview
-Currently all walkthrough steps use markdown files for media. Once we record GIFs, we should replace the markdown with GIFs for a better visual experience.
+We now have 4 key GIFs recorded! These provide visual demonstrations of DevBuddy's core features.
 
-## GIFs to Record
+## ✅ Completed GIFs
 
-### High Priority (Best Visual Impact)
+### 1. **`todo-converter-demo.gif`** - TODO Converter
+   - **Status:** ✅ COMPLETE
+   - **Shows:** Complete TODO to ticket conversion workflow with permalink generation
+   - **Used in:** Marketplace README, Walkthrough, Documentation
+   - **Impact:** HIGH - Shows unique feature
 
-1. **`sidebar-demo.gif`** - For step `explore.sidebar`
-   - Show: Opening DevBuddy sidebar, viewing tickets organized by status, clicking a ticket
-   - Current: Uses `sidebar.md`
-   - Impact: HIGH - First visual of the product
+### 2. **`start_ticket_branch.gif`** - Branch Creation
+   - **Status:** ✅ COMPLETE
+   - **Shows:** Creating a branch from a ticket in the sidebar, branch naming options
+   - **Used in:** Marketplace README (hero demo), Walkthrough
+   - **Impact:** HIGH - Shows core workflow
 
-2. **`todo-converter-demo.gif`** - For step `feature.todoconverter`
-   - Show: Hovering over a TODO comment, clicking "Convert to Linear Ticket", showing the created ticket with permalink
-   - Current: Uses `todo-converter.md`
-   - Impact: HIGH - Unique feature showcase
+### 3. **`edit_ticket.gif`** - Ticket Editing
+   - **Status:** ✅ COMPLETE
+   - **Shows:** Viewing and editing ticket details, updating status, adding comments
+   - **Used in:** Marketplace README, Walkthrough
+   - **Impact:** MEDIUM - Shows ticket management capabilities
 
-3. **`standup-demo.gif`** - For step `feature.standup`
-   - Show: Opening standup builder, selecting tickets, AI generating the standup update, copying result
-   - Current: Uses `standup.md`
-   - Impact: HIGH - AI feature showcase
+### 4. **`standup_builder.gif`** - AI Standup Generator
+   - **Status:** ✅ COMPLETE
+   - **Shows:** Opening standup builder, AI generating standup from commits and tickets
+   - **Used in:** Marketplace README, Walkthrough
+   - **Impact:** HIGH - Shows AI features
 
-### Medium Priority
+## 📋 Still Needed (Lower Priority)
 
-4. **`pr-summary-demo.gif`** - For step `feature.prsummary`
-   - Show: Running PR summary command, showing monorepo detection, AI analysis, final summary
-   - Current: Uses `pr-summary.md`
-   - Impact: MEDIUM - AI feature showcase
+### 5. **`pr-summary-demo.gif`** - PR Summary with Monorepo
+   - **Status:** ⏳ TODO
+   - **Shows:** Running PR summary command, monorepo package detection, AI analysis
+   - **Impact:** MEDIUM - Shows AI + monorepo features
+   - **Note:** Can use standup_builder.gif as temporary alternative
 
-5. **`linear-sidebar-demo.gif`** - For step `feature.branches`
-   - Show: Clicking branch icon on a ticket, selecting source branch, reviewing generated name, branch created
-   - Current: Uses `branches.md`
-   - Impact: MEDIUM - Linear-specific feature
+### 6. **`add-more-todos.gif`** - Multi-File TODO Workflow  
+   - **Status:** ⏳ TODO
+   - **Shows:** Using "Add More TODOs" to link same ticket across multiple files
+   - **Impact:** HIGH - Key differentiator feature
+   - **Note:** This is the #1 priority for next recording session
 
-### Lower Priority (Text is Sufficient)
-
-6. **`status-update-demo.gif`** - For step `feature.status`
-   - Show: Right-clicking a ticket, selecting "Update Status", choosing new status with visual indicators
-   - Current: Uses `status.md`
-   - Impact: LOW - Simple interaction
+### 7. **`jira-sidebar-demo.gif`** - Jira Integration
+   - **Status:** ⏳ TODO
+   - **Shows:** DevBuddy sidebar with Jira issues, platform switching
+   - **Impact:** MEDIUM - Shows multi-platform support
+   - **Note:** Can use start_ticket_branch.gif temporarily
 
 ## Implementation Steps
 

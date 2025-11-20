@@ -1,8 +1,8 @@
 # Generate Standup Updates
 
-Let AI generate your standup update automatically from your commits and Linear activity. No more scrambling to remember what you did.
+![Standup Builder Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/standup_builder.gif)
 
-![Standup Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/standup-demo.gif)
+Let AI generate your standup update automatically from your commits and Linear activity. No more scrambling to remember what you did.
 
 ## How It Works
 
