@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.2](https://github.com/angelo-hub/devbuddy/compare/v0.7.1...v0.7.2) (2025-11-20)
+
+
+### 🐛 Bug Fixes
+
+* add badges ([2ebbfd3](https://github.com/angelo-hub/devbuddy/commit/2ebbfd322c8ce2051a6f931fd9c33d06d09b73e3))
+* add badges ([6f30897](https://github.com/angelo-hub/devbuddy/commit/6f30897dda71cbf0c3050547a0635564556ef9e7))
+* add badges ([a283ea2](https://github.com/angelo-hub/devbuddy/commit/a283ea24888ae47f0e39c1e16ce526d45c2b7572))
+* readme issues ([28378ac](https://github.com/angelo-hub/devbuddy/commit/28378ac13eb016153a77d93e91da2ba73b7c8db4))
+
 ### [0.7.1](https://github.com/angelo-hub/devbuddy/compare/v0.7.0...v0.7.1) (2025-11-20)
 
 ## [0.7.0](https://github.com/angelo-hub/devbuddy/compare/v0.6.0...v0.7.0) (2025-11-20)
