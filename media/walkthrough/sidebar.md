@@ -1,5 +1,7 @@
 # Your Ticket Sidebar
 
+![DevBuddy Sidebar Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/start_ticket_branch.gif)
+
 The DevBuddy sidebar is your command center for multi-platform ticket management. It shows all your assigned tickets organized by workflow status.
 
 ## Universal Sidebar
