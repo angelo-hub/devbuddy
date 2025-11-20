@@ -1,11 +1,12 @@
 # DevBuddy for VS Code
 ### Unified ticket management for Linear and Jira — directly inside VS Code
 
-[![Version](https://img.shields.io/visual-studio-marketplace/v/angelogirardi.dev-buddy)](https://marketplace.visualstudio.com/items?itemName=angelogirardi.dev-buddy)
+
 [![Installs](https://img.shields.io/visual-studio-marketplace/i/angelogirardi.dev-buddy)](https://marketplace.visualstudio.com/items?itemName=angelogirardi.dev-buddy)
 [![Downloads](https://img.shields.io/visual-studio-marketplace/d/angelogirardi.dev-buddy)](https://marketplace.visualstudio.com/items?itemName=angelogirardi.dev-buddy)
 [![Rating](https://img.shields.io/visual-studio-marketplace/stars/angelogirardi.dev-buddy)](https://marketplace.visualstudio.com/items?itemName=angelogirardi.dev-buddy)
 [![GitHub Release](https://img.shields.io/github/v/release/angelo-hub/devbuddy)](https://github.com/angelo-hub/devbuddy/releases)
+[![Version](https://img.shields.io/visual-studio-marketplace/v/angelogirardi.dev-buddy)](https://marketplace.visualstudio.com/items?itemName=angelogirardi.dev-buddy)
 [![License](https://img.shields.io/badge/license-MIT%20%2B%20Pro-blue)](https://github.com/angelo-hub/devbuddy/blob/main/LICENSE)
 
 ## Work Faster with Your Issues Inside VS Code
