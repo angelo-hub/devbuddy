@@ -333,23 +333,20 @@ Once media is created:
 
 ## Current Status
 
-### Created
-- ✅ Markdown with placeholders
-- ✅ Scripts for each demo
-- ✅ Directory structure
+### ✅ Completed (Ready to Use)
+- ✅ `todo-converter-demo.gif` - Complete TODO workflow
+- ✅ `start_ticket_branch.gif` - Branch creation from ticket
+- ✅ `edit_ticket.gif` - Ticket editing and management
+- ✅ `standup_builder.gif` - AI standup generation
 
-### TODO
-- ⬜ Record: todo-converter-demo.gif
-- ⬜ Record: permalink-in-linear.gif  
-- ⬜ Record: add-more-todos.gif (KEY FEATURE)
-- ⬜ Record: basic-conversion.gif
-- ⬜ Record: link-existing-todos.gif
-- ⬜ Record: workflow-comparison.gif
-- ⬜ Record: real-world-example.mp4
-- ⬜ Add voiceover to MP4
-- ⬜ Optimize all files
-- ⬜ Update markdown with actual file references
-- ⬜ Test in VS Code walkthrough
+### ⏳ Still TODO (Lower Priority)
+- ⏳ `pr-summary-demo.gif` - PR summary with monorepo detection
+- ⏳ `add-more-todos.gif` - Multi-file TODO workflow (KEY FEATURE)
+- ⏳ `jira-sidebar-demo.gif` - Jira platform demo
+- ⏳ `permalink-in-linear.gif` - Permalink click-through demo
+- ⏳ `link-existing-todos.gif` - Link existing TODOs feature
+- ⏳ `workflow-comparison.gif` - Old way vs new way comparison
+- ⏳ `real-world-example.mp4` - Narrated complete example
 
 ---
 

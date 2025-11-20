@@ -5,6 +5,7 @@
   "version": "0.6.0",
   "publisher": "angelogirardi",
   "license": "SEE LICENSE IN LICENSE",
+  "readme": "MARKETPLACE_README.md",
   "icon": "resources/icon.png",
   "author": {
     "name": "Angelo Girardi",

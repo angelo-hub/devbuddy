@@ -1,5 +1,7 @@
 # Update Ticket Status
 
+![Edit Ticket Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/edit_ticket.gif)
+
 Keep your Linear board up-to-date without leaving VS Code. Change ticket status with a single click!
 
 ## How to Change Status
