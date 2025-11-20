@@ -2,7 +2,6 @@
 ### Unified ticket management for Linear and Jira — directly inside VS Code
 
 
-[![Installs](https://img.shields.io/visual-studio-marketplace/i/angelogirardi.dev-buddy)](https://marketplace.visualstudio.com/items?itemName=angelogirardi.dev-buddy)
 [![Downloads](https://img.shields.io/visual-studio-marketplace/d/angelogirardi.dev-buddy)](https://marketplace.visualstudio.com/items?itemName=angelogirardi.dev-buddy)
 [![Rating](https://img.shields.io/visual-studio-marketplace/stars/angelogirardi.dev-buddy)](https://marketplace.visualstudio.com/items?itemName=angelogirardi.dev-buddy)
 [![GitHub Release](https://img.shields.io/github/v/release/angelo-hub/devbuddy)](https://github.com/angelo-hub/devbuddy/releases)
