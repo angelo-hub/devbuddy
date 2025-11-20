@@ -3,6 +3,21 @@ import { LinearClient } from "@providers/linear/LinearClient";
 import { LinearIssue } from "@providers/linear/types";
 import { GitAnalyzer } from "@shared/git/gitAnalyzer";
 import { AISummarizer } from "@shared/ai/aiSummarizer";
+import { getLogger } from "@shared/utils/logger";
+
+const logger = getLogger();
+
+/**
+ * Intent types that the chat participant can handle
+ */
+type UserIntent =
+  | "show_tickets"
+  | "generate_standup"
+  | "generate_pr"
+  | "show_ticket_detail"
+  | "update_status"
+  | "help"
+  | "unknown";
 
 /**
  * Convert Linear web URL to desktop app URL if preference is enabled
@@ -50,7 +65,7 @@ export class DevBuddyChatParticipant {
    */
   register(context: vscode.ExtensionContext): vscode.Disposable {
     const participant = vscode.chat.createChatParticipant(
-      "linear-buddy",
+      "dev-buddy",
       this.handleRequest.bind(this)
     );
 
@@ -98,7 +113,7 @@ export class DevBuddyChatParticipant {
   private async handleTicketsCommand(
     request: vscode.ChatRequest,
     stream: vscode.ChatResponseStream,
-    token: vscode.CancellationToken
+    _token: vscode.CancellationToken
   ): Promise<vscode.ChatResult> {
     const client = await this.getClient();
     if (!client.isConfigured()) {
@@ -163,7 +178,7 @@ export class DevBuddyChatParticipant {
   private async handleStandupCommand(
     request: vscode.ChatRequest,
     stream: vscode.ChatResponseStream,
-    token: vscode.CancellationToken
+    _token: vscode.CancellationToken
   ): Promise<vscode.ChatResult> {
     stream.progress("Analyzing your git commits...");
 
@@ -243,7 +258,7 @@ export class DevBuddyChatParticipant {
   private async handlePRCommand(
     request: vscode.ChatRequest,
     stream: vscode.ChatResponseStream,
-    token: vscode.CancellationToken
+    _token: vscode.CancellationToken
   ): Promise<vscode.ChatResult> {
     stream.progress("Generating PR summary...");
 
@@ -267,7 +282,7 @@ export class DevBuddyChatParticipant {
   private async handleStatusCommand(
     request: vscode.ChatRequest,
     stream: vscode.ChatResponseStream,
-    token: vscode.CancellationToken
+    _token: vscode.CancellationToken
   ): Promise<vscode.ChatResult> {
     const client = await this.getClient();
     if (!client.isConfigured()) {
@@ -297,39 +312,300 @@ export class DevBuddyChatParticipant {
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
   ): Promise<vscode.ChatResult> {
-    const prompt = request.prompt.toLowerCase();
+    // Step 1: Try AI-powered intent detection first
+    const intent = await this.detectIntent(request.prompt, token);
+    logger.debug(`Detected intent: ${intent.type} (confidence: ${intent.confidence})`);
 
-    // Check for specific queries
-    if (prompt.includes("ticket") && prompt.match(/[A-Z]+-\d+/)) {
-      // Extract ticket ID
-      const ticketMatch = prompt.match(/([A-Z]+-\d+)/);
-      if (ticketMatch) {
-        const ticketId = ticketMatch[1];
-        stream.progress(`Fetching ${ticketId}...`);
+    // Step 2: Route based on detected intent
+    switch (intent.type) {
+      case "show_tickets":
+        return await this.handleTicketsCommand(request, stream, token);
 
-        try {
-          const client = await this.getClient();
-          const issue = await client.getIssue(ticketId);
-          if (issue) {
-            stream.markdown(`## ${issue.identifier}: ${issue.title}\n\n`);
-            stream.markdown(`**Status:** ${issue.state.name}\n`);
-            stream.markdown(`**Priority:** ${this.getPriorityEmoji(issue.priority)} ${this.getPriorityName(issue.priority)}\n\n`);
+      case "generate_standup":
+        return await this.handleStandupCommand(request, stream, token);
 
-            if (issue.description) {
-              stream.markdown(`**Description:**\n${issue.description}\n\n`);
-            }
+      case "generate_pr":
+        return await this.handlePRCommand(request, stream, token);
 
-            const url = getLinearUrl(issue.url);
-            stream.markdown(`[Open in Linear](${url})\n`);
-            return {};
-          }
-        } catch (error) {
-          stream.markdown(`⚠️ Could not find ticket ${ticketId}\n`);
+      case "update_status":
+        return await this.handleStatusCommand(request, stream, token);
+
+      case "show_ticket_detail":
+        // Extract ticket ID and show details
+        if (intent.ticketId) {
+          return await this.showTicketDetail(intent.ticketId, stream);
         }
+        break;
+
+      case "help":
+        return await this.showHelpMessage(stream);
+    }
+
+    // Step 3: If intent is unknown or low confidence, try AI-powered response
+    if (intent.confidence < 0.7) {
+      const aiResponse = await this.generateAIResponse(request.prompt, stream, token);
+      if (aiResponse) {
+        return aiResponse;
       }
     }
 
-    // Default help message
+    // Step 4: Final fallback - show help
+    return await this.showHelpMessage(stream);
+  }
+
+  /**
+   * Detect user intent using AI with pattern matching fallback
+   */
+  private async detectIntent(
+    prompt: string,
+    _token: vscode.CancellationToken
+  ): Promise<{ type: UserIntent; confidence: number; ticketId?: string }> {
+    // Check if AI is available and enabled
+    const config = vscode.workspace.getConfiguration("devBuddy");
+    const aiDisabled = config.get<boolean>("ai.disabled", false);
+
+    if (!aiDisabled) {
+      try {
+        // Try AI-powered intent detection
+        const aiIntent = await this.detectIntentWithAI(prompt, _token);
+        if (aiIntent) {
+          return aiIntent;
+        }
+      } catch (error) {
+        logger.debug(`AI intent detection failed, falling back to patterns: ${error}`);
+      }
+    }
+
+    // Fallback to pattern matching
+    return this.detectIntentWithPatterns(prompt);
+  }
+
+  /**
+   * AI-powered intent detection using VS Code LM API
+   */
+  private async detectIntentWithAI(
+    prompt: string,
+    token: vscode.CancellationToken
+  ): Promise<{ type: UserIntent; confidence: number; ticketId?: string } | null> {
+    try {
+      const models = await vscode.lm.selectChatModels({
+        vendor: "copilot",
+        family: "gpt-4o",
+      });
+
+      if (models.length === 0) {
+        return null;
+      }
+
+      const model = models[0];
+      const messages = [
+        vscode.LanguageModelChatMessage.User(
+          `You are an intent classifier for a developer assistant. Analyze the user's question and classify it into ONE of these intents:
+
+- show_tickets: User wants to see their active tickets/issues
+- generate_standup: User wants to generate a standup update
+- generate_pr: User wants to generate a PR summary
+- update_status: User wants to update a ticket's status
+- show_ticket_detail: User is asking about a specific ticket (contains ticket ID like ENG-123)
+- help: User wants help or doesn't have a clear intent
+
+User's question: "${prompt}"
+
+Respond with ONLY a JSON object in this format:
+{
+  "intent": "show_tickets",
+  "confidence": 0.95,
+  "ticketId": "ENG-123" // only if show_ticket_detail
+}
+
+No other text. Just the JSON.`
+        ),
+      ];
+
+      const response = await model.sendRequest(messages, {}, token);
+      let fullResponse = "";
+
+      for await (const fragment of response.text) {
+        fullResponse += fragment;
+      }
+
+      // Parse AI response
+      const cleanedResponse = fullResponse.trim().replace(/```json\n?|\n?```/g, "");
+      const parsed = JSON.parse(cleanedResponse);
+
+      return {
+        type: parsed.intent as UserIntent,
+        confidence: parsed.confidence || 0.8,
+        ticketId: parsed.ticketId,
+      };
+    } catch (error) {
+      logger.debug(`AI intent detection error: ${error}`);
+      return null;
+    }
+  }
+
+  /**
+   * Pattern-based intent detection (fallback)
+   */
+  private detectIntentWithPatterns(
+    prompt: string
+  ): { type: UserIntent; confidence: number; ticketId?: string } {
+    const lower = prompt.toLowerCase();
+
+    // Check for ticket ID first
+    const ticketMatch = prompt.match(/([A-Z]+-\d+)/);
+    if (ticketMatch) {
+      return {
+        type: "show_ticket_detail",
+        confidence: 0.9,
+        ticketId: ticketMatch[1],
+      };
+    }
+
+    // Check for tickets query
+    const ticketsQueryPatterns = [
+      /what\s+tickets?\s+(am\s+i|are\s+we|im)\s+(working\s+on|assigned|doing)/i,
+      /show\s+(me\s+)?(my|our)\s+tickets?/i,
+      /list\s+(my|our)\s+tickets?/i,
+      /what\s+(am\s+i|are\s+we)\s+working\s+on/i,
+      /my\s+(active\s+)?tickets?/i,
+      /current\s+tickets?/i,
+    ];
+
+    if (ticketsQueryPatterns.some((pattern) => pattern.test(prompt))) {
+      return { type: "show_tickets", confidence: 0.85 };
+    }
+
+    // Check for standup queries
+    const standupQueryPatterns = [
+      /generate\s+(my\s+)?(daily\s+)?standup/i,
+      /create\s+(my\s+)?(daily\s+)?standup/i,
+      /daily\s+update/i,
+      /standup\s+update/i,
+      /what\s+did\s+i\s+(do|work\s+on|accomplish)/i,
+    ];
+
+    if (standupQueryPatterns.some((pattern) => pattern.test(prompt))) {
+      return { type: "generate_standup", confidence: 0.85 };
+    }
+
+    // Check for PR queries
+    if (lower.includes("pr") || lower.includes("pull request")) {
+      return { type: "generate_pr", confidence: 0.8 };
+    }
+
+    // Check for status updates
+    if (lower.includes("status") && (lower.includes("update") || lower.includes("change"))) {
+      return { type: "update_status", confidence: 0.8 };
+    }
+
+    // Check for help queries
+    if (lower.includes("help") || lower.includes("what can you do")) {
+      return { type: "help", confidence: 0.9 };
+    }
+
+    return { type: "unknown", confidence: 0.3 };
+  }
+
+  /**
+   * Generate AI-powered response for general queries
+   */
+  private async generateAIResponse(
+    prompt: string,
+    stream: vscode.ChatResponseStream,
+    _token: vscode.CancellationToken
+  ): Promise<vscode.ChatResult | null> {
+    try {
+      const models = await vscode.lm.selectChatModels({
+        vendor: "copilot",
+        family: "gpt-4o",
+      });
+
+      if (models.length === 0) {
+        return null;
+      }
+
+      const model = models[0];
+      
+      // Get context about available features
+      const client = await this.getClient();
+      const hasLinearAccess = client.isConfigured();
+
+      const messages = [
+        vscode.LanguageModelChatMessage.User(
+          `You are DevBuddy, a helpful AI assistant for developers integrated with Linear for ticket management.
+
+Available features:
+- Show active tickets from Linear ${hasLinearAccess ? "(configured)" : "(not configured)"}
+- Generate standup updates from git commits
+- Generate PR summaries
+- Update ticket status
+- Show specific ticket details
+
+User's question: "${prompt}"
+
+Provide a helpful, conversational response. If the user is asking about something you can help with, guide them on how to use the feature. Be friendly and concise.`
+        ),
+      ];
+
+      stream.progress("Thinking...");
+
+      const response = await model.sendRequest(messages, {}, _token);
+
+      for await (const fragment of response.text) {
+        stream.markdown(fragment);
+      }
+
+      return {};
+    } catch (error) {
+      logger.debug(`AI response generation error: ${error}`);
+      return null;
+    }
+  }
+
+  /**
+   * Show details for a specific ticket
+   */
+  private async showTicketDetail(
+    ticketId: string,
+    stream: vscode.ChatResponseStream
+  ): Promise<vscode.ChatResult> {
+    stream.progress(`Fetching ${ticketId}...`);
+
+    try {
+      const client = await this.getClient();
+      const issue = await client.getIssue(ticketId);
+      
+      if (issue) {
+        stream.markdown(`## ${issue.identifier}: ${issue.title}\n\n`);
+        stream.markdown(`**Status:** ${issue.state.name}\n`);
+        stream.markdown(
+          `**Priority:** ${this.getPriorityEmoji(issue.priority)} ${this.getPriorityName(issue.priority)}\n\n`
+        );
+
+        if (issue.description) {
+          stream.markdown(`**Description:**\n${issue.description}\n\n`);
+        }
+
+        const url = getLinearUrl(issue.url);
+        stream.markdown(`[Open in Linear](${url})\n`);
+        return {};
+      } else {
+        stream.markdown(`⚠️ Could not find ticket ${ticketId}\n`);
+        return {};
+      }
+    } catch (error) {
+      stream.markdown(`❌ Error fetching ticket: ${error instanceof Error ? error.message : "Unknown error"}\n`);
+      return {};
+    }
+  }
+
+  /**
+   * Show help message
+   */
+  private async showHelpMessage(
+    stream: vscode.ChatResponseStream
+  ): Promise<vscode.ChatResult> {
     stream.markdown(
       "# 👋 Hi! I'm DevBuddy\n\n" +
         "I can help you with:\n\n" +
