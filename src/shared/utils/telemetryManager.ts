@@ -72,6 +72,10 @@ export class TelemetryManager {
       extendedTrialDays: 0,
     };
 
+    // Migration: For users upgrading from v0.7.1 and below
+    // If they had the old opt-in system and never opted in, migrate them to the new pattern
+    await this.migrateFromOptInPattern(context);
+
     // Initialize VSCode native telemetry reporter
     // Connection string from environment variable or build-time config
     const connectionString = this.getTelemetryConnectionString();
@@ -89,11 +93,6 @@ export class TelemetryManager {
       this.logger.warn(
         "No telemetry connection string found. Telemetry will be logged but not sent."
       );
-    }
-
-    // Set up periodic flush if enabled
-    if (this.config.enabled) {
-      this.startPeriodicFlush();
     }
 
     this.logger.debug("Telemetry manager initialized");
@@ -122,10 +121,46 @@ export class TelemetryManager {
   }
 
   /**
-   * Check if user has been asked about telemetry
+   * Migrate users from old opt-in pattern (v0.7.1 and below) to new VS Code global setting pattern
+   */
+  private async migrateFromOptInPattern(context: vscode.ExtensionContext): Promise<void> {
+    const migrationKey = "devBuddy.telemetryMigrated";
+    const hasMigrated = context.globalState.get<boolean>(migrationKey, false);
+    
+    if (hasMigrated) {
+      return; // Already migrated
+    }
+
+    // Check if user was on the old opt-in system
+    const hadOldOptIn = context.globalState.get<boolean>("devBuddy.telemetryAsked", false);
+    const wasEnabled = this.config?.enabled || false;
+    
+    if (hadOldOptIn) {
+      // User was asked before - they made a choice
+      if (!wasEnabled) {
+        // They explicitly declined telemetry, set opt-out flag
+        const config = vscode.workspace.getConfiguration("devBuddy");
+        await config.update("telemetry.optOut", true, vscode.ConfigurationTarget.Global);
+        this.logger.info("Migrated telemetry: User previously declined, set opt-out flag");
+      } else {
+        // They opted in before - keep them opted in (follow VS Code setting now)
+        this.logger.info("Migrated telemetry: User previously opted in, now following VS Code setting");
+      }
+    }
+    // If they were never asked, they'll now follow VS Code's global setting (default behavior)
+    
+    // Mark as migrated
+    await context.globalState.update(migrationKey, true);
+  }
+
+  /**
+   * Check if user has been asked about telemetry (legacy - kept for migration)
+   * @deprecated Use VS Code global setting instead
    */
   public async hasBeenAsked(): Promise<boolean> {
-    if (!this.context) return false;
+    if (!this.context) {
+      return false;
+    }
     return this.context.globalState.get<boolean>(
       "devBuddy.telemetryAsked",
       false
@@ -133,74 +168,43 @@ export class TelemetryManager {
   }
 
   /**
-   * Mark that user has been asked about telemetry
+   * Mark that user has been asked about telemetry (legacy - kept for migration)
+   * @deprecated No longer needed with VS Code global setting
    */
   public async markAsAsked(): Promise<void> {
-    if (!this.context) return;
+    if (!this.context) {
+      return;
+    }
     await this.context.globalState.update("devBuddy.telemetryAsked", true);
   }
 
   /**
    * Show telemetry opt-in prompt with trial extension incentive
+   * @deprecated Telemetry now follows VS Code global setting
    */
   public async showOptInPrompt(): Promise<boolean> {
-    // Don't show if already asked
-    if (await this.hasBeenAsked()) {
-      return this.config?.enabled || false;
-    }
-
-    const message =
-      `Help improve DevBuddy by sharing anonymous usage data! 🎁\n\n` +
-      `✓ Get ${this.TRIAL_EXTENSION_DAYS} extra days of Pro features\n` +
-      `✓ 100% anonymous (no code, no personal data)\n` +
-      `✓ Helps us prioritize features you use\n` +
-      `✓ Opt-out anytime in settings\n\n` +
-      `What we collect: Feature usage, error counts, performance metrics\n` +
-      `What we DON'T collect: Code, file names, personal info`;
-
-    const choice = await vscode.window.showInformationMessage(
-      message,
-      {
-        modal: true,
-        detail:
-          "View our privacy policy in the documentation for full details.",
-      },
-      "Enable Telemetry (+14 days Pro)",
-      "No Thanks",
-      "Learn More"
-    );
-
-    await this.markAsAsked();
-
-    if (choice === "Enable Telemetry (+14 days Pro)") {
-      await this.enableTelemetry(true); // true = grant trial extension
-      return true;
-    } else if (choice === "Learn More") {
-      // Open documentation about telemetry
-      await vscode.env.openExternal(
-        vscode.Uri.parse(
-          "https://github.com/yourusername/linear-buddy#telemetry"
-        )
-      );
-      // Ask again after they've learned more
-      return this.showOptInPrompt();
-    }
-
-    return false;
+    // This method is deprecated but kept for compatibility
+    // New pattern: Follow VS Code global setting with opt-out option
+    this.logger.warn("showOptInPrompt is deprecated - telemetry now follows VS Code global setting");
+    return this.isEnabled();
   }
 
   /**
-   * Enable telemetry (opt-in)
+   * Enable telemetry
+   * @deprecated Use VS Code global setting or devBuddy.telemetry.optOut setting instead
    */
   public async enableTelemetry(
     grantTrialExtension: boolean = false
   ): Promise<void> {
-    if (!this.context || !this.config) return;
+    if (!this.context || !this.config) {
+      return;
+    }
 
-    this.config.enabled = true;
-    this.config.optInDate = new Date().toISOString();
+    // Remove opt-out flag if it exists
+    const config = vscode.workspace.getConfiguration("devBuddy");
+    await config.update("telemetry.optOut", false, vscode.ConfigurationTarget.Global);
 
-    // Grant trial extension as reward for opting in
+    // Grant trial extension as reward (if applicable)
     if (grantTrialExtension && !this.config.extendedTrialGranted) {
       this.config.extendedTrialGranted = true;
       this.config.extendedTrialDays = this.TRIAL_EXTENSION_DAYS;
@@ -216,28 +220,35 @@ export class TelemetryManager {
       );
     }
 
+    this.config.enabled = true;
+    this.config.optInDate = new Date().toISOString();
     await this.saveConfig();
-    this.startPeriodicFlush();
 
-    // Track the opt-in event itself
-    await this.trackEvent("telemetry_enabled", {
+    // Track the enable event itself
+    await this.trackEvent("telemetry_enabled_legacy", {
       trialExtensionGranted: grantTrialExtension,
     });
 
-    this.logger.info("Telemetry enabled");
+    this.logger.info("Telemetry enabled (following VS Code global setting)");
   }
 
   /**
    * Disable telemetry (opt-out)
    */
   public async disableTelemetry(): Promise<void> {
-    if (!this.context || !this.config) return;
+    if (!this.context || !this.config) {
+      return;
+    }
 
     // Track opt-out before disabling
     await this.trackEvent("telemetry_disabled");
 
     // Flush any pending events
     await this.flush();
+
+    // Set opt-out flag
+    const config = vscode.workspace.getConfiguration("devBuddy");
+    await config.update("telemetry.optOut", true, vscode.ConfigurationTarget.Global);
 
     this.config.enabled = false;
     await this.saveConfig();
@@ -251,10 +262,18 @@ export class TelemetryManager {
 
   /**
    * Check if telemetry is enabled
-   * Respects both VS Code's global telemetry setting AND our own opt-in
+   * Follows VS Code's global telemetry setting with extension-specific opt-out
    */
   public isEnabled(): boolean {
-    // First, check VS Code's global telemetry setting
+    // First, check if user has opted out via DevBuddy-specific setting
+    const devBuddyConfig = vscode.workspace.getConfiguration('devBuddy');
+    const optOut = devBuddyConfig.get<boolean>('telemetry.optOut', false);
+    
+    if (optOut) {
+      return false;
+    }
+    
+    // Then check VS Code's global telemetry setting
     const vscodeConfig = vscode.workspace.getConfiguration('telemetry');
     const telemetryLevel = vscodeConfig.get<string>('telemetryLevel', 'all');
     
@@ -269,8 +288,7 @@ export class TelemetryManager {
       return false;
     }
     
-    // VS Code telemetry is enabled ('all' or 'crash'), check our own setting
-    // For now, just follow VS Code's setting (no separate opt-in needed)
+    // VS Code telemetry is enabled ('all' or 'crash') and user hasn't opted out
     return telemetryLevel === 'all';
   }
 
@@ -311,11 +329,14 @@ export class TelemetryManager {
       }
     }
 
-    // Add standard properties
+    // Add custom properties (VS Code automatically adds: extversion, os, vscodeversion, etc.)
+    // See: https://github.com/microsoft/vscode-extension-telemetry
     stringProperties.userId = this.config!.userId;
-    stringProperties.version = this.getExtensionVersion();
-    stringProperties.platform = process.platform;
-    stringProperties.vsCodeVersion = vscode.version;
+    
+    // Add application-specific context
+    const config = vscode.workspace.getConfiguration("devBuddy");
+    stringProperties.provider = config.get<string>("provider", "none");
+    stringProperties.aiEnabled = String(!config.get<boolean>("ai.disabled", false));
 
     try {
       // Send directly via VSCode native telemetry

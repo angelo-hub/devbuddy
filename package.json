@@ -771,15 +771,10 @@
           ],
           "description": "Format for copying ticket links (for standup updates & sharing)"
         },
-        "devBuddy.telemetry.enabled": {
+        "devBuddy.telemetry.optOut": {
           "type": "boolean",
           "default": false,
-          "markdownDescription": "**Share anonymous usage data to help improve DevBuddy**\n\n✅ **Benefits:**\n- Help us prioritize features\n- Improve stability and performance\n- Get 14 extra days of Pro trial!\n\n🔒 **Privacy:**\n- 100% anonymous (no personal data)\n- No code or file names tracked\n- No content collection\n- Easy opt-out anytime\n\n💡 **What we collect:**\n- Feature usage patterns\n- Error types (not content)\n- Performance metrics\n- Extension version & platform\n\n[Learn more about our telemetry](https://github.com/angelogirardi/developer-buddy#telemetry)"
-        },
-        "devBuddy.telemetry.showPrompt": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show telemetry opt-in prompt on first use (disable if you've already made your choice)"
+          "markdownDescription": "**Opt out of DevBuddy telemetry**\n\n⚙️ **How it works:**\n- DevBuddy follows VS Code's global telemetry setting by default\n- Enable this to opt out even if VS Code telemetry is enabled\n\n🔒 **Privacy:**\n- 100% anonymous (no personal data)\n- No code or file names tracked\n- No content collection\n\n💡 **What we collect when enabled:**\n- Feature usage patterns\n- Error types (not content)\n- Performance metrics\n- Extension version & platform\n\n📖 **Learn more:**\n- [Telemetry Guide](https://github.com/angelo-hub/devbuddy#telemetry)\n- [What data is collected](https://github.com/angelo-hub/devbuddy/blob/main/docs/features/telemetry/TELEMETRY_GUIDE.md)"
         },
         "devBuddy.provider": {
           "type": "string",
