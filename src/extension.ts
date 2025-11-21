@@ -1960,6 +1960,14 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("devBuddy.manageTelemetry", async () => {
       const stats = await telemetryManager?.getTelemetryStats() ?? { enabled: false, eventsSent: 0, optInDate: null, trialExtensionDays: 0 };
       const isEnabled = telemetryManager?.isEnabled() ?? false;
+      
+      // Check VS Code's global setting
+      const vscodeConfig = vscode.workspace.getConfiguration('telemetry');
+      const telemetryLevel = vscodeConfig.get<string>('telemetryLevel', 'all');
+      
+      // Check DevBuddy opt-out setting
+      const devBuddyConfig = vscode.workspace.getConfiguration('devBuddy');
+      const optedOut = devBuddyConfig.get<boolean>('telemetry.optOut', false);
 
       const choice = await vscode.window.showQuickPick(
         [
@@ -1968,14 +1976,21 @@ export async function activate(context: vscode.ExtensionContext) {
               isEnabled ? "Enabled" : "Disabled"
             }`,
             description: isEnabled
-              ? `Sending anonymous usage data • ${stats.trialExtensionDays} days Pro extension granted`
-              : "Not sharing usage data",
+              ? `Following VS Code setting (${telemetryLevel}) • ${stats.eventsSent} events sent`
+              : optedOut 
+                ? "DevBuddy opted out"
+                : `VS Code telemetry is ${telemetryLevel}`,
             value: "toggle",
           },
           {
-            label: "$(info) What Data Do We Collect?",
-            description: "See exactly what telemetry data we collect",
+            label: "$(info) How Telemetry Works",
+            description: "Follows VS Code's global telemetry setting",
             value: "info",
+          },
+          {
+            label: "$(book) What Data Do We Collect?",
+            description: "See exactly what telemetry data we collect",
+            value: "data",
           },
           {
             label: "$(export) Export My Data",
@@ -1989,11 +2004,7 @@ export async function activate(context: vscode.ExtensionContext) {
           },
           {
             label: "$(graph) View Statistics",
-            description: `Events sent: ${stats.eventsSent} • Since: ${
-              stats.optInDate
-                ? new Date(stats.optInDate).toLocaleDateString()
-                : "N/A"
-            }`,
+            description: `Events sent: ${stats.eventsSent} • User ID: ${stats.enabled ? 'Active' : 'N/A'}`,
             value: "stats",
           },
         ],
@@ -2006,28 +2017,46 @@ export async function activate(context: vscode.ExtensionContext) {
       if (choice) {
         switch (choice.value) {
           case "toggle":
-            if (isEnabled) {
-              await telemetryManager?.disableTelemetry();
-            } else {
+            if (optedOut) {
+              // User has opted out - offer to opt back in
               const confirm = await vscode.window.showInformationMessage(
-                "Enable telemetry to help improve DevBuddy?\n\n" +
-                  "✓ Get 14 extra days of Pro features\n" +
+                "Enable DevBuddy telemetry?\n\n" +
+                  "This will follow VS Code's global telemetry setting.\n\n" +
                   "✓ 100% anonymous data collection\n" +
-                  "✓ Helps us prioritize features",
+                  "✓ Helps us prioritize features\n" +
+                  "✓ Respects VS Code's privacy settings",
                 { modal: true },
                 "Enable",
                 "Learn More"
               );
 
               if (confirm === "Enable") {
-                await telemetryManager?.enableTelemetry(
-                  !stats.trialExtensionDays
+                await devBuddyConfig.update("telemetry.optOut", false, vscode.ConfigurationTarget.Global);
+                vscode.window.showInformationMessage(
+                  "✅ Telemetry enabled. DevBuddy will now follow VS Code's global telemetry setting."
                 );
               } else if (confirm === "Learn More") {
                 await vscode.env.openExternal(
                   vscode.Uri.parse(
-                    "https://github.com/yourusername/linear-buddy#telemetry"
+                    "https://github.com/angelo-hub/devbuddy/blob/main/docs/features/telemetry/TELEMETRY_GUIDE.md"
                   )
+                );
+              }
+            } else {
+              // Currently enabled - offer to opt out
+              const confirm = await vscode.window.showWarningMessage(
+                "Opt out of DevBuddy telemetry?\n\n" +
+                  "This will disable telemetry even if VS Code telemetry is enabled.\n\n" +
+                  "Note: You can always re-enable it later.",
+                { modal: true },
+                "Opt Out",
+                "Cancel"
+              );
+
+              if (confirm === "Opt Out") {
+                await telemetryManager?.disableTelemetry();
+                vscode.window.showInformationMessage(
+                  "⭕ Telemetry disabled. No data will be collected."
                 );
               }
             }
@@ -2035,27 +2064,73 @@ export async function activate(context: vscode.ExtensionContext) {
 
           case "info":
             await vscode.window.showInformationMessage(
+              "How DevBuddy Telemetry Works",
+              {
+                modal: true,
+                detail:
+                  "📊 DevBuddy follows VS Code's global telemetry setting by default.\n\n" +
+                  "⚙️ How it works:\n" +
+                  "1. Open VS Code Settings (Cmd/Ctrl + ,)\n" +
+                  "2. Search for 'telemetry level'\n" +
+                  "3. Choose your preference: all, error, crash, or off\n" +
+                  "4. DevBuddy respects your choice\n\n" +
+                  "🔒 DevBuddy-specific opt-out:\n" +
+                  "You can also opt out of DevBuddy telemetry specifically\n" +
+                  "while keeping VS Code telemetry enabled.\n\n" +
+                  "Current status:\n" +
+                  `• VS Code telemetry: ${telemetryLevel}\n` +
+                  `• DevBuddy opt-out: ${optedOut ? 'Yes' : 'No'}\n` +
+                  `• Telemetry active: ${isEnabled ? 'Yes' : 'No'}`,
+              },
+              "Got it",
+              "VS Code Settings"
+            ).then(choice => {
+              if (choice === "VS Code Settings") {
+                vscode.commands.executeCommand('workbench.action.openSettings', 'telemetry.telemetryLevel');
+              }
+            });
+            break;
+
+          case "data":
+            await vscode.window.showInformationMessage(
               "DevBuddy Telemetry Collection",
               {
                 modal: true,
                 detail:
-                  "What we DO collect:\n" +
+                  "✅ What we DO collect:\n" +
                   "• Feature usage (which commands you use)\n" +
                   "• Error types and counts\n" +
                   "• Performance metrics (operation duration)\n" +
                   "• Extension version and platform\n" +
-                  "• Anonymous user ID (random UUID)\n\n" +
-                  "What we DON'T collect:\n" +
+                  "• Anonymous user ID (random UUID)\n" +
+                  "• Platform choice (Linear/Jira)\n" +
+                  "• AI enabled/disabled status\n\n" +
+                  "❌ What we DON'T collect:\n" +
                   "• Your code or file contents\n" +
                   "• File names or paths\n" +
                   "• Personal information\n" +
-                  "• Linear API tokens\n" +
+                  "• API tokens or credentials\n" +
                   "• Ticket content or descriptions\n" +
-                  "• Git commit messages or diffs\n\n" +
+                  "• Git commit messages or diffs\n" +
+                  "• Any identifiable information\n\n" +
+                  "🌐 VS Code automatically adds:\n" +
+                  "• OS type and version\n" +
+                  "• VS Code version\n" +
+                  "• CPU architecture (x64/ARM)\n" +
+                  "• Remote connection type (if any)\n\n" +
                   "All data is anonymous and helps us build a better extension!",
               },
-              "Got it"
-            );
+              "Got it",
+              "Read Full Guide"
+            ).then(choice => {
+              if (choice === "Read Full Guide") {
+                vscode.env.openExternal(
+                  vscode.Uri.parse(
+                    "https://github.com/angelo-hub/devbuddy/blob/main/docs/features/telemetry/TELEMETRY_GUIDE.md"
+                  )
+                );
+              }
+            });
             break;
 
           case "export":
@@ -2076,15 +2151,18 @@ export async function activate(context: vscode.ExtensionContext) {
               {
                 modal: true,
                 detail:
-                  `Status: ${stats.enabled ? "✅ Enabled" : "⭕ Disabled"}\n` +
-                  `Events Sent: ${stats.eventsSent}\n` +
-                  `Opt-in Date: ${
+                  `📊 Current Status:\n` +
+                  `• Telemetry: ${isEnabled ? "✅ Enabled" : "⭕ Disabled"}\n` +
+                  `• VS Code setting: ${telemetryLevel}\n` +
+                  `• DevBuddy opt-out: ${optedOut ? 'Yes' : 'No'}\n\n` +
+                  `📈 Usage:\n` +
+                  `• Events Sent: ${stats.eventsSent}\n` +
+                  `• Tracking Since: ${
                     stats.optInDate
-                      ? new Date(stats.optInDate).toLocaleString()
+                      ? new Date(stats.optInDate).toLocaleDateString()
                       : "N/A"
-                  }\n` +
-                  `Trial Extension: ${stats.trialExtensionDays} days granted\n\n` +
-                  `Thank you for helping us improve DevBuddy! 🙏`,
+                  }\n\n` +
+                  `${isEnabled ? "Thank you for helping us improve DevBuddy! 🙏" : "Telemetry is currently disabled."}`,
               },
               "Close"
             );
