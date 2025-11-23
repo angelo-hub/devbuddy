@@ -25,17 +25,6 @@ DevBuddy brings your tickets into a single sidebar so you can browse, create, up
 | **Chat Participant** | Ask `@devbuddy` questions in natural language | Linear |
 | **Monorepo Support** | Intelligent package detection and validation | All platforms |
 
-## Quick Start
-
-1. **Install DevBuddy** from the VS Code Marketplace
-2. **Open the DevBuddy sidebar** (click the checklist icon)
-3. **Connect your platform:**
-   - Linear: `DevBuddy: Update Linear API Key`
-   - Jira Cloud: `DevBuddy: Setup Jira Cloud`
-4. **Start managing issues** directly inside VS Code
-
-Full documentation: [DevBuddy Quick Start Guide](https://github.com/angelo-hub/devbuddy/blob/main/docs/user-guides/QUICKSTART.md)
-
 ## Example Workflows
 
 ### Convert TODO → Ticket
@@ -69,6 +58,17 @@ Run `DevBuddy: Generate Standup Update` to automatically generate standup report
 - Today's planned tasks
 - Blockers and dependencies
 - Automatic ticket linking
+
+## Quick Start
+
+1. **Install DevBuddy** from the VS Code Marketplace
+2. **Open the DevBuddy sidebar** (click the checklist icon)
+3. **Connect your platform:**
+   - Linear: `DevBuddy: Update Linear API Key`
+   - Jira Cloud: `DevBuddy: Setup Jira Cloud`
+4. **Start managing issues** directly inside VS Code
+
+Full documentation: [DevBuddy Quick Start Guide](https://github.com/angelo-hub/devbuddy/blob/main/docs/user-guides/QUICKSTART.md)
 
 ## Supported Platforms
 
