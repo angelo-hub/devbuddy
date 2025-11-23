@@ -1,5 +1,5 @@
 # DevBuddy for VS Code
-### Unified ticket management for Linear and Jira — directly inside VS Code
+### Jira + Linear workflows on steroids. All in VS Code.
 
 
 [![Downloads](https://img.shields.io/visual-studio-marketplace/d/angelogirardi.dev-buddy)](https://marketplace.visualstudio.com/items?itemName=angelogirardi.dev-buddy)
@@ -24,17 +24,6 @@ DevBuddy brings your tickets into a single sidebar so you can browse, create, up
 | **Branch Integration** | Create and manage branches directly from tickets | Linear, Jira Cloud |
 | **Chat Participant** | Ask `@devbuddy` questions in natural language | Linear |
 | **Monorepo Support** | Intelligent package detection and validation | All platforms |
-
-## Quick Start
-
-1. **Install DevBuddy** from the VS Code Marketplace
-2. **Open the DevBuddy sidebar** (click the checklist icon)
-3. **Connect your platform:**
-   - Linear: `DevBuddy: Update Linear API Key`
-   - Jira Cloud: `DevBuddy: Setup Jira Cloud`
-4. **Start managing issues** directly inside VS Code
-
-Full documentation: [DevBuddy Quick Start Guide](https://github.com/angelo-hub/devbuddy/blob/main/docs/user-guides/QUICKSTART.md)
 
 ## Example Workflows
 
@@ -69,6 +58,17 @@ Run `DevBuddy: Generate Standup Update` to automatically generate standup report
 - Today's planned tasks
 - Blockers and dependencies
 - Automatic ticket linking
+
+## Quick Start
+
+1. **Install DevBuddy** from the VS Code Marketplace
+2. **Open the DevBuddy sidebar** (click the checklist icon)
+3. **Connect your platform:**
+   - Linear: `DevBuddy: Update Linear API Key`
+   - Jira Cloud: `DevBuddy: Setup Jira Cloud`
+4. **Start managing issues** directly inside VS Code
+
+Full documentation: [DevBuddy Quick Start Guide](https://github.com/angelo-hub/devbuddy/blob/main/docs/user-guides/QUICKSTART.md)
 
 ## Supported Platforms
 
@@ -137,6 +137,17 @@ Track updates: [GitHub Repository](https://github.com/angelo-hub/devbuddy)
 - [Feature Compatibility Matrix](https://github.com/angelo-hub/devbuddy/blob/main/FEATURE_COMPATIBILITY_MATRIX.md)
 - [Developer Guide](https://github.com/angelo-hub/devbuddy/blob/main/DEVELOPER_GUIDE.md) - Contributing & development
 - [Full Documentation](https://github.com/angelo-hub/devbuddy)
+
+## Beta Testing
+
+Want to try new features early? Join our beta testing program!
+
+**Install Pre-release Versions:**
+1. Open VS Code Extensions view
+2. Find DevBuddy
+3. Click the dropdown → **"Switch to Pre-Release Version"**
+
+Beta versions include experimental features and improvements before they reach stable release. [Learn more about beta testing →](https://github.com/angelo-hub/devbuddy/blob/main/docs/user-guides/BETA_TESTING.md)
 
 ## Support
 

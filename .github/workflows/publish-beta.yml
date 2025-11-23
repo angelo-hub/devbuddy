@@ -1,0 +1,210 @@
+name: Publish Beta (Pre-release)
+
+on:
+  workflow_dispatch:
+    inputs:
+      betaType:
+        description: "Beta version type"
+        required: true
+        default: "auto"
+        type: choice
+        options:
+          - auto
+          - beta
+          - alpha
+          - rc
+      bump:
+        description: "Version bump type (for base version)"
+        required: false
+        default: "minor"
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+
+jobs:
+  beta-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run type check
+        run: npm run type-check
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Compile extension
+        run: npm run compile
+
+      - name: Compile webviews
+        run: npm run compile:webview
+
+      - name: Determine beta version
+        id: version
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Determine beta type
+          if [ "${{ github.event.inputs.betaType }}" = "auto" ]; then
+            BETA_TYPE="beta"
+          else
+            BETA_TYPE="${{ github.event.inputs.betaType }}"
+          fi
+          
+          # Check if current version is already a pre-release
+          if [[ $CURRENT_VERSION =~ -($BETA_TYPE)\.([0-9]+)$ ]]; then
+            # Increment pre-release number
+            PRE_NUM="${BASH_REMATCH[2]}"
+            NEW_PRE_NUM=$((PRE_NUM + 1))
+            BASE_VERSION="${CURRENT_VERSION%-*}"
+            NEW_VERSION="${BASE_VERSION}-${BETA_TYPE}.${NEW_PRE_NUM}"
+          else
+            # Create first pre-release version
+            # Bump base version according to input
+            npm version ${{ github.event.inputs.bump }} --no-git-tag-version
+            BASE_VERSION=$(node -p "require('./package.json').version")
+            NEW_VERSION="${BASE_VERSION}-${BETA_TYPE}.1"
+          fi
+          
+          echo "New version: $NEW_VERSION"
+          echo "beta_type=$BETA_TYPE" >> $GITHUB_OUTPUT
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update version in package.json
+        run: |
+          npm version ${{ steps.version.outputs.new_version }} --no-git-tag-version
+
+      - name: Create .env file with telemetry secrets
+        run: |
+          echo "VSCODE_TELEMETRY_CONNECTION_STRING=${{ secrets.VSCODE_TELEMETRY_CONNECTION_STRING }}" > .env
+
+      - name: Package extension
+        run: npm run package
+        env:
+          VSCODE_TELEMETRY_CONNECTION_STRING: ${{ secrets.VSCODE_TELEMETRY_CONNECTION_STRING }}
+
+      - name: Get VSIX filename
+        id: vsix
+        run: |
+          VSIX_FILE=$(ls *.vsix)
+          echo "filename=$VSIX_FILE" >> $GITHUB_OUTPUT
+          echo "VSIX file: $VSIX_FILE"
+
+      - name: Publish to VS Code Marketplace (Pre-release)
+        run: npx @vscode/vsce publish --pre-release -p ${{ secrets.VSCE_PAT }}
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      - name: Publish to Open VSX (Pre-release)
+        if: env.OVSX_PAT != ''
+        run: npx ovsx publish ${{ steps.vsix.outputs.filename }} --pre-release -p ${{ secrets.OVSX_PAT }}
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        continue-on-error: true
+
+      - name: Commit version change
+        run: |
+          git add package.json
+          git commit -m "chore: bump version to ${{ steps.version.outputs.new_version }} (pre-release)"
+
+      - name: Create Git tag
+        run: |
+          git tag v${{ steps.version.outputs.new_version }}
+
+      - name: Push changes and tags
+        run: |
+          git push origin HEAD:${{ github.ref_name }}
+          git push origin v${{ steps.version.outputs.new_version }}
+
+      - name: Create GitHub Pre-release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.new_version }}
+          name: DevBuddy v${{ steps.version.outputs.new_version }} (${{ steps.version.outputs.beta_type }})
+          body: |
+            ## 🧪 Pre-release Version
+            
+            This is a **${{ steps.version.outputs.beta_type }}** pre-release of DevBuddy. It contains experimental features and may have bugs.
+            
+            ### ⚠️ Important Notes
+            
+            - This version is for testing purposes only
+            - Use at your own risk in production environments
+            - Report any issues on [GitHub Issues](https://github.com/${{ github.repository }}/issues)
+            
+            ### How to Install
+            
+            **Option 1: Via VS Code (Recommended)**
+            1. Open VS Code/Cursor
+            2. Go to Extensions view
+            3. Search for "DevBuddy"
+            4. Click the dropdown next to "Install" and select **"Install Pre-Release Version"**
+            
+            **Option 2: Manual Installation**
+            Download the `.vsix` file below and install it:
+            
+            ```bash
+            code --install-extension ${{ steps.vsix.outputs.filename }}
+            ```
+            
+            ### Reporting Issues
+            
+            Please report any bugs or issues you encounter:
+            - [Create an issue](https://github.com/${{ github.repository }}/issues/new)
+            - Include the version number: `${{ steps.version.outputs.new_version }}`
+            - Describe what you were doing when the issue occurred
+            
+            ---
+            
+            Thank you for testing DevBuddy! 🙏
+          files: ${{ steps.vsix.outputs.filename }}
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        run: |
+          echo "## 🧪 Beta Release Successful!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** v${{ steps.version.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Type:** ${{ steps.version.outputs.beta_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "**VSIX:** ${{ steps.vsix.outputs.filename }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Published to:" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ VS Code Marketplace (Pre-release)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ GitHub Releases (Pre-release)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### How users can install:" >> $GITHUB_STEP_SUMMARY
+          echo "1. In VS Code, search for DevBuddy in Extensions" >> $GITHUB_STEP_SUMMARY
+          echo "2. Click \"Install Pre-Release Version\"" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Links:" >> $GITHUB_STEP_SUMMARY
+          echo "- [Release page](https://github.com/${{ github.repository }}/releases/tag/v${{ steps.version.outputs.new_version }})" >> $GITHUB_STEP_SUMMARY
+          echo "- [Marketplace](https://marketplace.visualstudio.com/items?itemName=angelogirardi.dev-buddy)" >> $GITHUB_STEP_SUMMARY
+

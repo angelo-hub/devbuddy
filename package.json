@@ -1,12 +1,43 @@
 {
   "name": "dev-buddy",
-  "displayName": "DevBuddy",
-  "description": "Multi-platform ticket management for Linear, Jira, and more. AI-powered workflow automation for PRs, standups, and development tasks.",
+  "displayName": "DevBuddy - Linear & Jira Workflow Manager",
+  "description": "Linear + Jira workflows on steroids. AI-powered standups, PR summaries, and ticket management—all in VS Code.",
   "version": "0.7.3",
   "publisher": "angelogirardi",
   "license": "SEE LICENSE IN LICENSE",
   "readme": "README.md",
   "icon": "resources/icon.png",
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
+  "keywords": [
+    "linear",
+    "jira",
+    "ticket management",
+    "issue tracking",
+    "project management",
+    "workflow",
+    "ai",
+    "github copilot",
+    "productivity",
+    "atlassian",
+    "automation",
+    "standup",
+    "pull request",
+    "pr summary",
+    "git",
+    "github",
+    "monorepo",
+    "jira cloud",
+    "jira server",
+    "linear issues",
+    "sprint",
+    "agile",
+    "scrum",
+    "todo",
+    "task management"
+  ],
   "author": {
     "name": "Angelo Girardi",
     "email": "girardi.ang@gmail.com"
@@ -24,7 +55,8 @@
   },
   "categories": [
     "Other",
-    "Chat"
+    "Chat",
+    "SCM Providers"
   ],
   "activationEvents": [
     "onStartupFinished"
@@ -440,24 +472,24 @@
       {
         "id": "dev-buddy",
         "name": "devbuddy",
-        "description": "Multi-platform AI assistant for ticket workflows, PRs, and standups - supports Linear, Jira, and more",
+        "description": "AI-powered workflow automation for Linear & Jira: manage tickets, generate standups, create PR summaries, and automate development tasks",
         "isSticky": true,
         "commands": [
           {
             "name": "tickets",
-            "description": "Show your tickets from any platform"
+            "description": "Show your tickets from Linear or Jira"
           },
           {
             "name": "standup",
-            "description": "Generate standup update"
+            "description": "Generate AI-powered standup update from commits"
           },
           {
             "name": "pr",
-            "description": "Generate PR summary"
+            "description": "Generate comprehensive PR summary with AI"
           },
           {
             "name": "status",
-            "description": "Update ticket status"
+            "description": "Update ticket status on any platform"
           }
         ]
       }
@@ -771,15 +803,10 @@
           ],
           "description": "Format for copying ticket links (for standup updates & sharing)"
         },
-        "devBuddy.telemetry.enabled": {
+        "devBuddy.telemetry.optOut": {
           "type": "boolean",
           "default": false,
-          "markdownDescription": "**Share anonymous usage data to help improve DevBuddy**\n\n✅ **Benefits:**\n- Help us prioritize features\n- Improve stability and performance\n- Get 14 extra days of Pro trial!\n\n🔒 **Privacy:**\n- 100% anonymous (no personal data)\n- No code or file names tracked\n- No content collection\n- Easy opt-out anytime\n\n💡 **What we collect:**\n- Feature usage patterns\n- Error types (not content)\n- Performance metrics\n- Extension version & platform\n\n[Learn more about our telemetry](https://github.com/angelogirardi/developer-buddy#telemetry)"
-        },
-        "devBuddy.telemetry.showPrompt": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show telemetry opt-in prompt on first use (disable if you've already made your choice)"
+          "markdownDescription": "**Opt out of DevBuddy telemetry**\n\n⚙️ **How it works:**\n- DevBuddy follows VS Code's global telemetry setting by default\n- Enable this to opt out even if VS Code telemetry is enabled\n\n🔒 **Privacy:**\n- 100% anonymous (no personal data)\n- No code or file names tracked\n- No content collection\n\n💡 **What we collect when enabled:**\n- Feature usage patterns\n- Error types (not content)\n- Performance metrics\n- Extension version & platform\n\n📖 **Learn more:**\n- [Telemetry Guide](https://github.com/angelo-hub/devbuddy#telemetry)\n- [What data is collected](https://github.com/angelo-hub/devbuddy/blob/main/docs/features/telemetry/TELEMETRY_GUIDE.md)"
         },
         "devBuddy.provider": {
           "type": "string",
@@ -871,7 +898,10 @@
     "release:major": "standard-version --release-as major",
     "release:minor": "standard-version --release-as minor",
     "release:patch": "standard-version --release-as patch",
-    "release:dry-run": "standard-version --dry-run"
+    "release:dry-run": "standard-version --dry-run",
+    "beta": "node scripts/beta-release.js",
+    "beta:publish": "vsce publish --pre-release",
+    "beta:package": "vsce package --pre-release"
   },
   "devDependencies": {
     "@types/node": "^20.19.25",
