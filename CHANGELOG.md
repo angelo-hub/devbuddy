@@ -2,6 +2,44 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.3](https://github.com/angelo-hub/devbuddy/compare/v0.7.2...v0.7.3) (2025-11-21)
+
+### [0.7.2](https://github.com/angelo-hub/devbuddy/compare/v0.7.1...v0.7.2) (2025-11-20)
+
+
+### 🐛 Bug Fixes
+
+* add badges ([2ebbfd3](https://github.com/angelo-hub/devbuddy/commit/2ebbfd322c8ce2051a6f931fd9c33d06d09b73e3))
+* add badges ([6f30897](https://github.com/angelo-hub/devbuddy/commit/6f30897dda71cbf0c3050547a0635564556ef9e7))
+* add badges ([a283ea2](https://github.com/angelo-hub/devbuddy/commit/a283ea24888ae47f0e39c1e16ce526d45c2b7572))
+* readme issues ([28378ac](https://github.com/angelo-hub/devbuddy/commit/28378ac13eb016153a77d93e91da2ba73b7c8db4))
+
+### [0.7.1](https://github.com/angelo-hub/devbuddy/compare/v0.7.0...v0.7.1) (2025-11-20)
+
+## [0.7.0](https://github.com/angelo-hub/devbuddy/compare/v0.6.0...v0.7.0) (2025-11-20)
+
+## [0.6.0](https://github.com/angelo-hub/devbuddy/compare/v0.5.1...v0.6.0) (2025-11-19)
+
+
+### ✨ Features
+
+* jira server support ([f6965a4](https://github.com/angelo-hub/devbuddy/commit/f6965a4e3b18784fdae587d9d6e90a8c575768da))
+
+
+### 🐛 Bug Fixes
+
+* add walkthrough content ([34c0517](https://github.com/angelo-hub/devbuddy/commit/34c0517320d76f0eb4f0e597ad276e8ad17f99c2))
+* add walkthrough content part 1 ([2c9e005](https://github.com/angelo-hub/devbuddy/commit/2c9e005aa3e00798791b7f56b27db59215f46c34))
+* linting ([94200d9](https://github.com/angelo-hub/devbuddy/commit/94200d9efd802271f18180763279b0cef7175d86))
+* linting ([6b43d54](https://github.com/angelo-hub/devbuddy/commit/6b43d543472139dac883b75795c011e417bab651))
+
+### [0.5.1](https://github.com/angelo-hub/devbuddy/compare/v0.5.0...v0.5.1) (2025-11-15)
+
+
+### 🐛 Bug Fixes
+
+* launch issues ([6992127](https://github.com/angelo-hub/devbuddy/commit/6992127b946f6a2801b9b9642967773cbdc6fcb6))
+
 ## [0.5.0](https://github.com/angelo-hub/devbuddy/compare/v0.4.0...v0.5.0) (2025-11-14)
 
 
