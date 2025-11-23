@@ -1,12 +1,43 @@
 {
   "name": "dev-buddy",
-  "displayName": "DevBuddy",
-  "description": "Multi-platform ticket management for Linear, Jira, and more. AI-powered workflow automation for PRs, standups, and development tasks.",
+  "displayName": "DevBuddy - Linear & Jira Workflow Manager",
+  "description": "Linear + Jira workflows on steroids. AI-powered standups, PR summaries, and ticket management—all in VS Code.",
   "version": "0.5.0",
   "publisher": "angelogirardi",
   "license": "SEE LICENSE IN LICENSE",
   "readme": "README.md",
   "icon": "resources/icon.png",
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
+  "keywords": [
+    "linear",
+    "jira",
+    "ticket management",
+    "issue tracking",
+    "project management",
+    "workflow",
+    "ai",
+    "github copilot",
+    "productivity",
+    "atlassian",
+    "automation",
+    "standup",
+    "pull request",
+    "pr summary",
+    "git",
+    "github",
+    "monorepo",
+    "jira cloud",
+    "jira server",
+    "linear issues",
+    "sprint",
+    "agile",
+    "scrum",
+    "todo",
+    "task management"
+  ],
   "author": {
     "name": "Angelo Girardi",
     "email": "girardi.ang@gmail.com"
@@ -24,7 +55,8 @@
   },
   "categories": [
     "Other",
-    "Chat"
+    "Chat",
+    "SCM Providers"
   ],
   "activationEvents": [
     "onStartupFinished"
@@ -440,24 +472,24 @@
       {
         "id": "dev-buddy",
         "name": "devbuddy",
-        "description": "Multi-platform AI assistant for ticket workflows, PRs, and standups - supports Linear, Jira, and more",
+        "description": "AI-powered workflow automation for Linear & Jira: manage tickets, generate standups, create PR summaries, and automate development tasks",
         "isSticky": true,
         "commands": [
           {
             "name": "tickets",
-            "description": "Show your tickets from any platform"
+            "description": "Show your tickets from Linear or Jira"
           },
           {
             "name": "standup",
-            "description": "Generate standup update"
+            "description": "Generate AI-powered standup update from commits"
           },
           {
             "name": "pr",
-            "description": "Generate PR summary"
+            "description": "Generate comprehensive PR summary with AI"
           },
           {
             "name": "status",
-            "description": "Update ticket status"
+            "description": "Update ticket status on any platform"
           }
         ]
       }

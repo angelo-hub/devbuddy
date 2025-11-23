@@ -1,5 +1,5 @@
 # DevBuddy for VS Code
-### Unified ticket management for Linear and Jira — directly inside VS Code
+### Jira + Linear workflows on steroids. All in VS Code.
 
 
 [![Downloads](https://img.shields.io/visual-studio-marketplace/d/angelogirardi.dev-buddy)](https://marketplace.visualstudio.com/items?itemName=angelogirardi.dev-buddy)
