@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.7.4](https://github.com/angelo-hub/devbuddy/compare/v0.7.3...v0.7.4) (2025-11-23)
+
+
+### ✨ Features
+
+* beta channel ([0e9b99b](https://github.com/angelo-hub/devbuddy/commit/0e9b99bd41a05865e85e8a3c282c30310ef41e66))
+
 ### [0.7.3](https://github.com/angelo-hub/devbuddy/compare/v0.7.2...v0.7.3) (2025-11-21)
 
 ### [0.7.2](https://github.com/angelo-hub/devbuddy/compare/v0.7.1...v0.7.2) (2025-11-20)
