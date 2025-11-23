@@ -138,6 +138,17 @@ Track updates: [GitHub Repository](https://github.com/angelo-hub/devbuddy)
 - [Developer Guide](https://github.com/angelo-hub/devbuddy/blob/main/DEVELOPER_GUIDE.md) - Contributing & development
 - [Full Documentation](https://github.com/angelo-hub/devbuddy)
 
+## Beta Testing
+
+Want to try new features early? Join our beta testing program!
+
+**Install Pre-release Versions:**
+1. Open VS Code Extensions view
+2. Find DevBuddy
+3. Click the dropdown → **"Switch to Pre-Release Version"**
+
+Beta versions include experimental features and improvements before they reach stable release. [Learn more about beta testing →](https://github.com/angelo-hub/devbuddy/blob/main/docs/user-guides/BETA_TESTING.md)
+
 ## Support
 
 **Documentation:** [github.com/angelo-hub/devbuddy](https://github.com/angelo-hub/devbuddy)  
