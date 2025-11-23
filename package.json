@@ -866,7 +866,10 @@
     "release:major": "standard-version --release-as major",
     "release:minor": "standard-version --release-as minor",
     "release:patch": "standard-version --release-as patch",
-    "release:dry-run": "standard-version --dry-run"
+    "release:dry-run": "standard-version --dry-run",
+    "beta": "node scripts/beta-release.js",
+    "beta:publish": "vsce publish --pre-release",
+    "beta:package": "vsce package --pre-release"
   },
   "devDependencies": {
     "@types/node": "^20.19.25",
