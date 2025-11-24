@@ -51,7 +51,7 @@
   },
   "homepage": "https://github.com/angelo-hub/devbuddy#readme",
   "engines": {
-    "vscode": "^1.90.0"
+    "vscode": "^1.93.0"
   },
   "categories": [
     "Other",
@@ -490,8 +490,78 @@
           {
             "name": "status",
             "description": "Update ticket status on any platform"
+          },
+          {
+            "name": "plan",
+            "description": "Create AI-powered implementation plan for a ticket"
+          },
+          {
+            "name": "suggest",
+            "description": "Get intelligent suggestions on what to work on next"
           }
         ]
+      }
+    ],
+    "languageModelTools": [
+      {
+        "name": "devbuddy_get_ticket",
+        "displayName": "Get Ticket Details",
+        "userDescription": "Fetches detailed information about a specific ticket from Linear or Jira, including title, description, status, priority, assignee, and labels",
+        "modelDescription": "Use this tool when you need details about a specific ticket. Provide the ticket ID (e.g., 'ENG-123' or 'PROJ-456'). Returns comprehensive ticket information including title, description, current status, priority level, assigned user, and associated labels.",
+        "icon": "$(file-text)",
+        "tags": [
+          "tickets",
+          "devbuddy"
+        ],
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "getTicket",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "ticketId": {
+              "type": "string",
+              "description": "The ticket identifier (e.g., 'ENG-123', 'PROJ-456')"
+            }
+          },
+          "required": [
+            "ticketId"
+          ]
+        }
+      },
+      {
+        "name": "devbuddy_list_my_tickets",
+        "displayName": "List My Tickets",
+        "userDescription": "Lists all active tickets assigned to the current user from Linear or Jira",
+        "modelDescription": "Use this tool to get a list of all tickets currently assigned to the user. Returns ticket IDs, titles, statuses, and priorities. Useful for answering questions like 'what am I working on?' or 'what are my tickets?'. No parameters required.",
+        "icon": "$(checklist)",
+        "tags": [
+          "tickets",
+          "devbuddy"
+        ],
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "listMyTickets",
+        "inputSchema": {
+          "type": "object",
+          "properties": {}
+        }
+      },
+      {
+        "name": "devbuddy_get_current_ticket",
+        "displayName": "Get Current Branch Ticket",
+        "userDescription": "Retrieves the ticket associated with the current Git branch",
+        "modelDescription": "Use this tool to find out which ticket is associated with the current Git branch. Analyzes the branch name to detect ticket identifiers (e.g., 'feat/eng-123-oauth' maps to ticket 'ENG-123'). Returns the ticket details if found, or null if no association exists. No parameters required.",
+        "icon": "$(git-branch)",
+        "tags": [
+          "git",
+          "tickets",
+          "devbuddy"
+        ],
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "getCurrentTicket",
+        "inputSchema": {
+          "type": "object",
+          "properties": {}
+        }
       }
     ],
     "walkthroughs": [
@@ -907,7 +977,7 @@
     "@types/node": "^20.19.25",
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",
-    "@types/vscode": "^1.90.0",
+    "@types/vscode": "^1.93.0",
     "@typescript-eslint/eslint-plugin": "^8.21.0",
     "@typescript-eslint/parser": "^8.21.0",
     "@vscode/vsce": "^3.6.2",
