@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 import { LinearClient } from "@providers/linear/LinearClient";
 import { LinearIssue } from "@providers/linear/types";
+import { JiraCloudClient } from "@providers/jira/cloud/JiraCloudClient";
+import { JiraIssue } from "@providers/jira/common/types";
 import { GitAnalyzer } from "@shared/git/gitAnalyzer";
 import { AISummarizer } from "@shared/ai/aiSummarizer";
 import { getLogger } from "@shared/utils/logger";
@@ -16,6 +18,8 @@ type UserIntent =
   | "generate_pr"
   | "show_ticket_detail"
   | "update_status"
+  | "plan_ticket_work"
+  | "suggest_work"
   | "help"
   | "unknown";
 
@@ -95,6 +99,17 @@ export class DevBuddyChatParticipant {
         return await this.handlePRCommand(request, stream, token);
       } else if (request.command === "status") {
         return await this.handleStatusCommand(request, stream, token);
+      } else if (request.command === "plan") {
+        // Extract ticket ID from prompt for /plan command
+        const ticketContext = await this.extractTicketContext(request.prompt);
+        if (ticketContext) {
+          return await this.handlePlanTicketWork(ticketContext, request.prompt, stream, token);
+        } else {
+          stream.markdown("⚠️ Please specify a ticket ID (e.g., `/plan ENG-123`)\n");
+          return {};
+        }
+      } else if (request.command === "suggest") {
+        return await this.handleSuggestWork(stream, token);
       } else {
         // General conversation
         return await this.handleGeneralQuery(request, stream, token);
@@ -312,11 +327,24 @@ export class DevBuddyChatParticipant {
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
   ): Promise<vscode.ChatResult> {
-    // Step 1: Try AI-powered intent detection first
+    // Step 1: Check for ticket context
+    const ticketContext = await this.extractTicketContext(request.prompt);
+    
+    // Step 2: Try AI-powered intent detection
     const intent = await this.detectIntent(request.prompt, token);
     logger.debug(`Detected intent: ${intent.type} (confidence: ${intent.confidence})`);
 
-    // Step 2: Route based on detected intent
+    // Step 3: Handle planning requests with ticket context
+    if (intent.type === "plan_ticket_work" && ticketContext) {
+      return await this.handlePlanTicketWork(ticketContext, request.prompt, stream, token);
+    }
+    
+    // Step 4: Handle work suggestions
+    if (intent.type === "suggest_work") {
+      return await this.handleSuggestWork(stream, token);
+    }
+
+    // Step 5: Route based on detected intent
     switch (intent.type) {
       case "show_tickets":
         return await this.handleTicketsCommand(request, stream, token);
@@ -341,7 +369,7 @@ export class DevBuddyChatParticipant {
         return await this.showHelpMessage(stream);
     }
 
-    // Step 3: If intent is unknown or low confidence, try AI-powered response
+    // Step 6: If intent is unknown or low confidence, try AI-powered response
     if (intent.confidence < 0.7) {
       const aiResponse = await this.generateAIResponse(request.prompt, stream, token);
       if (aiResponse) {
@@ -349,7 +377,7 @@ export class DevBuddyChatParticipant {
       }
     }
 
-    // Step 4: Final fallback - show help
+    // Step 7: Final fallback - show help
     return await this.showHelpMessage(stream);
   }
 
@@ -454,6 +482,39 @@ No other text. Just the JSON.`
 
     // Check for ticket ID first
     const ticketMatch = prompt.match(/([A-Z]+-\d+)/);
+    
+    // Planning patterns
+    const planningPatterns = [
+      /let'?s make a plan/i,
+      /help me (implement|work on|build|create)/i,
+      /how (do i|should i|to) (implement|work on|build)/i,
+      /plan for/i,
+      /get started (on|with)/i,
+      /start working on/i,
+    ];
+    
+    if (ticketMatch && planningPatterns.some(p => p.test(prompt))) {
+      return {
+        type: "plan_ticket_work",
+        confidence: 0.9,
+        ticketId: ticketMatch[1],
+      };
+    }
+    
+    // Work suggestion patterns
+    const suggestPatterns = [
+      /what should i work on/i,
+      /suggest.*ticket/i,
+      /what'?s next/i,
+      /what (can|should) i (do|work on) (today|now)/i,
+      /recommend.*ticket/i,
+    ];
+    
+    if (suggestPatterns.some(p => p.test(prompt))) {
+      return { type: "suggest_work", confidence: 0.85 };
+    }
+
+    // Check for ticket detail query (just ticket ID mentioned)
     if (ticketMatch) {
       return {
         type: "show_ticket_detail",
@@ -612,11 +673,14 @@ Provide a helpful, conversational response. If the user is asking about somethin
         "- `/tickets` - Show your active Linear tickets\n" +
         "- `/standup` - Generate a standup update\n" +
         "- `/pr` - Generate a PR summary\n" +
-        "- `/status` - Update ticket status\n\n" +
+        "- `/status` - Update ticket status\n" +
+        "- `/plan [TICKET-ID]` - Create an implementation plan\n" +
+        "- `/suggest` - Suggest what to work on next\n\n" +
         "Or just ask me about your work! Try:\n" +
         "- *\"What tickets am I working on?\"*\n" +
         "- *\"Show me ENG-123\"*\n" +
-        "- *\"Generate my standup\"*\n"
+        "- *\"I would like to start working on ENG-125, let's make a plan\"*\n" +
+        "- *\"What should I work on today?\"*\n"
     );
 
     return {};
@@ -671,6 +735,322 @@ Provide a helpful, conversational response. If the user is asking about somethin
       default:
         return "None";
     }
+  }
+
+  /**
+   * Helper: Get ticket title (handles both Linear and Jira)
+   */
+  private getTicketTitle(ticket: LinearIssue | JiraIssue): string {
+    return 'identifier' in ticket ? ticket.title : (ticket as JiraIssue).summary;
+  }
+
+  /**
+   * Helper: Get ticket identifier (handles both Linear and Jira)
+   */
+  private getTicketIdentifier(ticket: LinearIssue | JiraIssue): string {
+    return 'identifier' in ticket ? ticket.identifier : (ticket as JiraIssue).key;
+  }
+
+  /**
+   * Helper: Get ticket description (handles both Linear and Jira)
+   */
+  private getTicketDescription(ticket: LinearIssue | JiraIssue): string {
+    return ticket.description || "No description provided";
+  }
+
+  /**
+   * Extract ticket context from user prompt
+   */
+  private async extractTicketContext(
+    prompt: string
+  ): Promise<{ ticketId: string; ticket: LinearIssue | JiraIssue } | null> {
+    // Extract ticket ID from prompt (e.g., ENG-125, PROJ-456)
+    const ticketMatch = prompt.match(/([A-Z]+-\d+)/);
+    if (!ticketMatch) {
+      return null;
+    }
+
+    const ticketId = ticketMatch[1];
+    
+    // Fetch ticket details based on current platform
+    const config = vscode.workspace.getConfiguration("devBuddy");
+    const platform = config.get<string>("provider", "linear");
+    
+    try {
+      if (platform === "linear") {
+        const client = await LinearClient.create();
+        const ticket = await client.getIssue(ticketId);
+        return ticket ? { ticketId, ticket } : null;
+      } else if (platform === "jira") {
+        const client = await JiraCloudClient.create();
+        const ticket = await client.getIssue(ticketId);
+        return ticket ? { ticketId, ticket } : null;
+      }
+    } catch (error) {
+      logger.debug(`Error fetching ticket ${ticketId}: ${error}`);
+      return null;
+    }
+    
+    return null;
+  }
+
+  /**
+   * Handle ticket planning with AI assistance
+   */
+  private async handlePlanTicketWork(
+    ticketContext: { ticketId: string; ticket: LinearIssue | JiraIssue },
+    userPrompt: string,
+    stream: vscode.ChatResponseStream,
+    token: vscode.CancellationToken
+  ): Promise<vscode.ChatResult> {
+    stream.progress(`Analyzing ${ticketContext.ticketId}...`);
+    
+    // Build rich context prompt for AI
+    const planningPrompt = this.buildPlanningPrompt(ticketContext.ticket, userPrompt);
+    
+    // Get AI model
+    const models = await vscode.lm.selectChatModels({
+      vendor: "copilot",
+      family: "gpt-4o",
+    });
+    
+    if (models.length === 0) {
+      // Fallback to template-based planning
+      return await this.generateTemplatePlan(ticketContext, stream);
+    }
+    
+    const model = models[0];
+    const messages = [vscode.LanguageModelChatMessage.User(planningPrompt)];
+    
+    // Stream AI response
+    const identifier = this.getTicketIdentifier(ticketContext.ticket);
+    const title = this.getTicketTitle(ticketContext.ticket);
+    
+    stream.markdown(`## Implementation Plan for ${identifier}\n\n`);
+    stream.markdown(`**${title}**\n\n`);
+    
+    try {
+      const response = await model.sendRequest(messages, {}, token);
+      for await (const fragment of response.text) {
+        stream.markdown(fragment);
+      }
+    } catch (error) {
+      logger.error("Error generating plan with AI", error);
+      // Fallback to template
+      return await this.generateTemplatePlan(ticketContext, stream);
+    }
+    
+    // Add action buttons
+    stream.markdown("\n\n---\n\n### Quick Actions\n\n");
+    
+    stream.button({
+      command: "devBuddy.startBranch",
+      arguments: [{ issue: ticketContext.ticket }],
+      title: "$(git-branch) Create Branch",
+    });
+    
+    stream.button({
+      command: "devBuddy.startWork",
+      arguments: [{ issue: ticketContext.ticket }],
+      title: "$(play) Start Work (Update Status)",
+    });
+    
+    stream.button({
+      command: "devBuddy.openTicketPanel",
+      arguments: [ticketContext.ticketId],
+      title: "$(link-external) Open Full Details",
+    });
+    
+    return {};
+  }
+
+  /**
+   * Generate template-based plan (fallback when AI unavailable)
+   */
+  private async generateTemplatePlan(
+    ticketContext: { ticketId: string; ticket: LinearIssue | JiraIssue },
+    stream: vscode.ChatResponseStream
+  ): Promise<vscode.ChatResult> {
+    const ticket = ticketContext.ticket;
+    const isLinear = 'identifier' in ticket;
+    const priority = isLinear 
+      ? this.getPriorityName(ticket.priority)
+      : (ticket as JiraIssue).priority?.name || "None";
+
+    stream.markdown("### Overview\n\n");
+    const description = this.getTicketDescription(ticket);
+    stream.markdown(`${description}\n\n`);
+
+    stream.markdown("### Key Steps\n\n");
+    stream.markdown("1. Review ticket requirements and acceptance criteria\n");
+    stream.markdown("2. Break down the work into smaller tasks\n");
+    stream.markdown("3. Implement the changes\n");
+    stream.markdown("4. Write tests for the new functionality\n");
+    stream.markdown("5. Review and refactor code\n\n");
+
+    stream.markdown("### Priority & Context\n\n");
+    stream.markdown(`- **Priority:** ${priority}\n`);
+    
+    if (isLinear && ticket.labels && ticket.labels.length > 0) {
+      stream.markdown(`- **Labels:** ${ticket.labels.map(l => l.name).join(", ")}\n`);
+    } else if (!isLinear && (ticket as JiraIssue).labels && (ticket as JiraIssue).labels!.length > 0) {
+      stream.markdown(`- **Labels:** ${(ticket as JiraIssue).labels!.join(", ")}\n`);
+    }
+
+    return {};
+  }
+
+  /**
+   * Build planning prompt for AI
+   */
+  private buildPlanningPrompt(
+    ticket: LinearIssue | JiraIssue,
+    userPrompt: string
+  ): string {
+    const identifier = this.getTicketIdentifier(ticket);
+    const title = this.getTicketTitle(ticket);
+    const description = this.getTicketDescription(ticket);
+    
+    const isLinear = 'identifier' in ticket;
+    const priority = isLinear 
+      ? this.getPriorityName(ticket.priority)
+      : (ticket as JiraIssue).priority?.name || "None";
+    const labels = isLinear
+      ? ticket.labels?.map(l => l.name).join(", ") || "None"
+      : (ticket as JiraIssue).labels?.join(", ") || "None";
+    
+    return `You are helping a developer plan their work on a ticket.
+
+**Ticket Context:**
+- ID: ${identifier}
+- Title: ${title}
+- Priority: ${priority}
+- Labels: ${labels}
+
+**Description:**
+${description}
+
+**User's Request:**
+${userPrompt}
+
+**Instructions:**
+Create a practical, actionable implementation plan with:
+1. **Overview** - Brief summary of what needs to be done (2-3 sentences)
+2. **Key Steps** - 3-5 concrete implementation steps
+3. **Files to Consider** - Suggest likely files/directories to modify based on the ticket context
+4. **Testing Approach** - How to verify the implementation
+5. **Potential Challenges** - What to watch out for
+
+Keep it concise, practical, and developer-friendly. Use markdown formatting.`;
+  }
+
+  /**
+   * Handle work suggestion
+   */
+  private async handleSuggestWork(
+    stream: vscode.ChatResponseStream,
+    token: vscode.CancellationToken
+  ): Promise<vscode.ChatResult> {
+    stream.progress("Analyzing your tickets...");
+    
+    const client = await this.getClient();
+    if (!client.isConfigured()) {
+      stream.markdown("⚠️ Please configure your Linear/Jira API token first.\n");
+      return {};
+    }
+    
+    // Fetch active tickets
+    const issues = await client.getMyIssues({ state: ["unstarted", "started"] });
+    
+    if (issues.length === 0) {
+      stream.markdown("✅ No active tickets! You're all caught up.\n");
+      return {};
+    }
+    
+    // Use AI to suggest which ticket to work on
+    const suggestionPrompt = this.buildSuggestionPrompt(issues);
+    
+    const models = await vscode.lm.selectChatModels();
+    if (models.length > 0) {
+      try {
+        const model = models[0];
+        const messages = [vscode.LanguageModelChatMessage.User(suggestionPrompt)];
+        
+        stream.markdown("## Suggested Next Ticket\n\n");
+        
+        const response = await model.sendRequest(messages, {}, token);
+        for await (const fragment of response.text) {
+          stream.markdown(fragment);
+        }
+      } catch (error) {
+        logger.error("Error generating AI suggestion", error);
+        // Fallback to simple priority-based suggestion
+        return await this.generateSimpleSuggestion(issues, stream);
+      }
+    } else {
+      // Fallback: suggest highest priority ticket
+      return await this.generateSimpleSuggestion(issues, stream);
+    }
+    
+    return {};
+  }
+
+  /**
+   * Generate simple priority-based suggestion (fallback)
+   */
+  private async generateSimpleSuggestion(
+    issues: LinearIssue[],
+    stream: vscode.ChatResponseStream
+  ): Promise<vscode.ChatResult> {
+    // Sort by priority (1 is highest/urgent)
+    const highPriority = issues.sort((a, b) => a.priority - b.priority)[0];
+    
+    stream.markdown(`## Suggested Ticket\n\n`);
+    const url = getLinearUrl(highPriority.url);
+    stream.markdown(`**[${highPriority.identifier}](${url})** - ${highPriority.title}\n\n`);
+    stream.markdown(`**Priority:** ${this.getPriorityEmoji(highPriority.priority)} ${this.getPriorityName(highPriority.priority)}\n`);
+    stream.markdown(`**Status:** ${highPriority.state.name}\n\n`);
+    
+    if (highPriority.description) {
+      const shortDesc = highPriority.description.substring(0, 200);
+      stream.markdown(`${shortDesc}${highPriority.description.length > 200 ? "..." : ""}\n\n`);
+    }
+
+    stream.button({
+      command: "devBuddy.startBranch",
+      arguments: [{ issue: highPriority }],
+      title: "$(git-branch) Create Branch & Start",
+    });
+
+    return {};
+  }
+
+  /**
+   * Build suggestion prompt for AI
+   */
+  private buildSuggestionPrompt(issues: LinearIssue[]): string {
+    const ticketList = issues.slice(0, 10).map(issue => {
+      return `- **${issue.identifier}** (Priority: ${this.getPriorityName(issue.priority)}, Status: ${issue.state.name}): ${issue.title}`;
+    }).join("\n");
+
+    return `You are helping a developer decide which ticket to work on next.
+
+**Available Tickets:**
+${ticketList}
+
+**Instructions:**
+Analyze these tickets and recommend ONE ticket to work on next. Consider:
+- Priority level (Urgent/High should be preferred)
+- Current status (unstarted vs in progress)
+- Complexity and dependencies (if evident from title)
+- Logical workflow order
+
+Format your response as:
+**Recommended: [TICKET-ID]** - Brief title
+
+**Why:** 2-3 sentences explaining why this ticket should be next
+
+Keep it concise and actionable.`;
   }
 }
 

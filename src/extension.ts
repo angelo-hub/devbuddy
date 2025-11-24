@@ -38,7 +38,27 @@ import { getCurrentPlatform } from "@shared/utils/platformDetector";
 export async function activate(context: vscode.ExtensionContext) {
   // Initialize logger first (must succeed)
   const logger = getLogger();
-  logger.info("DevBuddy extension is starting activation...");
+  
+  // Get version and build information
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const packageJson = require('../package.json');
+  const version = packageJson.version || 'unknown';
+  const extensionMode = context.extensionMode;
+  
+  // Determine build type
+  let buildType = '';
+  if (extensionMode === vscode.ExtensionMode.Development) {
+    buildType = ' (Development Build)';
+  } else if (extensionMode === vscode.ExtensionMode.Test) {
+    buildType = ' (Test Mode)';
+  } else if (process.env.NODE_ENV === 'development') {
+    buildType = ' (Dev Environment)';
+  }
+  
+  logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  logger.info(`🚀 DevBuddy v${version}${buildType}`);
+  logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  logger.info("Starting activation...");
 
   // Add output channel to disposables
   context.subscriptions.push(logger.getOutputChannel());
@@ -273,6 +293,351 @@ export async function activate(context: vscode.ExtensionContext) {
   } catch (error) {
     // Chat participant might not be available in all VS Code versions
     logger.debug("Chat participant not available (this is OK)");
+  }
+
+  // Register Language Model Tools (enables other AI agents to access DevBuddy data)
+  // Requires VS Code 1.93+ - now enabled!
+  try {
+    logger.info("🔧 Attempting to register Language Model Tools...");
+    
+    // Tool 1: Get specific ticket by ID
+    const getTicketTool = vscode.lm.registerTool('devbuddy_get_ticket', {
+      invoke: async (options: vscode.LanguageModelToolInvocationOptions<{ ticketId: string }>, token: vscode.CancellationToken) => {
+        try {
+          const { ticketId } = options.input;
+          logger.info(`🎫 [LM Tool] devbuddy_get_ticket invoked with ticketId: ${ticketId}`);
+          logger.debug(`[LM Tool] Full input: ${JSON.stringify(options.input)}`);
+          
+          const currentPlatform = await getCurrentPlatform();
+          logger.debug(`[LM Tool] Current platform: ${currentPlatform}`);
+          
+          if (currentPlatform === "linear") {
+            const client = await LinearClient.create();
+            logger.debug(`[LM Tool] Linear client configured: ${client.isConfigured()}`);
+            
+            const ticket = await client.getIssue(ticketId);
+            if (!ticket) {
+              logger.warn(`[LM Tool] Ticket ${ticketId} not found in Linear`);
+              return new vscode.LanguageModelToolResult([
+                new vscode.LanguageModelTextPart(`Ticket ${ticketId} not found`)
+              ]);
+            }
+            
+            const result = {
+              id: ticket.identifier,
+              title: ticket.title,
+              description: ticket.description,
+              status: ticket.state.name,
+              priority: ticket.priority,
+              assignee: ticket.assignee?.name,
+              labels: ticket.labels?.map(l => l.name),
+              url: ticket.url,
+              platform: "Linear"
+            };
+            
+            logger.success(`[LM Tool] Successfully fetched ticket ${ticketId} from Linear`);
+            logger.debug(`[LM Tool] Result: ${JSON.stringify(result)}`);
+            
+            return new vscode.LanguageModelToolResult([
+              new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+            ]);
+          } else if (currentPlatform === "jira") {
+            const client = await JiraCloudClient.create();
+            logger.debug(`[LM Tool] Jira client configured: ${client.isConfigured()}`);
+            
+            const ticket = await client.getIssue(ticketId);
+            if (!ticket) {
+              logger.warn(`[LM Tool] Ticket ${ticketId} not found in Jira`);
+              return new vscode.LanguageModelToolResult([
+                new vscode.LanguageModelTextPart(`Ticket ${ticketId} not found`)
+              ]);
+            }
+            
+            const result = {
+              id: ticket.key,
+              title: ticket.summary,
+              description: ticket.description,
+              status: ticket.status.name,
+              priority: ticket.priority?.name,
+              assignee: ticket.assignee?.displayName,
+              labels: ticket.labels,
+              url: ticket.url,
+              platform: "Jira"
+            };
+            
+            logger.success(`[LM Tool] Successfully fetched ticket ${ticketId} from Jira`);
+            logger.debug(`[LM Tool] Result: ${JSON.stringify(result)}`);
+            
+            return new vscode.LanguageModelToolResult([
+              new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+            ]);
+          }
+          
+          logger.warn(`[LM Tool] No platform configured`);
+          return new vscode.LanguageModelToolResult([
+            new vscode.LanguageModelTextPart("No platform configured")
+          ]);
+        } catch (error) {
+          logger.error(`[LM Tool] Error in devbuddy_get_ticket: ${error}`);
+          if (error instanceof Error) {
+            logger.error(`[LM Tool] Stack trace: ${error.stack}`);
+          }
+          return new vscode.LanguageModelToolResult([
+            new vscode.LanguageModelTextPart(`Error fetching ticket: ${error instanceof Error ? error.message : "Unknown error"}`)
+          ]);
+        }
+      }
+    });
+    context.subscriptions.push(getTicketTool);
+    logger.success("✅ Registered tool: devbuddy_get_ticket");
+
+    // Tool 2: List user's active tickets
+    const listTicketsTool = vscode.lm.registerTool('devbuddy_list_my_tickets', {
+      invoke: async (options: vscode.LanguageModelToolInvocationOptions<object>, token: vscode.CancellationToken) => {
+        try {
+          logger.info(`📋 [LM Tool] devbuddy_list_my_tickets invoked`);
+          
+          const currentPlatform = await getCurrentPlatform();
+          logger.debug(`[LM Tool] Current platform: ${currentPlatform}`);
+          
+          if (currentPlatform === "linear") {
+            const client = await LinearClient.create();
+            if (!client.isConfigured()) {
+              logger.warn(`[LM Tool] Linear not configured`);
+              return new vscode.LanguageModelToolResult([
+                new vscode.LanguageModelTextPart("Linear not configured. Please run 'DevBuddy: Configure Linear' first.")
+              ]);
+            }
+            
+            logger.debug(`[LM Tool] Fetching Linear issues...`);
+            const tickets = await client.getMyIssues({ state: ["unstarted", "started"] });
+            logger.debug(`[LM Tool] Found ${tickets.length} Linear tickets`);
+            
+            if (tickets.length === 0) {
+              return new vscode.LanguageModelToolResult([
+                new vscode.LanguageModelTextPart("No active tickets found")
+              ]);
+            }
+            
+            const ticketList = tickets.slice(0, 20).map(t => ({
+              id: t.identifier,
+              title: t.title,
+              status: t.state.name,
+              priority: t.priority,
+              url: t.url
+            }));
+            
+            const result = {
+              platform: "Linear",
+              count: tickets.length,
+              tickets: ticketList
+            };
+            
+            logger.success(`[LM Tool] Successfully listed ${tickets.length} Linear tickets`);
+            logger.debug(`[LM Tool] First 3 tickets: ${JSON.stringify(ticketList.slice(0, 3))}`);
+            
+            return new vscode.LanguageModelToolResult([
+              new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+            ]);
+          } else if (currentPlatform === "jira") {
+            const client = await JiraCloudClient.create();
+            if (!client.isConfigured()) {
+              logger.warn(`[LM Tool] Jira not configured`);
+              return new vscode.LanguageModelToolResult([
+                new vscode.LanguageModelTextPart("Jira not configured. Please run 'DevBuddy: Configure Jira Cloud' first.")
+              ]);
+            }
+            
+            logger.debug(`[LM Tool] Fetching Jira issues...`);
+            const tickets = await client.getMyIssues();
+            logger.debug(`[LM Tool] Found ${tickets.length} Jira tickets`);
+            
+            if (tickets.length === 0) {
+              return new vscode.LanguageModelToolResult([
+                new vscode.LanguageModelTextPart("No active tickets found")
+              ]);
+            }
+            
+            const ticketList = tickets.slice(0, 20).map(t => ({
+              id: t.key,
+              title: t.summary,
+              status: t.status.name,
+              priority: t.priority?.name,
+              url: t.url
+            }));
+            
+            const result = {
+              platform: "Jira",
+              count: tickets.length,
+              tickets: ticketList
+            };
+            
+            logger.success(`[LM Tool] Successfully listed ${tickets.length} Jira tickets`);
+            logger.debug(`[LM Tool] First 3 tickets: ${JSON.stringify(ticketList.slice(0, 3))}`);
+            
+            return new vscode.LanguageModelToolResult([
+              new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+            ]);
+          }
+          
+          logger.warn(`[LM Tool] No platform configured`);
+          return new vscode.LanguageModelToolResult([
+            new vscode.LanguageModelTextPart("No platform configured")
+          ]);
+        } catch (error) {
+          logger.error(`[LM Tool] Error in devbuddy_list_my_tickets: ${error}`);
+          if (error instanceof Error) {
+            logger.error(`[LM Tool] Stack trace: ${error.stack}`);
+          }
+          return new vscode.LanguageModelToolResult([
+            new vscode.LanguageModelTextPart(`Error listing tickets: ${error instanceof Error ? error.message : "Unknown error"}`)
+          ]);
+        }
+      }
+    });
+    context.subscriptions.push(listTicketsTool);
+    logger.success("✅ Registered tool: devbuddy_list_my_tickets");
+
+    // Tool 3: Get ticket for current branch
+    const getCurrentTicketTool = vscode.lm.registerTool('devbuddy_get_current_ticket', {
+      invoke: async (options: vscode.LanguageModelToolInvocationOptions<object>, token: vscode.CancellationToken) => {
+        try {
+          logger.info(`🌿 [LM Tool] devbuddy_get_current_ticket invoked`);
+          
+          const branchManager = new BranchAssociationManager(context);
+          const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+          if (!workspaceFolder) {
+            logger.warn(`[LM Tool] No workspace folder open`);
+            return new vscode.LanguageModelToolResult([
+              new vscode.LanguageModelTextPart("No workspace folder open")
+            ]);
+          }
+          
+          logger.debug(`[LM Tool] Workspace: ${workspaceFolder.uri.fsPath}`);
+          
+          // Get current branch
+          const { default: simpleGit } = await import('simple-git');
+          const git = simpleGit(workspaceFolder.uri.fsPath);
+          const currentBranch = await git.revparse(['--abbrev-ref', 'HEAD']);
+          
+          logger.debug(`[LM Tool] Current branch: ${currentBranch}`);
+          
+          if (!currentBranch || currentBranch === 'HEAD') {
+            logger.warn(`[LM Tool] Not on a valid branch`);
+            return new vscode.LanguageModelToolResult([
+              new vscode.LanguageModelTextPart("Not on a valid branch")
+            ]);
+          }
+          
+          // Check for associated ticket
+          let ticketId = branchManager.getTicketForBranch(currentBranch);
+          logger.debug(`[LM Tool] Branch association found: ${ticketId || 'none'}`);
+          
+          if (!ticketId) {
+            // Try to auto-detect from branch name using GitAnalyzer
+            const { GitAnalyzer } = await import('@shared/git/gitAnalyzer');
+            const gitAnalyzer = new GitAnalyzer(workspaceFolder.uri.fsPath);
+            ticketId = gitAnalyzer.extractTicketId(currentBranch);
+            
+            logger.debug(`[LM Tool] Auto-detected ticket ID from branch name: ${ticketId || 'none'}`);
+            
+            if (!ticketId) {
+              logger.warn(`[LM Tool] No ticket associated with branch "${currentBranch}"`);
+              return new vscode.LanguageModelToolResult([
+                new vscode.LanguageModelTextPart(`No ticket associated with branch "${currentBranch}". Branch name should contain a ticket ID like "ENG-123" or "PROJ-456".`)
+              ]);
+            }
+          }
+          
+          // Fetch the ticket details
+          const currentPlatform = await getCurrentPlatform();
+          logger.debug(`[LM Tool] Platform: ${currentPlatform}, Ticket ID: ${ticketId}`);
+          
+          if (currentPlatform === "linear") {
+            const client = await LinearClient.create();
+            const ticket = await client.getIssue(ticketId);
+            if (!ticket) {
+              logger.warn(`[LM Tool] Ticket ${ticketId} not found in Linear`);
+              return new vscode.LanguageModelToolResult([
+                new vscode.LanguageModelTextPart(`Ticket ${ticketId} not found (associated with branch "${currentBranch}")`)
+              ]);
+            }
+            
+            const result = {
+              branch: currentBranch,
+              ticketId: ticket.identifier,
+              title: ticket.title,
+              description: ticket.description,
+              status: ticket.state.name,
+              priority: ticket.priority,
+              assignee: ticket.assignee?.name,
+              url: ticket.url,
+              platform: "Linear"
+            };
+            
+            logger.success(`[LM Tool] Successfully fetched current ticket: ${ticket.identifier}`);
+            logger.debug(`[LM Tool] Result: ${JSON.stringify(result)}`);
+            
+            return new vscode.LanguageModelToolResult([
+              new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+            ]);
+          } else if (currentPlatform === "jira") {
+            const client = await JiraCloudClient.create();
+            const ticket = await client.getIssue(ticketId);
+            if (!ticket) {
+              logger.warn(`[LM Tool] Ticket ${ticketId} not found in Jira`);
+              return new vscode.LanguageModelToolResult([
+                new vscode.LanguageModelTextPart(`Ticket ${ticketId} not found (associated with branch "${currentBranch}")`)
+              ]);
+            }
+            
+            const result = {
+              branch: currentBranch,
+              ticketId: ticket.key,
+              title: ticket.summary,
+              description: ticket.description,
+              status: ticket.status.name,
+              priority: ticket.priority?.name,
+              assignee: ticket.assignee?.displayName,
+              url: ticket.url,
+              platform: "Jira"
+            };
+            
+            logger.success(`[LM Tool] Successfully fetched current ticket: ${ticket.key}`);
+            logger.debug(`[LM Tool] Result: ${JSON.stringify(result)}`);
+            
+            return new vscode.LanguageModelToolResult([
+              new vscode.LanguageModelTextPart(JSON.stringify(result, null, 2))
+            ]);
+          }
+          
+          logger.warn(`[LM Tool] No platform configured`);
+          return new vscode.LanguageModelToolResult([
+            new vscode.LanguageModelTextPart("No platform configured")
+          ]);
+        } catch (error) {
+          logger.error(`[LM Tool] Error in devbuddy_get_current_ticket: ${error}`);
+          if (error instanceof Error) {
+            logger.error(`[LM Tool] Stack trace: ${error.stack}`);
+          }
+          return new vscode.LanguageModelToolResult([
+            new vscode.LanguageModelTextPart(`Error getting current ticket: ${error instanceof Error ? error.message : "Unknown error"}`)
+          ]);
+        }
+      }
+    });
+    context.subscriptions.push(getCurrentTicketTool);
+    logger.success("✅ Registered tool: devbuddy_get_current_ticket");
+
+    logger.info("✨ Language Model Tools registered successfully (3 tools available for AI agents)");
+    logger.info("🔍 To enable debug mode and see tool invocations, go to Settings → DevBuddy: Debug Mode → Enable");
+  } catch (error) {
+    // Language Model Tools might not be available in all VS Code versions
+    logger.error(`❌ Failed to register Language Model Tools: ${error}`);
+    if (error instanceof Error) {
+      logger.error(`Stack trace: ${error.stack}`);
+    }
+    logger.debug(`Language Model Tools not available (this may be OK if VS Code < 1.93.0)`);
   }
 
   // Register Code Action Provider for TODOs (should succeed)
