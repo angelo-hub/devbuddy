@@ -19,10 +19,11 @@ DevBuddy brings your tickets into a single sidebar so you can browse, create, up
 | Feature | Description | Platforms |
 |---------|-------------|-----------|
 | **Unified Issue Explorer** | View and manage all tickets from VS Code | Linear, Jira Cloud, Jira Server (beta) |
+| **AI Agents Know Your Tickets** | Let `@workspace` and Copilot help you with your work | Linear, Jira Cloud |
 | **TODO Converter** | Convert TODOs to tickets with automatic code permalinks | Linear, Jira Cloud |
 | **AI Workflows** | Generate PR summaries and standups automatically | Linear, Jira Cloud |
 | **Branch Integration** | Create and manage branches directly from tickets | Linear, Jira Cloud |
-| **Chat Participant** | Ask `@devbuddy` questions in natural language | Linear |
+| **Chat Participant** | Ask `@devbuddy` questions in natural language | Linear, Jira Cloud |
 | **Monorepo Support** | Intelligent package detection and validation | All platforms |
 
 ## Example Workflows
@@ -96,13 +97,49 @@ Connect GitHub Copilot or another LLM provider to unlock:
 - ✅ Only Jira/Linear APIs you configure are contacted
 - ✅ Privacy-first: AI is completely optional
 
-## What's New in v0.5.0
+## What's New in v0.8.0 🎉
 
-- **Jira Server/Data Center Support (Beta)** - Connect to self-hosted Jira instances
-- **Enhanced TODO Converter** - Better permalink generation and multi-file workflows
-- **Improved AI Models** - Support for GPT-4o, GPT-4.1, and Gemini 2.0 Flash
-- **Better Error Handling** - Clearer error messages and debugging support
-- **Runtime Validation** - Production-grade API validation with Zod v4
+### 🤖 AI Agents Now Understand Your Tickets
+**Teach VS Code's AI assistants about your work—automatically.**
+
+DevBuddy extends `@workspace`, GitHub Copilot, and other AI agents with real-time access to your Linear and Jira tickets. No more hallucinations, no more guessing—your AI assistants finally know what you're working on.
+
+**Just ask naturally:**
+```
+@workspace what ticket am I working on?
+→ Based on your branch feat/eng-125-oauth, you're working on ENG-125: Implement OAuth2 Authentication
+
+@workspace what should I work on next?
+→ Your highest priority ticket is ENG-126: Fix payment timeout (Priority: High, Estimate: 3 points)
+
+@workspace help me implement this ticket
+→ [AI generates implementation plan with full ticket context]
+```
+
+**How it works:**
+- DevBuddy provides **3 powerful tools** that AI agents automatically discover
+- 🎫 **Get Ticket Details** - Fetch any ticket by ID
+- 📋 **List My Tickets** - See all your active work
+- 🌿 **Get Current Ticket** - Detect ticket from your branch name
+
+**The magic:** When you ask `@workspace` or Copilot questions about your tickets, they automatically invoke DevBuddy's tools to provide accurate, real-time information—no hallucinations, just facts from your Linear or Jira workspace.
+
+**You can also reference tools directly:**
+```
+@workspace #getCurrentTicket
+@workspace #listMyTickets
+@workspace #getTicket ENG-125
+```
+
+**Configure:** Settings → Search "language model tools" to enable/disable individual tools.
+
+[Learn more about AI agent integration →](https://github.com/angelo-hub/devbuddy/blob/main/docs/features/ai/LANGUAGE_MODEL_TOOLS.md)
+
+### 🎯 Also in v0.8.0
+- **Enhanced Chat Participant** - Natural language ticket planning with `@devbuddy`
+- **Smart Work Suggestions** - AI-powered recommendations on what to work on next
+- **Debug Logging** - Comprehensive diagnostics for troubleshooting
+- **Version Banner** - See your DevBuddy version and build type on startup
 
 ## Commands Overview
 
@@ -166,5 +203,5 @@ All current features are free to use. Future Pro features will require a subscri
 
 ---
 
-**Version 0.5.0** | Made with ❤️ for developers who hate context switching
+**Version 0.8.0** | Made with ❤️ for developers who hate context switching
 
