@@ -4,7 +4,7 @@ import { generateStandupCommand } from "@pro/commands/ai/generateStandup";
 import { convertTodoToTicket } from "@commands/convertTodoToTicket";
 import { TodoToTicketCodeActionProvider } from "@utils/todoCodeActionProvider";
 import { showFirstTimeSetup } from "@providers/linear/firstTimeSetup";
-import { UniversalTicketsProvider } from "@shared/views/UniversalTicketsProvider";
+import { UniversalTicketsProvider, TicketItem } from "@shared/views/UniversalTicketsProvider";
 import { DevBuddyChatParticipant } from "@chat/devBuddyParticipant";
 import { LinearClient } from "@providers/linear/LinearClient";
 import { LinearIssue } from "@providers/linear/types";
@@ -16,6 +16,8 @@ import { getLogger } from "@shared/utils/logger";
 import { getTelemetryManager } from "@shared/utils/telemetryManager";
 import { loadDevCredentials, showDevModeWarning } from "@shared/utils/devEnvLoader";
 import { UniversalStandupBuilderPanel } from "@shared/views/UniversalStandupBuilderPanel";
+import { fuzzySearch } from "@shared/utils/fuzzySearch";
+import { formatRelativeTime } from "@shared/utils/timeFormatter";
 
 // Jira imports
 import { runJiraCloudSetup, testJiraCloudConnection, resetJiraCloudConfig, updateJiraCloudApiToken } from "@providers/jira/cloud/firstTimeSetup";
@@ -342,6 +344,236 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand("devBuddy.refreshTickets", () => {
       ticketsProvider?.refresh();
+    }),
+
+    // Search tickets command - opens QuickPick with results below input
+    vscode.commands.registerCommand("devBuddy.searchTickets", async () => {
+      if (!ticketsProvider) {
+        vscode.window.showErrorMessage("Ticket provider not available");
+        return;
+      }
+
+      const currentQuery = ticketsProvider.getSearchQuery();
+      
+      // Get all cached issues
+      let allIssues = ticketsProvider.getIssues();
+      
+      // If no cached issues, fetch them first
+      if (allIssues.length === 0) {
+        await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: "Loading tickets...",
+            cancellable: false,
+          },
+          async () => {
+            await ticketsProvider.refresh();
+            allIssues = ticketsProvider.getIssues();
+          }
+        );
+      }
+
+      // Create QuickPick
+      const quickPick = vscode.window.createQuickPick<vscode.QuickPickItem & { ticket: TicketItem }>();
+      quickPick.placeholder = "Search tickets by ID, title, or description (min 3 characters)";
+      quickPick.matchOnDescription = true;
+      quickPick.matchOnDetail = true;
+      quickPick.value = currentQuery || "";
+
+      // Helper to update items based on query
+      const updateItems = (query: string) => {
+        if (!query || query.length < 3) {
+          quickPick.items = [];
+          quickPick.busy = false;
+          return;
+        }
+
+        // Helper to get identifier (works for both platforms)
+        const getIdentifier = (item: TicketItem) => {
+          return 'identifier' in item ? item.identifier : (item as JiraIssue).key;
+        };
+        
+        // Helper to get title (works for both platforms)
+        const getTitle = (item: TicketItem) => {
+          return 'title' in item ? item.title : (item as JiraIssue).summary;
+        };
+        
+        // Apply fuzzy search
+        const results = fuzzySearch(
+          allIssues,
+          query,
+          [
+            getIdentifier,
+            getTitle,
+            (item) => item.description || "",
+          ]
+        );
+
+        quickPick.items = results.map((ticket) => {
+          // Determine status and priority (platform agnostic)
+          const identifier = getIdentifier(ticket);
+          const title = getTitle(ticket);
+          const statusName = (ticket as LinearIssue).state?.name || (ticket as JiraIssue).status?.name || "Unknown";
+          const priorityInfo = (ticket as LinearIssue).priority || (ticket as JiraIssue).priority;
+          const priorityName = typeof priorityInfo === 'object' && priorityInfo !== null && 'name' in priorityInfo
+            ? priorityInfo.name 
+            : typeof priorityInfo === 'string' || typeof priorityInfo === 'number'
+              ? String(priorityInfo)
+              : "Unknown";
+          
+          // Get assignee info (platform agnostic)
+          const assignee = (ticket as LinearIssue).assignee || (ticket as JiraIssue).assignee;
+          const assigneeName = assignee 
+            ? ('name' in assignee ? assignee.name : 'displayName' in assignee ? assignee.displayName : "Unknown")
+            : "Unassigned";
+          
+          // Get last updated time
+          const updatedAt = (ticket as LinearIssue).updatedAt || (ticket as JiraIssue).updated;
+          const relativeTime = updatedAt ? formatRelativeTime(updatedAt) : "Unknown";
+          
+          // Build detail string with all info
+          const detailParts = [
+            statusName,
+            `${priorityName} priority`,
+            `Updated ${relativeTime}`,
+            `Assignee: ${assigneeName}`
+          ];
+          
+          // Create QuickPickItem with avatar support
+          const item: vscode.QuickPickItem & { ticket: TicketItem } = {
+            label: `$(issue-opened) ${identifier}`,
+            description: title,
+            detail: detailParts.join(" • "),
+            ticket: ticket,
+          };
+          
+          // Add avatar icon if available
+          const avatarUrl = assignee?.avatarUrl;
+          if (avatarUrl) {
+            item.iconPath = vscode.Uri.parse(avatarUrl);
+          }
+          
+          return item;
+        });
+        
+        quickPick.busy = false;
+      };
+
+      // Debounced update
+      let debounceTimeout: NodeJS.Timeout | undefined;
+      quickPick.onDidChangeValue((query) => {
+        quickPick.busy = true;
+        
+        if (debounceTimeout) {
+          clearTimeout(debounceTimeout);
+        }
+        
+        debounceTimeout = setTimeout(() => {
+          updateItems(query);
+          // Update tree view filter as well
+          ticketsProvider.setSearchQuery(query || null);
+        }, 300);
+      });
+
+      // Handle selection
+      quickPick.onDidAccept(async () => {
+        const selected = quickPick.selectedItems[0];
+        if (selected && 'ticket' in selected) {
+          const ticket = selected.ticket;
+          
+          // Detect platform by checking properties (Linear has state, Jira has status with statusCategory)
+          const isLinear = 'state' in ticket && ticket.state !== undefined;
+          
+          // Open ticket panel based on platform
+          if (isLinear) {
+            await LinearTicketPanel.createOrShow(
+              context.extensionUri,
+              ticket as LinearIssue,
+              context
+            );
+          } else {
+            await JiraIssuePanel.createOrShow(
+              context.extensionUri,
+              ticket as JiraIssue,
+              context
+            );
+          }
+          
+          quickPick.hide();
+        }
+      });
+
+      // Clear search when hidden
+      quickPick.onDidHide(() => {
+        if (debounceTimeout) {
+          clearTimeout(debounceTimeout);
+        }
+        ticketsProvider.clearSearch();
+        quickPick.dispose();
+      });
+
+      // Show initial items if there's a current query
+      if (currentQuery && currentQuery.length >= 3) {
+        updateItems(currentQuery);
+      }
+
+      quickPick.show();
+    }),
+
+    // Clear search command
+    vscode.commands.registerCommand("devBuddy.clearSearch", async () => {
+      if (!ticketsProvider) {
+        return;
+      }
+      ticketsProvider.clearSearch();
+      vscode.window.showInformationMessage("Search cleared");
+    }),
+
+    // Quick open ticket command
+    vscode.commands.registerCommand("devBuddy.quickOpenTicket", async () => {
+      if (!ticketsProvider) {
+        vscode.window.showErrorMessage("No ticket provider configured");
+        return;
+      }
+
+      const issues = ticketsProvider.getIssues();
+
+      if (issues.length === 0) {
+        vscode.window.showInformationMessage("No tickets found");
+        return;
+      }
+
+      const items = issues.map((issue: any) => {
+        // Handle both Linear and Jira issues
+        const isLinear = 'identifier' in issue;
+        const identifier = isLinear ? issue.identifier : issue.key;
+        const title = isLinear ? issue.title : issue.summary;
+        const status = isLinear ? issue.state.name : issue.status.name;
+        const priority = isLinear ? issue.priority : (issue.priority?.name || 'None');
+        
+        return {
+          label: `$(issue-opened) ${identifier}`,
+          description: title,
+          detail: `${status} · Priority ${priority}`,
+          issue: issue,
+        };
+      });
+
+      const selected = await vscode.window.showQuickPick(items, {
+        placeHolder: "Type to search tickets...",
+        matchOnDescription: true,
+        matchOnDetail: true,
+      });
+
+      if (selected) {
+        // Use appropriate command based on issue type
+        const isLinear = 'identifier' in selected.issue;
+        if (isLinear) {
+          vscode.commands.executeCommand("devBuddy.openTicket", selected.issue);
+        } else {
+          vscode.commands.executeCommand("devBuddy.jira.viewIssueDetails", { issue: selected.issue });
+        }
+      }
     }),
 
     vscode.commands.registerCommand(

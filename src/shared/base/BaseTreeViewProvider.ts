@@ -19,12 +19,36 @@ export abstract class BaseTreeViewProvider<TTicket extends BaseTicket>
   protected issues: TTicket[] = [];
   protected refreshTimer: NodeJS.Timeout | undefined;
   protected isRefreshing: boolean = false;
+  protected searchQuery: string | null = null;
 
   /**
    * Refresh the tree view
    */
   refresh(): void {
     this._onDidChangeTreeData.fire();
+  }
+
+  /**
+   * Set search query (to be implemented by subclasses)
+   */
+  public setSearchQuery(query: string | null): void {
+    this.searchQuery = query;
+    this.refresh();
+  }
+
+  /**
+   * Get current search query
+   */
+  public getSearchQuery(): string | null {
+    return this.searchQuery;
+  }
+
+  /**
+   * Clear search
+   */
+  public clearSearch(): void {
+    this.searchQuery = null;
+    this.refresh();
   }
 
   /**
@@ -41,6 +65,11 @@ export abstract class BaseTreeViewProvider<TTicket extends BaseTicket>
    * Refresh data in the background without blocking UI
    */
   abstract refreshInBackground(): Promise<void>;
+
+  /**
+   * Filter tickets by search query (to be implemented by subclasses)
+   */
+  protected abstract filterTicketsBySearch(tickets: TTicket[]): TTicket[];
 
   /**
    * Start auto-refresh timer

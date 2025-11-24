@@ -3,6 +3,7 @@ import { LinearClient } from "./LinearClient";
 import { LinearIssue, LinearProject } from "./types";
 import { BranchAssociationManager } from "@shared/git/branchAssociationManager";
 import { getLogger } from "@shared/utils/logger";
+import { fuzzySearch } from "@shared/utils/fuzzySearch";
 
 export class LinearTicketTreeItem extends vscode.TreeItem {
   constructor(
@@ -152,10 +153,12 @@ export class LinearTicketsProvider
   private linearClient: LinearClient | null = null;
   private branchManager: BranchAssociationManager;
   private issues: LinearIssue[] = [];
+  private allIssues: LinearIssue[] = []; // Keep unfiltered copy for search
   private projects: LinearProject[] = [];
   private teams: Array<{ id: string; name: string; key: string }> = [];
   private refreshTimer: NodeJS.Timeout | undefined;
   private isRefreshing: boolean = false;
+  private searchQuery: string | null = null;
 
   constructor(context?: vscode.ExtensionContext) {
     this.branchManager = context
@@ -218,6 +221,44 @@ export class LinearTicketsProvider
       clearInterval(this.refreshTimer);
       this.refreshTimer = undefined;
     }
+  }
+
+  /**
+   * Set search query and refresh view
+   */
+  public setSearchQuery(query: string | null): void {
+    this.searchQuery = query;
+    this.refresh();
+  }
+
+  /**
+   * Get current search query
+   */
+  public getSearchQuery(): string | null {
+    return this.searchQuery;
+  }
+
+  /**
+   * Clear search and show all tickets
+   */
+  public clearSearch(): void {
+    this.searchQuery = null;
+    this.refresh();
+  }
+
+  /**
+   * Filter issues based on search query using fuzzy matching
+   */
+  private filterIssuesBySearch(issues: LinearIssue[]): LinearIssue[] {
+    if (!this.searchQuery) {
+      return issues;
+    }
+
+    return fuzzySearch(issues, this.searchQuery, [
+      (issue) => issue.identifier,
+      (issue) => issue.title,
+      (issue) => issue.description || "",
+    ]);
   }
 
   /**
@@ -352,6 +393,11 @@ export class LinearTicketsProvider
 
       const items: LinearTicketTreeItem[] = [];
 
+      // Add search indicator if active
+      if (this.searchQuery) {
+        items.push(this.createSearchIndicatorItem(this.searchQuery));
+      }
+
       // Section 1: My Issues (collapsible)
       items.push(this.createCollapsibleSection("myIssuesSection", "My Issues"));
 
@@ -418,10 +464,17 @@ export class LinearTicketsProvider
       const config = vscode.workspace.getConfiguration("devBuddy");
       const teamId = config.get<string>("linearTeamId");
 
-      this.issues = await client.getMyIssues({
+      this.allIssues = await client.getMyIssues({
         state: ["unstarted", "started"], // Only show active issues
         teamId: teamId || undefined,
       });
+
+      // Apply search filter if active
+      this.issues = this.filterIssuesBySearch(this.allIssues);
+
+      if (this.issues.length === 0 && this.searchQuery) {
+        return [this.createNoSearchResultsItem()];
+      }
 
       if (this.issues.length === 0) {
         return [this.createNoIssuesItem()];
@@ -1047,6 +1100,67 @@ export class LinearTicketsProvider
       title: "Refresh",
     };
     item.contextValue = "error";
+    return item;
+  }
+
+  /**
+   * Create search indicator item
+   */
+  private createSearchIndicatorItem(query: string): LinearTicketTreeItem {
+    const item = new LinearTicketTreeItem(
+      {
+        id: "search-indicator",
+        identifier: "",
+        title: `Searching for: "${query}"`,
+        state: { id: "", name: "", type: "" },
+        priority: 0,
+        url: "",
+        createdAt: "",
+        updatedAt: "",
+      } as LinearIssue,
+      vscode.TreeItemCollapsibleState.None,
+      "section"
+    );
+
+    item.iconPath = new vscode.ThemeIcon(
+      "search",
+      new vscode.ThemeColor("charts.yellow")
+    );
+    item.contextValue = "searchIndicator";
+    item.command = {
+      command: "devBuddy.searchTickets",
+      title: "Modify Search",
+    };
+    item.tooltip = "Click to modify search or clear";
+
+    return item;
+  }
+
+  /**
+   * Create no search results item
+   */
+  private createNoSearchResultsItem(): LinearTicketTreeItem {
+    const item = new LinearTicketTreeItem(
+      {
+        id: "no-results",
+        identifier: "",
+        title: `  No tickets found for "${this.searchQuery}"`,
+        state: { id: "", name: "", type: "" },
+        priority: 0,
+        url: "",
+        createdAt: "",
+        updatedAt: "",
+      } as LinearIssue,
+      vscode.TreeItemCollapsibleState.None,
+      "section"
+    );
+
+    item.iconPath = new vscode.ThemeIcon("search-stop");
+    item.command = {
+      command: "devBuddy.searchTickets",
+      title: "Try Different Search",
+    };
+
     return item;
   }
 
