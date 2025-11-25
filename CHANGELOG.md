@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.8.0](https://github.com/angelo-hub/devbuddy/compare/v0.7.4...v0.8.0) (2025-11-25)
+
+
+### ✨ Features
+
+* developer tool support ([5542c77](https://github.com/angelo-hub/devbuddy/commit/5542c77899ca2fe9a26f815dcbac6c1a3c091e70))
+
+
+### 🐛 Bug Fixes
+
+* clickable tickets ([bc655b4](https://github.com/angelo-hub/devbuddy/commit/bc655b482cc0a817f29a54cdc1269b4e779f1836))
+
 ### [0.7.4](https://github.com/angelo-hub/devbuddy/compare/v0.7.3...v0.7.4) (2025-11-23)
 
 
