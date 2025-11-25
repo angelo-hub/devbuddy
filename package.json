@@ -51,7 +51,7 @@
   },
   "homepage": "https://github.com/angelo-hub/devbuddy#readme",
   "engines": {
-    "vscode": "^1.90.0"
+    "vscode": "^1.93.0"
   },
   "categories": [
     "Other",
@@ -59,7 +59,9 @@
     "SCM Providers"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onCommand:devBuddy.openTicketById",
+    "onUri"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -86,6 +88,10 @@
       {
         "command": "devBuddy.openTicket",
         "title": "DevBuddy: Open Ticket"
+      },
+      {
+        "command": "devBuddy.openTicketById",
+        "title": "DevBuddy: Open Ticket by ID"
       },
       {
         "command": "devBuddy.startWork",
@@ -490,8 +496,78 @@
           {
             "name": "status",
             "description": "Update ticket status on any platform"
+          },
+          {
+            "name": "plan",
+            "description": "Create AI-powered implementation plan for a ticket"
+          },
+          {
+            "name": "suggest",
+            "description": "Get intelligent suggestions on what to work on next"
           }
         ]
+      }
+    ],
+    "languageModelTools": [
+      {
+        "name": "devbuddy_get_ticket",
+        "displayName": "Get Ticket Details",
+        "userDescription": "Fetches detailed information about a specific ticket from Linear or Jira, including title, description, status, priority, assignee, and labels",
+        "modelDescription": "Use this tool when you need details about a specific ticket. Provide the ticket ID (e.g., 'ENG-123' or 'PROJ-456'). Returns comprehensive ticket information including title, description, current status, priority level, assigned user, and associated labels. IMPORTANT: The response includes 'devbuddyAction' (a command: URI) and 'devbuddyActionLabel' - you MUST format these as a clickable markdown link like this: [devbuddyActionLabel](devbuddyAction). For example: [Open in DevBuddy](command:devBuddy.openTicketById?...).",
+        "icon": "$(file-text)",
+        "tags": [
+          "tickets",
+          "devbuddy"
+        ],
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "getTicket",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "ticketId": {
+              "type": "string",
+              "description": "The ticket identifier (e.g., 'ENG-123', 'PROJ-456')"
+            }
+          },
+          "required": [
+            "ticketId"
+          ]
+        }
+      },
+      {
+        "name": "devbuddy_list_my_tickets",
+        "displayName": "List My Tickets",
+        "userDescription": "Lists all active tickets assigned to the current user from Linear or Jira",
+        "modelDescription": "Use this tool to get a list of all tickets currently assigned to the user. Returns ticket IDs, titles, statuses, and priorities. Useful for answering questions like 'what am I working on?' or 'what are my tickets?'. No parameters required. IMPORTANT: Each ticket in the response includes 'devbuddyAction' and 'devbuddyActionLabel' - you MUST format these as clickable markdown links: [devbuddyActionLabel](devbuddyAction).",
+        "icon": "$(checklist)",
+        "tags": [
+          "tickets",
+          "devbuddy"
+        ],
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "listMyTickets",
+        "inputSchema": {
+          "type": "object",
+          "properties": {}
+        }
+      },
+      {
+        "name": "devbuddy_get_current_ticket",
+        "displayName": "Get Current Branch Ticket",
+        "userDescription": "Smart detection: finds your current work from branch name or In Progress tickets",
+        "modelDescription": "Use this tool to find out what the user is currently working on. Uses smart detection: (1) Analyzes the branch name to detect ticket identifiers (e.g., 'feat/eng-123-oauth' maps to 'ENG-123'). (2) If no ticket in branch name (e.g., on 'main'), falls back to tickets marked as 'In Progress' or 'Started'. Returns single ticket if found, multiple tickets with note if several are in progress, or helpful message if none found. No parameters required. IMPORTANT: The response includes 'devbuddyAction' and 'devbuddyActionLabel' - you MUST format these as clickable markdown links: [devbuddyActionLabel](devbuddyAction).",
+        "icon": "$(git-branch)",
+        "tags": [
+          "git",
+          "tickets",
+          "devbuddy"
+        ],
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "getCurrentTicket",
+        "inputSchema": {
+          "type": "object",
+          "properties": {}
+        }
       }
     ],
     "walkthroughs": [
@@ -907,7 +983,7 @@
     "@types/node": "^20.19.25",
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",
-    "@types/vscode": "^1.90.0",
+    "@types/vscode": "^1.93.0",
     "@typescript-eslint/eslint-plugin": "^8.21.0",
     "@typescript-eslint/parser": "^8.21.0",
     "@vscode/vsce": "^3.6.2",
