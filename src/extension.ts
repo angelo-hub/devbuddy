@@ -13,8 +13,11 @@ import { registerUriHandler } from "./activation/uriHandler";
 import { initializeCoreServices, setupContextKeys, handleDevMode } from "./activation/initialization";
 import { registerTreeView } from "./activation/treeView";
 import { registerChatParticipant } from "./activation/chatParticipant";
-import { registerLanguageModelTools } from "./activation/lmTools";
 import { registerCodeActionProviders } from "./activation/codeActions";
+
+// Pro features
+import { registerProLanguageModelTools } from "./pro/activation/lmTools";
+import { LicenseManager } from "./pro/utils/licenseManager";
 
 // Command registration
 import { registerAllCommands } from "./commands";
@@ -79,13 +82,23 @@ export async function activate(context: vscode.ExtensionContext) {
     // ==================== PHASE 3: AI & Code Features ====================
     logger.info("Phase 3: Initializing AI and code features...");
     
-    // Register chat participant (optional)
+    // Register chat participant (FREE - always available)
     registerChatParticipant(context);
     
-    // Register Language Model Tools (optional, VS Code 1.93+)
-    registerLanguageModelTools(context);
+    // Register Pro Language Model Tools (Pro only, VS Code 1.93+)
+    // Check if user has Pro access
+    const licenseManager = LicenseManager.getInstance(context);
+    const hasProAccess = await licenseManager.hasProAccess();
     
-    // Register code action providers (TODO converter)
+    if (hasProAccess) {
+      logger.info("💎 Pro license detected - registering Pro Language Model Tools");
+      registerProLanguageModelTools(context);
+    } else {
+      logger.info("Language Model Tools require DevBuddy Pro - skipping registration");
+      logger.info("💎 Upgrade to Pro for AI agent integration");
+    }
+    
+    // Register code action providers (TODO converter - FREE)
     registerCodeActionProviders(context);
     
     logger.success("✅ AI and code features initialized");

@@ -6,6 +6,8 @@ import { JiraIssue } from "@providers/jira/common/types";
 import { GitAnalyzer } from "@shared/git/gitAnalyzer";
 import { AISummarizer } from "@shared/ai/aiSummarizer";
 import { getLogger } from "@shared/utils/logger";
+import { LicenseManager } from "../pro/utils/licenseManager";
+import { getProBadge } from "../pro/utils/proFeatureGate";
 
 const logger = getLogger();
 
@@ -20,6 +22,7 @@ type UserIntent =
   | "update_status"
   | "plan_ticket_work"
   | "suggest_work"
+  | "create_ticket"
   | "help"
   | "unknown";
 
@@ -41,6 +44,7 @@ function getLinearUrl(webUrl: string): string {
 export class DevBuddyChatParticipant {
   private linearClient: LinearClient | null = null;
   private aiSummarizer: AISummarizer;
+  private context: vscode.ExtensionContext | null = null;
 
   constructor() {
     this.aiSummarizer = new AISummarizer();
@@ -68,6 +72,7 @@ export class DevBuddyChatParticipant {
    * Register the chat participant
    */
   register(context: vscode.ExtensionContext): vscode.Disposable {
+    this.context = context;
     const participant = vscode.chat.createChatParticipant(
       "dev-buddy",
       this.handleRequest.bind(this)
@@ -110,6 +115,9 @@ export class DevBuddyChatParticipant {
         }
       } else if (request.command === "suggest") {
         return await this.handleSuggestWork(stream, token);
+      } else if (request.command === "create") {
+        // Create ticket (Pro feature)
+        return await this.handleCreateTicket(request.prompt, stream, token);
       } else {
         // General conversation
         return await this.handleGeneralQuery(request, stream, token);
@@ -339,12 +347,17 @@ export class DevBuddyChatParticipant {
       return await this.handlePlanTicketWork(ticketContext, request.prompt, stream, token);
     }
     
-    // Step 4: Handle work suggestions
+    // Step 4: Handle ticket creation (Pro feature)
+    if (intent.type === "create_ticket") {
+      return await this.handleCreateTicket(request.prompt, stream, token);
+    }
+    
+    // Step 5: Handle work suggestions
     if (intent.type === "suggest_work") {
       return await this.handleSuggestWork(stream, token);
     }
 
-    // Step 5: Route based on detected intent
+    // Step 6: Route based on detected intent
     switch (intent.type) {
       case "show_tickets":
         return await this.handleTicketsCommand(request, stream, token);
@@ -1051,6 +1064,64 @@ Format your response as:
 **Why:** 2-3 sentences explaining why this ticket should be next
 
 Keep it concise and actionable.`;
+  }
+
+  /**
+   * Handle ticket creation (Pro feature)
+   */
+  private async handleCreateTicket(
+    prompt: string,
+    stream: vscode.ChatResponseStream,
+    token: vscode.CancellationToken
+  ): Promise<vscode.ChatResult> {
+    // Check if Pro features are available
+    if (!this.context) {
+      stream.markdown("⚠️ Extension context not initialized.\n");
+      return {};
+    }
+
+    const licenseManager = LicenseManager.getInstance(this.context);
+    const hasPro = await licenseManager.hasProAccess();
+    const proBadge = getProBadge();
+
+    if (!hasPro) {
+      stream.markdown(
+        `${proBadge} **Ticket Creation via Chat**\n\n` +
+        "This is a Pro feature. Create tickets through natural conversation!\n\n" +
+        "To create tickets, you can:\n" +
+        "1. Use the sidebar to create tickets (free)\n" +
+        "2. Upgrade to Pro for AI-powered conversational creation\n\n" +
+        "[Learn More About Pro](https://devbuddy.dev/pro)\n"
+      );
+      return {};
+    }
+
+    // Pro feature - use conversational creator
+    try {
+      const { ConversationalTicketCreator } = await import("../pro/ai/conversationalCreator");
+      const creator = new ConversationalTicketCreator(this.context);
+      
+      // Generate a unique session ID for this conversation
+      const sessionId = `chat-${Date.now()}`;
+      
+      // Start conversational ticket creation
+      await creator.startConversation(sessionId, prompt, stream, token);
+      
+      return {};
+    } catch (error) {
+      logger.error("Error creating ticket via chat", error);
+      stream.markdown(
+        `\n\n❌ **Error:** ${error instanceof Error ? error.message : "Unknown error"}\n\n` +
+        "You can still create tickets using the sidebar.\n"
+      );
+      
+      stream.button({
+        command: "devBuddy.createTicket",
+        title: "Open Ticket Creator",
+      });
+      
+      return {};
+    }
   }
 }
 

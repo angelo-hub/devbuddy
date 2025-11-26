@@ -34,3 +34,4 @@ export function registerJiraCommands(
   logger.debug("Jira commands registered (placeholder)");
 }
 
+
