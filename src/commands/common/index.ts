@@ -99,3 +99,4 @@ export function registerCommonCommands(
   logger.debug("Common commands registered");
 }
 
+

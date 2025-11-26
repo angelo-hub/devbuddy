@@ -53,3 +53,4 @@ export function registerUriHandler(context: vscode.ExtensionContext): void {
   logger.success("✅ URI handler registered");
 }
 
+

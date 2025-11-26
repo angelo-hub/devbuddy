@@ -33,3 +33,4 @@ export function registerLinearCommands(
   logger.debug("Linear commands registered (placeholder)");
 }
 
+
