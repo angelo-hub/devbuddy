@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { getLogger } from "@shared/utils/logger";
 import { UniversalTicketsProvider } from "@shared/views/UniversalTicketsProvider";
+import { TicketDraftData } from "@shared/base/BaseTicketProvider";
 
 // Import all the legacy commands temporarily
 // TODO: These should be moved to their respective command modules
@@ -73,14 +74,14 @@ export function registerAllCommands(
       
       await UniversalStandupBuilderPanel.createOrShow(context.extensionUri, dataProvider);
     }),
-    vscode.commands.registerCommand("devBuddy.createTicket", () => {
+    vscode.commands.registerCommand("devBuddy.createTicket", (draftData?: TicketDraftData) => {
       const platform = getCurrentPlatform();
       
       if (platform === "jira") {
-        JiraCreateTicketPanel.createOrShow(context.extensionUri);
+        JiraCreateTicketPanel.createOrShow(context.extensionUri, draftData);
       } else {
         // Default to Linear
-        CreateTicketPanel.createOrShow(context.extensionUri);
+        CreateTicketPanel.createOrShow(context.extensionUri, draftData);
       }
     }),
 

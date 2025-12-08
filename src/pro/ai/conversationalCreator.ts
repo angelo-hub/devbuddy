@@ -103,6 +103,12 @@ export class ConversationalTicketCreator {
         ? await this.templateAnalyzer.extractFieldsFromDescription(selectedTemplate, initialDescription)
         : { title: initialDescription, description: initialDescription };
       
+      // Normalize field names (Jira uses 'summary', we use 'title' internally)
+      if ('summary' in extractedFields && !extractedFields.title) {
+        extractedFields.title = extractedFields.summary;
+        delete extractedFields.summary;
+      }
+      
       logger.debug(`[Conversational Creator] Extracted fields: ${JSON.stringify(extractedFields, null, 2)}`);
       
       // Initialize conversation state
@@ -227,7 +233,7 @@ export class ConversationalTicketCreator {
     stream: vscode.ChatResponseStream,
     token: vscode.CancellationToken
   ): Promise<void> {
-    stream.markdown("## 📝 Ticket Draft\n\n");
+    stream.markdown("## 📝 Ticket Draft Preview\n\n");
     
     // Show extracted information
     if (state.ticketData.title) {
@@ -250,34 +256,19 @@ export class ConversationalTicketCreator {
       stream.markdown(`**Labels:** ${state.ticketData.labels.join(", ")}\n\n`);
     }
     
-    // Check if we need more information
-    if (state.missingFields.length > 0) {
-      stream.markdown("---\n\n");
-      stream.markdown("**Optional fields:** You can add these details or proceed to create:\n\n");
-      for (const field of state.missingFields.slice(0, 3)) {
-        stream.markdown(`- ${field}\n`);
-      }
-      stream.markdown("\n");
-      
-      // Ask for next field
-      await this.askForNextField(state, stream);
-    } else {
-      // Ready to create
-      stream.markdown("---\n\n");
-      stream.markdown("✅ **Ready to create!** Review the details above and confirm.\n\n");
-      
-      // Add action buttons
-      stream.button({
-        command: "devBuddy.pro.confirmCreateTicket",
-        arguments: [state.ticketData],
-        title: "$(check) Create Ticket"
-      });
-      
-      stream.button({
-        command: "devBuddy.pro.cancelCreateTicket",
-        title: "$(x) Cancel"
-      });
-    }
+    stream.markdown("---\n\n");
+    stream.markdown("✅ **Ready to create!** To proceed:\n\n");
+    stream.markdown("1. Use the **Create Ticket Panel** from the sidebar for full control\n");
+    stream.markdown("2. Or reply with any changes you'd like to make\n\n");
+    
+    // Provide button to open create panel with pre-filled data
+    stream.button({
+      command: "devBuddy.createTicket",
+      title: "$(add) Open Ticket Creator with Draft",
+      arguments: [state.ticketData]
+    });
+    
+    stream.markdown("\n💡 **Tip:** For now, conversational ticket creation is best done through the sidebar panel. Future updates will support full multi-turn conversations in chat!\n");
   }
 
   /**

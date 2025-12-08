@@ -92,6 +92,25 @@ export interface CreateTicketInput {
 }
 
 /**
+ * Draft data for pre-populating ticket creation forms
+ * Used by AI conversational creator and chat participant
+ */
+export interface TicketDraftData {
+  /** Ticket title (Linear) or summary (Jira) */
+  title?: string;
+  /** Ticket description/body */
+  description?: string;
+  /** Priority as string (e.g., "high", "medium", "1", "2") */
+  priority?: string;
+  /** Label names (strings, not IDs) */
+  labels?: string[];
+  /** Linear team ID */
+  teamId?: string;
+  /** Jira project key */
+  projectKey?: string;
+}
+
+/**
  * Abstract base class for ticket provider implementations
  * Provides a common interface for interacting with different ticketing platforms
  */

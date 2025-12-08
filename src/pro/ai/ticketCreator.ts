@@ -15,6 +15,7 @@ import { getLogger } from "@shared/utils/logger";
 import { CreateTicketInput } from "@shared/base/BaseTicketProvider";
 import { LinearIssue, LinearTeam, LinearProject } from "@providers/linear/types";
 import { JiraIssue, JiraProject } from "@providers/jira/common/types";
+import { convertMarkdownToADF } from "@shared/jira/markdownToADF";
 
 const logger = getLogger();
 
@@ -186,29 +187,46 @@ export class TicketCreator {
       
       // Get project key (required for Jira)
       let projectKey = input.projectId;
+      let projectId: string | undefined;
+      
       if (!projectKey) {
-        // Try to get default project from settings
-        const config = vscode.workspace.getConfiguration("devBuddy");
-        projectKey = config.get<string>("jira.defaultProject");
-        
-        if (!projectKey) {
-          // Get user's first project
-          const projects = await client.getProjects();
-          if (projects.length === 0) {
-            return {
-              success: false,
-              error: "No projects found. Please configure a default project in settings."
-            };
-          }
-          projectKey = projects[0].key;
-          logger.info(`[Ticket Creator] Using default project: ${projects[0].name}`);
+        // Don't use defaultProject setting (it may be from a different Jira instance)
+        // Always fetch and use the first available project
+        const projects = await client.getProjects();
+        if (projects.length === 0) {
+          return {
+            success: false,
+            error: "No projects found. Please ensure your Jira Cloud instance has accessible projects."
+          };
+        }
+        projectKey = projects[0].key;
+        projectId = projects[0].id;
+        logger.info(`[Ticket Creator] Using project: ${projects[0].name} (${projectKey})`);
+      } else {
+        // projectKey from input - need to get the ID
+        const projects = await client.getProjects();
+        const project = projects.find(p => p.key === projectKey);
+        if (project) {
+          projectId = project.id;
+        } else {
+          return {
+            success: false,
+            error: `Project "${projectKey}" not found in your Jira Cloud instance`
+          };
         }
       }
       
-      // Get issue type (default to Task)
+      if (!projectId) {
+        return {
+          success: false,
+          error: `Could not find project ID for project key: ${projectKey}`
+        };
+      }
+      
+      // Get issue type (default to Task) - use project ID (numeric)
       let issueTypeId = input.issueTypeId;
-      if (!issueTypeId && projectKey) {
-        const issueTypes = await client.getIssueTypes(projectKey);
+      if (!issueTypeId && projectId) {
+        const issueTypes = await client.getIssueTypes(projectId);
         const taskType = issueTypes.find(t => t.name === "Task" || t.name === "Story");
         if (!taskType) {
           return {
@@ -239,7 +257,8 @@ export class TicketCreator {
       const createInput = {
         projectKey: projectKey,
         summary: input.title,
-        description: input.description,
+        description: undefined as string | undefined,
+        descriptionADF: input.description ? convertMarkdownToADF(input.description) : undefined,
         issueTypeId: issueTypeId,
         priorityId: typeof input.priority === 'string' ? input.priority : undefined,
         assigneeId: input.assigneeId,

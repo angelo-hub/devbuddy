@@ -45,6 +45,13 @@ interface TicketFormProps {
     stateId?: string;
   }) => void;
   isSubmitting: boolean;
+  draftData?: {
+    title?: string;
+    description?: string;
+    priority?: string;
+    labels?: string[];
+    teamId?: string;
+  };
 }
 
 export const TicketForm: React.FC<TicketFormProps> = ({
@@ -57,6 +64,7 @@ export const TicketForm: React.FC<TicketFormProps> = ({
   onTeamChange,
   onSubmit,
   isSubmitting,
+  draftData,
 }) => {
   const [selectedTeamId, setSelectedTeamId] = useState("");
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
@@ -67,6 +75,53 @@ export const TicketForm: React.FC<TicketFormProps> = ({
   const [projectId, setProjectId] = useState<string | undefined>(undefined);
   const [selectedLabelIds, setSelectedLabelIds] = useState<string[]>([]);
   const [stateId, setStateId] = useState<string | undefined>(undefined);
+
+  // Populate draft data when received
+  useEffect(() => {
+    if (draftData) {
+      if (draftData.title) {
+        setTitle(draftData.title);
+      }
+      if (draftData.description) {
+        setDescription(draftData.description);
+      }
+      if (draftData.priority) {
+        // Map priority names to numbers
+        const priorityMap: { [key: string]: number } = {
+          urgent: 1,
+          high: 2,
+          medium: 3,
+          low: 4,
+          '1': 1,
+          '2': 2,
+          '3': 3,
+          '4': 4,
+        };
+        const priorityValue = priorityMap[draftData.priority.toLowerCase()];
+        if (priorityValue) {
+          setPriority(priorityValue);
+        }
+      }
+      if (draftData.teamId) {
+        setSelectedTeamId(draftData.teamId);
+        onTeamChange(draftData.teamId);
+      }
+      // Labels will be matched by name after labels are loaded
+      if (draftData.labels && labels.length > 0) {
+        const matchedLabelIds = labels
+          .filter((label) =>
+            draftData.labels?.some(
+              (draftLabel) => label.name.toLowerCase() === draftLabel.toLowerCase()
+            )
+          )
+          .map((label) => label.id);
+        if (matchedLabelIds.length > 0) {
+          setSelectedLabelIds(matchedLabelIds);
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftData]);
 
   // Auto-select first team if only one exists
   useEffect(() => {

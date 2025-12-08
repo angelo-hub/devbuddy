@@ -564,81 +564,85 @@ export class LicenseManager {
    */
   public async hasProAccess(): Promise<boolean> {
     // Load license info if not already loaded
-    if (!this.licenseInfo) {
-      this.licenseInfo = await this.getCachedLicenseInfo();
-    }
-
-    if (!this.licenseInfo || !this.licenseInfo.isValid) {
-      return false;
-    }
-
-    // Check if license has expired
-    if (this.licenseInfo.expiresAt && this.licenseInfo.expiresAt < new Date()) {
-      logger.warn('License has expired');
-      await this.showExpiredLicenseNotification();
-      return false;
-    }
-
-    // Verify GitHub account still matches (if GitHub ID is stored)
-    if (this.licenseInfo.githubId) {
-      try {
-        const githubSession = await vscode.authentication.getSession(
-          'github',
-          ['user:email'],
-          { createIfNone: false } // Don't force sign-in
-        );
-
-        if (githubSession) {
-          const currentGitHubId = await this.getGitHubUserId(githubSession.accessToken);
-          
-          if (currentGitHubId && currentGitHubId !== this.licenseInfo.githubId) {
-            vscode.window.showWarningMessage(
-              `⚠️ You are signed in with a different GitHub account. ` +
-              `Please sign in with @${this.licenseInfo.githubUsername} to use Pro features.`
-            );
-            return false;
-          }
-        } else {
-          // No GitHub session - allow grace period for offline usage
-          logger.debug('No GitHub session available, checking offline grace period');
-          return await this.checkOfflineGracePeriod();
-        }
-      } catch (error) {
-        // GitHub auth failed, allow grace period
-        logger.warn('GitHub verification failed, using offline mode');
-        return await this.checkOfflineGracePeriod();
-      }
-    }
-
-    // Check if we need to revalidate (every 24 hours)
-    const lastValidation = this.context.globalState.get<string>(this.LAST_VALIDATION_KEY);
-    if (lastValidation) {
-      const hoursSinceValidation = 
-        (Date.now() - new Date(lastValidation).getTime()) / (1000 * 60 * 60);
-      
-      if (hoursSinceValidation > this.REVALIDATION_HOURS) {
-        logger.debug('License needs revalidation (24 hours passed)');
-        
-        try {
-          // Revalidate in background
-          const validation = await this.validateLicenseWithLemonSqueezy(this.licenseInfo.key);
-          
-          if (validation) {
-            await this.context.globalState.update(this.LAST_VALIDATION_KEY, new Date().toISOString());
-            logger.debug('License revalidated successfully');
-          } else {
-            // Validation failed, check grace period
-            return await this.checkOfflineGracePeriod();
-          }
-        } catch (error) {
-          // Revalidation failed (offline?), use grace period
-          logger.warn('License revalidation failed, checking grace period');
-          return await this.checkOfflineGracePeriod();
-        }
-      }
-    }
-
+    // TODO: Remove this once we have a real license manager
     return true;
+    
+  //   if (!this.licenseInfo) {
+  //     this.licenseInfo = await this.getCachedLicenseInfo();
+  //   }
+
+
+  //   if (!this.licenseInfo || !this.licenseInfo.isValid) {
+  //     return false;
+  //   }
+
+  //   // Check if license has expired
+  //   if (this.licenseInfo.expiresAt && this.licenseInfo.expiresAt < new Date()) {
+  //     logger.warn('License has expired');
+  //     await this.showExpiredLicenseNotification();
+  //     return false;
+  //   }
+
+  //   // Verify GitHub account still matches (if GitHub ID is stored)
+  //   if (this.licenseInfo.githubId) {
+  //     try {
+  //       const githubSession = await vscode.authentication.getSession(
+  //         'github',
+  //         ['user:email'],
+  //         { createIfNone: false } // Don't force sign-in
+  //       );
+
+  //       if (githubSession) {
+  //         const currentGitHubId = await this.getGitHubUserId(githubSession.accessToken);
+          
+  //         if (currentGitHubId && currentGitHubId !== this.licenseInfo.githubId) {
+  //           vscode.window.showWarningMessage(
+  //             `⚠️ You are signed in with a different GitHub account. ` +
+  //             `Please sign in with @${this.licenseInfo.githubUsername} to use Pro features.`
+  //           );
+  //           return false;
+  //         }
+  //       } else {
+  //         // No GitHub session - allow grace period for offline usage
+  //         logger.debug('No GitHub session available, checking offline grace period');
+  //         return await this.checkOfflineGracePeriod();
+  //       }
+  //     } catch (error) {
+  //       // GitHub auth failed, allow grace period
+  //       logger.warn('GitHub verification failed, using offline mode');
+  //       return await this.checkOfflineGracePeriod();
+  //     }
+  //   }
+
+  //   // Check if we need to revalidate (every 24 hours)
+    // const lastValidation = this.context.globalState.get<string>(this.LAST_VALIDATION_KEY);
+    // if (lastValidation) {
+    //   const hoursSinceValidation = 
+    //     (Date.now() - new Date(lastValidation).getTime()) / (1000 * 60 * 60);
+      
+    //   if (hoursSinceValidation > this.REVALIDATION_HOURS) {
+    //     logger.debug('License needs revalidation (24 hours passed)');
+        
+    //     try {
+    //       // Revalidate in background
+    //       const validation = await this.validateLicenseWithLemonSqueezy(this.licenseInfo.key);
+          
+    //       if (validation) {
+    //         await this.context.globalState.update(this.LAST_VALIDATION_KEY, new Date().toISOString());
+    //         logger.debug('License revalidated successfully');
+    //       } else {
+    //         // Validation failed, check grace period
+    //         return await this.checkOfflineGracePeriod();
+    //       }
+    //     } catch (error) {
+    //       // Revalidation failed (offline?), use grace period
+    //       logger.warn('License revalidation failed, checking grace period');
+    //       return await this.checkOfflineGracePeriod();
+    //     }
+    //   }
+    // }
+
+    // return true;
   }
 
   /**

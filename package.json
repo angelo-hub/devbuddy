@@ -504,6 +504,10 @@
           {
             "name": "suggest",
             "description": "Get intelligent suggestions on what to work on next"
+          },
+          {
+            "name": "create",
+            "description": "💎 Create a ticket with AI assistance (Pro feature)"
           }
         ]
       }
@@ -600,7 +604,7 @@
             },
             "assigneeId": {
               "type": "string",
-              "description": "User ID to assign the ticket to (optional)"
+              "description": "User ID to assign the ticket to. Use 'me' to assign to the current user. Optional."
             },
             "projectId": {
               "type": "string",
