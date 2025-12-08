@@ -26,7 +26,17 @@ interface JiraUser {
 type MessageFromExtension =
   | { command: "projectsLoaded"; projects: JiraProject[] }
   | { command: "projectMetaLoaded"; issueTypes: JiraIssueType[]; priorities: JiraPriority[] }
-  | { command: "usersLoaded"; users: JiraUser[] };
+  | { command: "usersLoaded"; users: JiraUser[] }
+  | { 
+      command: "populateDraft"; 
+      data: {
+        title?: string;
+        description?: string;
+        priority?: string;
+        labels?: string[];
+        projectKey?: string;
+      };
+    };
 
 type MessageFromWebview =
   | { command: "loadProjects" }
@@ -88,9 +98,28 @@ function App() {
         case "usersLoaded":
           setUsers(message.users);
           break;
+
+        case "populateDraft":
+          if (message.data) {
+            if (message.data.title) setSummary(message.data.title);
+            if (message.data.description) setDescription(message.data.description);
+            if (message.data.projectKey) setSelectedProject(message.data.projectKey);
+            if (message.data.labels) setLabelsInput(message.data.labels.join(", "));
+            // Priority will be matched after project metadata loads
+            if (message.data.priority) {
+              // Store for later when priorities are available
+              setTimeout(() => {
+                const matchedPriority = priorities.find(
+                  (p) => p.name.toLowerCase() === message.data.priority?.toLowerCase()
+                );
+                if (matchedPriority) setPriorityId(matchedPriority.id);
+              }, 500);
+            }
+          }
+          break;
       }
     });
-  }, [onMessage]);
+  }, [onMessage, priorities]);
 
   // Load project metadata when project changes
   useEffect(() => {

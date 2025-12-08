@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { UniversalTicketsProvider } from "@shared/views/UniversalTicketsProvider";
 import { getLogger } from "@shared/utils/logger";
+import { TicketDraftData } from "@shared/base/BaseTicketProvider";
 import { JiraIssue } from "@providers/jira/common/types";
 import { JiraIssuePanel } from "@providers/jira/cloud/JiraIssuePanel";
 import { JiraCreateTicketPanel } from "@providers/jira/cloud/JiraCreateTicketPanel";
@@ -181,8 +182,8 @@ export function registerJiraCommands(
       }
     }),
 
-    vscode.commands.registerCommand("devBuddy.jira.createIssue", async () => {
-      await JiraCreateTicketPanel.createOrShow(context.extensionUri);
+    vscode.commands.registerCommand("devBuddy.jira.createIssue", async (draftData?: TicketDraftData) => {
+      await JiraCreateTicketPanel.createOrShow(context.extensionUri, draftData);
     }),
 
     vscode.commands.registerCommand("devBuddy.jira.updateStatus", async (item: { issue?: JiraIssue }) => {

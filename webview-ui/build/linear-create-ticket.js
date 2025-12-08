@@ -24642,7 +24642,8 @@
     users,
     onTeamChange,
     onSubmit,
-    isSubmitting
+    isSubmitting,
+    draftData
   }) => {
     const [selectedTeamId, setSelectedTeamId] = (0, import_react2.useState)("");
     const [selectedTemplateId, setSelectedTemplateId] = (0, import_react2.useState)("");
@@ -24653,6 +24654,46 @@
     const [projectId, setProjectId] = (0, import_react2.useState)(void 0);
     const [selectedLabelIds, setSelectedLabelIds] = (0, import_react2.useState)([]);
     const [stateId, setStateId] = (0, import_react2.useState)(void 0);
+    (0, import_react2.useEffect)(() => {
+      if (draftData) {
+        if (draftData.title) {
+          setTitle(draftData.title);
+        }
+        if (draftData.description) {
+          setDescription(draftData.description);
+        }
+        if (draftData.priority) {
+          const priorityMap = {
+            urgent: 1,
+            high: 2,
+            medium: 3,
+            low: 4,
+            "1": 1,
+            "2": 2,
+            "3": 3,
+            "4": 4
+          };
+          const priorityValue = priorityMap[draftData.priority.toLowerCase()];
+          if (priorityValue) {
+            setPriority(priorityValue);
+          }
+        }
+        if (draftData.teamId) {
+          setSelectedTeamId(draftData.teamId);
+          onTeamChange(draftData.teamId);
+        }
+        if (draftData.labels && labels.length > 0) {
+          const matchedLabelIds = labels.filter(
+            (label) => draftData.labels?.some(
+              (draftLabel) => label.name.toLowerCase() === draftLabel.toLowerCase()
+            )
+          ).map((label) => label.id);
+          if (matchedLabelIds.length > 0) {
+            setSelectedLabelIds(matchedLabelIds);
+          }
+        }
+      }
+    }, [draftData]);
     (0, import_react2.useEffect)(() => {
       if (teams.length === 1 && !selectedTeamId) {
         const teamId = teams[0].id;
@@ -24879,6 +24920,7 @@
     const [projects, setProjects] = (0, import_react3.useState)([]);
     const [users, setUsers] = (0, import_react3.useState)([]);
     const [isCreating, setIsCreating] = (0, import_react3.useState)(false);
+    const [draftData, setDraftData] = (0, import_react3.useState)(void 0);
     (0, import_react3.useEffect)(() => {
       postMessage({ command: "loadTeams" });
     }, []);
@@ -24905,6 +24947,11 @@
           case "issueCreationFailed":
             setIsCreating(false);
             break;
+          case "populateDraft":
+            if (message.data) {
+              setDraftData(message.data);
+            }
+            break;
         }
       });
     }, [onMessage]);
@@ -24930,7 +24977,8 @@
           users,
           onTeamChange: handleTeamChange,
           onSubmit: handleCreateIssue,
-          isSubmitting: isCreating
+          isSubmitting: isCreating,
+          draftData
         }
       )
     ] });

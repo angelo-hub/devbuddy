@@ -24569,9 +24569,25 @@
           case "usersLoaded":
             setUsers(message.users);
             break;
+          case "populateDraft":
+            if (message.data) {
+              if (message.data.title) setSummary(message.data.title);
+              if (message.data.description) setDescription(message.data.description);
+              if (message.data.projectKey) setSelectedProject(message.data.projectKey);
+              if (message.data.labels) setLabelsInput(message.data.labels.join(", "));
+              if (message.data.priority) {
+                setTimeout(() => {
+                  const matchedPriority = priorities.find(
+                    (p) => p.name.toLowerCase() === message.data.priority?.toLowerCase()
+                  );
+                  if (matchedPriority) setPriorityId(matchedPriority.id);
+                }, 500);
+              }
+            }
+            break;
         }
       });
-    }, [onMessage]);
+    }, [onMessage, priorities]);
     (0, import_react2.useEffect)(() => {
       if (selectedProject) {
         postMessage({ command: "loadProjectMeta", projectKey: selectedProject });

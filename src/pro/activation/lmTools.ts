@@ -470,12 +470,38 @@ export function registerProLanguageModelTools(context: vscode.ExtensionContext):
           logger.info(`🎟️ [Pro LM Tool] devbuddy_create_ticket invoked`);
           logger.debug(`[Pro LM Tool] Input: ${JSON.stringify(options.input, null, 2)}`);
           
+          // Handle "me" assignee - resolve to current user
+          const processedInput = { ...options.input };
+          if (options.input.assigneeId === "me") {
+            const currentPlatform = await getCurrentPlatform();
+            
+            if (currentPlatform === "linear") {
+              const client = await LinearClient.create();
+              if (client.isConfigured()) {
+                const viewer = await client.getCurrentUser();
+                if (viewer && viewer.id) {
+                  processedInput.assigneeId = viewer.id;
+                  logger.debug(`[Pro LM Tool] Resolved 'me' to Linear user ID: ${viewer.id}`);
+                }
+              }
+            } else if (currentPlatform === "jira") {
+              const client = await JiraCloudClient.create();
+              if (client.isConfigured()) {
+                const currentUser = await client.getCurrentUser();
+                if (currentUser && currentUser.accountId) {
+                  processedInput.assigneeId = currentUser.accountId;
+                  logger.debug(`[Pro LM Tool] Resolved 'me' to Jira user ID: ${currentUser.accountId}`);
+                }
+              }
+            }
+          }
+          
           // Import ticket creator
           const { TicketCreator } = await import("../ai/ticketCreator");
           const ticketCreator = new TicketCreator(context);
           
           // Create the ticket
-          const result = await ticketCreator.createTicket(options.input);
+          const result = await ticketCreator.createTicket(processedInput);
           
           if (result.success && result.ticket) {
             const response = {

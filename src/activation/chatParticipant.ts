@@ -19,3 +19,4 @@ export function registerChatParticipant(context: vscode.ExtensionContext): void 
 }
 
 
+

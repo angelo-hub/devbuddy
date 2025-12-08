@@ -12,7 +12,8 @@ export interface CreateTicketMessageFromExtension {
     | "teamDataLoaded"
     | "usersLoaded"
     | "issueCreated"
-    | "issueCreationFailed";
+    | "issueCreationFailed"
+    | "populateDraft";
   teams?: Array<{ id: string; name: string; key: string }>;
   templates?: Array<{
     id: string;
@@ -43,6 +44,13 @@ export interface CreateTicketMessageFromExtension {
   }>;
   issue?: any;
   error?: string;
+  data?: {
+    title?: string;
+    description?: string;
+    priority?: string;
+    labels?: string[];
+    teamId?: string;
+  };
 }
 
 export interface CreateTicketMessageFromWebview {
@@ -102,6 +110,13 @@ function App() {
     Array<{ id: string; name: string; email: string; avatarUrl?: string }>
   >([]);
   const [isCreating, setIsCreating] = useState(false);
+  const [draftData, setDraftData] = useState<{
+    title?: string;
+    description?: string;
+    priority?: string;
+    labels?: string[];
+    teamId?: string;
+  } | undefined>(undefined);
 
   // Load teams on mount
   useEffect(() => {
@@ -137,6 +152,12 @@ function App() {
 
         case "issueCreationFailed":
           setIsCreating(false);
+          break;
+
+        case "populateDraft":
+          if (message.data) {
+            setDraftData(message.data);
+          }
           break;
       }
     });
@@ -179,6 +200,7 @@ function App() {
         onTeamChange={handleTeamChange}
         onSubmit={handleCreateIssue}
         isSubmitting={isCreating}
+        draftData={draftData}
       />
     </div>
   );

@@ -186,7 +186,8 @@ export class TemplateAnalyzer {
       // For each project, get its issue types and create metadata
       for (const project of projects.slice(0, 5)) { // Limit to first 5 projects to avoid rate limits
         try {
-          const issueTypes = await client.getIssueTypes(project.key);
+          // Use project.id (numeric) instead of project.key (string) for Jira API
+          const issueTypes = await client.getIssueTypes(project.id);
           
           for (const issueType of issueTypes) {
             // Create a template for each issue type

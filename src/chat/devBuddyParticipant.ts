@@ -688,12 +688,14 @@ Provide a helpful, conversational response. If the user is asking about somethin
         "- `/pr` - Generate a PR summary\n" +
         "- `/status` - Update ticket status\n" +
         "- `/plan [TICKET-ID]` - Create an implementation plan\n" +
-        "- `/suggest` - Suggest what to work on next\n\n" +
+        "- `/suggest` - Suggest what to work on next\n" +
+        "- `/create` - Create a ticket with AI 💎 (Pro)\n\n" +
         "Or just ask me about your work! Try:\n" +
         "- *\"What tickets am I working on?\"*\n" +
         "- *\"Show me ENG-123\"*\n" +
         "- *\"I would like to start working on ENG-125, let's make a plan\"*\n" +
-        "- *\"What should I work on today?\"*\n"
+        "- *\"What should I work on today?\"*\n" +
+        "- *\"Create a ticket for implementing OAuth2\"* 💎\n"
     );
 
     return {};
