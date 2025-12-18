@@ -203,6 +203,7 @@ function parseInlineContent(text: string): ADFInlineNode[] {
     }
 
     // Regular text - consume until next special character
+    // eslint-disable-next-line no-useless-escape
     const nextSpecial = remaining.search(/[*_`\[]/);
     if (nextSpecial === -1) {
       // No more special characters, consume the rest

@@ -33,6 +33,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
     if (showLinkInput && linkInputRef.current) {
       // Get existing link URL if editing
       const existingUrl = editor.getAttributes("link").href || "";
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLinkUrl(existingUrl);
       linkInputRef.current.focus();
       linkInputRef.current.select();

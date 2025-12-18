@@ -194,10 +194,11 @@ function convertText(node: ADFNode): string {
       case "strike":
         text = `~~${text}~~`;
         break;
-      case "link":
+      case "link": {
         const href = (mark.attrs?.href as string) || "";
         text = `[${text}](${href})`;
         break;
+      }
       // underline has no markdown equivalent, keep as-is
     }
   }
