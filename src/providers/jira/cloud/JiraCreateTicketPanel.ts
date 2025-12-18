@@ -5,6 +5,7 @@ import { JiraServerClient } from "../server/JiraServerClient";
 import { JiraProject, JiraIssueType, JiraUser } from "../common/types";
 import { getLogger } from "@shared/utils/logger";
 import { getJiraDeploymentType } from "@shared/utils/platformDetector";
+import { TicketDraftData } from "@shared/base/BaseTicketProvider";
 
 const logger = getLogger();
 
@@ -61,7 +62,8 @@ export class JiraCreateTicketPanel {
   }
 
   public static async createOrShow(
-    extensionUri: vscode.Uri
+    extensionUri: vscode.Uri,
+    draftData?: TicketDraftData
   ): Promise<void> {
     const column = vscode.window.activeTextEditor
       ? vscode.window.activeTextEditor.viewColumn
@@ -70,6 +72,14 @@ export class JiraCreateTicketPanel {
     // If we already have a panel, show it
     if (JiraCreateTicketPanel.currentPanel) {
       JiraCreateTicketPanel.currentPanel._panel.reveal(column);
+      
+      // Send draft data to existing panel
+      if (draftData) {
+        JiraCreateTicketPanel.currentPanel._panel.webview.postMessage({
+          command: "populateDraft",
+          data: draftData,
+        });
+      }
       return;
     }
 
@@ -93,6 +103,16 @@ export class JiraCreateTicketPanel {
       extensionUri
     );
     await JiraCreateTicketPanel.currentPanel._updateWebview();
+    
+    // Send draft data after panel is ready
+    if (draftData) {
+      setTimeout(() => {
+        JiraCreateTicketPanel.currentPanel?._panel.webview.postMessage({
+          command: "populateDraft",
+          data: draftData,
+        });
+      }, 500);
+    }
   }
 
   private _updateWebview(): void {

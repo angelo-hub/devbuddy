@@ -342,22 +342,33 @@ export class JiraCloudClient extends BaseJiraClient {
         // Use provided ADF description (rich format with code blocks, links, etc.)
         fields.description = input.descriptionADF as unknown as JiraApiADF;
       } else if (input.description) {
-        // Convert plain text description to simple ADF format
-        fields.description = {
-          type: "doc",
-          version: 1,
-          content: [
-            {
-              type: "paragraph",
-              content: [
-                {
-                  type: "text",
-                  text: input.description,
-                },
-              ],
-            },
-          ],
-        };
+        // Check if description is already ADF JSON string
+        try {
+          const parsed = JSON.parse(input.description);
+          if (parsed && parsed.type === "doc" && Array.isArray(parsed.content)) {
+            // Already ADF format, use directly
+            fields.description = parsed;
+          } else {
+            throw new Error("Not ADF");
+          }
+        } catch {
+          // Convert plain text description to simple ADF format
+          fields.description = {
+            type: "doc",
+            version: 1,
+            content: [
+              {
+                type: "paragraph",
+                content: [
+                  {
+                    type: "text",
+                    text: input.description,
+                  },
+                ],
+              },
+            ],
+          };
+        }
       }
 
       if (input.priorityId) {
@@ -432,8 +443,31 @@ export class JiraCloudClient extends BaseJiraClient {
       }
 
       if (input.description !== undefined) {
-        fields.description = input.description
-          ? {
+        if (!input.description) {
+          fields.description = null;
+        } else {
+          // Check if description is already ADF JSON
+          try {
+            const parsed = JSON.parse(input.description);
+            if (parsed && parsed.type === "doc" && Array.isArray(parsed.content)) {
+              // Already ADF format, use directly
+              fields.description = parsed;
+            } else {
+              // Not ADF, wrap plain text
+              fields.description = {
+                type: "doc",
+                version: 1,
+                content: [
+                  {
+                    type: "paragraph",
+                    content: [{ type: "text", text: input.description }],
+                  },
+                ],
+              };
+            }
+          } catch {
+            // Not JSON, wrap plain text in ADF
+            fields.description = {
               type: "doc",
               version: 1,
               content: [
@@ -442,8 +476,9 @@ export class JiraCloudClient extends BaseJiraClient {
                   content: [{ type: "text", text: input.description }],
                 },
               ],
-            }
-          : null;
+            };
+          }
+        }
       }
 
       if (input.priorityId) {
@@ -465,6 +500,9 @@ export class JiraCloudClient extends BaseJiraClient {
       if (input.customFields) {
         Object.assign(fields, input.customFields);
       }
+
+      // Debug: log the fields being sent
+      logger.debug(`Updating issue ${key} with fields: ${JSON.stringify(fields, null, 2)}`);
 
       await this.request(`/issue/${key}`, {
         method: "PUT",

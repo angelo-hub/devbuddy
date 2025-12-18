@@ -2,50 +2,28 @@
  * Markdown to React/HTML Renderer
  * 
  * Converts Markdown (used by Linear) to React components with syntax highlighting
+ * Uses lowlight (highlight.js) for syntax highlighting
  */
 
 import React from "react";
-import Prism from "prismjs";
+import { common, createLowlight } from "lowlight";
+import { toHtml } from "hast-util-to-html";
 
-// Import Prism theme - using a dark theme that works well with VS Code
-import "prismjs/themes/prism-tomorrow.css";
+// Import highlight styles (shared with editor)
+import "../components/MarkdownEditor/highlight.css";
 
-// Import common languages
-import "prismjs/components/prism-typescript";
-import "prismjs/components/prism-javascript";
-import "prismjs/components/prism-jsx";
-import "prismjs/components/prism-tsx";
-import "prismjs/components/prism-python";
-import "prismjs/components/prism-java";
-import "prismjs/components/prism-go";
-import "prismjs/components/prism-rust";
-import "prismjs/components/prism-c";
-import "prismjs/components/prism-cpp";
-import "prismjs/components/prism-csharp";
-import "prismjs/components/prism-ruby";
-import "prismjs/components/prism-php";
-import "prismjs/components/prism-swift";
-import "prismjs/components/prism-kotlin";
-import "prismjs/components/prism-scala";
-import "prismjs/components/prism-bash";
-import "prismjs/components/prism-json";
-import "prismjs/components/prism-yaml";
-import "prismjs/components/prism-markdown";
-import "prismjs/components/prism-sql";
-import "prismjs/components/prism-graphql";
-import "prismjs/components/prism-css";
-import "prismjs/components/prism-scss";
-import "prismjs/components/prism-markup";
+// Create lowlight instance with common languages
+const lowlight = createLowlight(common);
 
 /**
- * Map language codes to Prism language identifiers
+ * Map language codes to lowlight language identifiers
  */
 const languageMap: Record<string, string> = {
   typescript: "typescript",
-  tsx: "tsx",
+  tsx: "typescript", // lowlight uses typescript for tsx
   ts: "typescript",
   javascript: "javascript",
-  jsx: "jsx",
+  jsx: "javascript", // lowlight uses javascript for jsx
   js: "javascript",
   python: "python",
   py: "python",
@@ -79,8 +57,8 @@ const languageMap: Record<string, string> = {
   css: "css",
   sass: "scss",
   scss: "scss",
-  html: "markup",
-  xml: "markup",
+  html: "xml",
+  xml: "xml",
   text: "text",
 };
 
@@ -200,22 +178,21 @@ function parseInlineMarkdown(text: string): React.ReactNode[] {
  * Render a code block with syntax highlighting
  */
 function renderCodeBlock(code: string, language: string = "text", key: number): React.ReactNode {
-  const prismLanguage = languageMap[language.toLowerCase()] || "text";
+  const langName = languageMap[language.toLowerCase()] || "text";
 
   try {
     // Check if language is supported
-    if (!Prism.languages[prismLanguage] || prismLanguage === "text") {
-      // For unsupported languages or text, render without highlighting
+    if (langName === "text" || !lowlight.registered(langName)) {
       return renderPlainCodeBlock(code, key);
     }
 
-    // Highlight code with Prism
-    const highlighted = Prism.highlight(code, Prism.languages[prismLanguage], prismLanguage);
+    // Highlight code with lowlight
+    const tree = lowlight.highlight(langName, code);
+    const highlighted = toHtml(tree);
 
     return (
       <pre
         key={key}
-        className={`language-${prismLanguage}`}
         style={{
           backgroundColor: "var(--vscode-editor-background)",
           border: "1px solid var(--vscode-panel-border)",
@@ -229,10 +206,11 @@ function renderCodeBlock(code: string, language: string = "text", key: number): 
         }}
       >
         <code
-          className={`language-${prismLanguage}`}
           style={{
             fontFamily: "inherit",
             fontSize: "inherit",
+            background: "transparent",
+            display: "block",
           }}
           dangerouslySetInnerHTML={{ __html: highlighted }}
         />

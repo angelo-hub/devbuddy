@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 import { LinearClient } from "./LinearClient";
 import { LinearIssue, LinearProject, LinearTeam, LinearUser, LinearTemplate } from "./types";
+import { TicketDraftData } from "@shared/base/BaseTicketProvider";
 
 export class CreateTicketPanel {
   public static currentPanel: CreateTicketPanel | undefined;
@@ -65,7 +66,8 @@ export class CreateTicketPanel {
    * Create or show the create ticket panel
    */
   public static async createOrShow(
-    extensionUri: vscode.Uri
+    extensionUri: vscode.Uri,
+    draftData?: TicketDraftData
   ): Promise<void> {
     const column = vscode.window.activeTextEditor
       ? vscode.window.activeTextEditor.viewColumn
@@ -74,6 +76,14 @@ export class CreateTicketPanel {
     // If we already have a panel, show it
     if (CreateTicketPanel.currentPanel) {
       CreateTicketPanel.currentPanel._panel.reveal(column);
+      
+      // Send draft data to existing panel
+      if (draftData) {
+        CreateTicketPanel.currentPanel._panel.webview.postMessage({
+          command: "populateDraft",
+          data: draftData,
+        });
+      }
       return;
     }
 
@@ -96,6 +106,16 @@ export class CreateTicketPanel {
       extensionUri
     );
     await CreateTicketPanel.currentPanel._update();
+    
+    // Send draft data after panel is ready
+    if (draftData) {
+      setTimeout(() => {
+        CreateTicketPanel.currentPanel?._panel.webview.postMessage({
+          command: "populateDraft",
+          data: draftData,
+        });
+      }, 500);
+    }
   }
 
   /**

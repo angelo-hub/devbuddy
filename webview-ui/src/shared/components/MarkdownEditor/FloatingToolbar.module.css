@@ -1,0 +1,107 @@
+/* Floating toolbar container */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  background-color: var(--vscode-editorWidget-background, #252526);
+  border: 1px solid var(--vscode-widget-border, #454545);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Toolbar buttons */
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--vscode-foreground, #cccccc);
+  cursor: pointer;
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.button:hover {
+  background-color: var(--vscode-toolbar-hoverBackground, #3c3c3c);
+}
+
+.button:active {
+  background-color: var(--vscode-toolbar-activeBackground, #4a4a4a);
+}
+
+.button.active {
+  background-color: var(--vscode-button-background, #0e639c);
+  color: var(--vscode-button-foreground, #ffffff);
+}
+
+.button.active:hover {
+  background-color: var(--vscode-button-hoverBackground, #1177bb);
+}
+
+.button svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Divider between button groups */
+.divider {
+  width: 1px;
+  height: 16px;
+  background-color: var(--vscode-widget-border, #454545);
+  margin: 0 4px;
+}
+
+/* Link input form */
+.linkForm {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.linkInput {
+  width: 200px;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--vscode-input-border, #3c3c3c);
+  border-radius: 4px;
+  background-color: var(--vscode-input-background, #1e1e1e);
+  color: var(--vscode-input-foreground, #cccccc);
+  font-size: 12px;
+  outline: none;
+}
+
+.linkInput:focus {
+  border-color: var(--vscode-focusBorder, #007acc);
+}
+
+.linkInput::placeholder {
+  color: var(--vscode-input-placeholderForeground, #6e6e6e);
+}
+
+.linkButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--vscode-foreground, #cccccc);
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+
+.linkButton:hover {
+  background-color: var(--vscode-toolbar-hoverBackground, #3c3c3c);
+}
+
+.linkButton:active {
+  background-color: var(--vscode-toolbar-activeBackground, #4a4a4a);
+}

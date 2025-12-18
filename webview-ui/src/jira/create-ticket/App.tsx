@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useVSCode } from "@shared/hooks/useVSCode";
+import { MarkdownEditor } from "@shared/components";
+import { markdownToAdf } from "@shared/utils/adfConverter";
 import styles from "./App.module.css";
 
 interface JiraProject {
@@ -26,7 +28,17 @@ interface JiraUser {
 type MessageFromExtension =
   | { command: "projectsLoaded"; projects: JiraProject[] }
   | { command: "projectMetaLoaded"; issueTypes: JiraIssueType[]; priorities: JiraPriority[] }
-  | { command: "usersLoaded"; users: JiraUser[] };
+  | { command: "usersLoaded"; users: JiraUser[] }
+  | { 
+      command: "populateDraft"; 
+      data: {
+        title?: string;
+        description?: string;
+        priority?: string;
+        labels?: string[];
+        projectKey?: string;
+      };
+    };
 
 type MessageFromWebview =
   | { command: "loadProjects" }
@@ -88,9 +100,28 @@ function App() {
         case "usersLoaded":
           setUsers(message.users);
           break;
+
+        case "populateDraft":
+          if (message.data) {
+            if (message.data.title) setSummary(message.data.title);
+            if (message.data.description) setDescription(message.data.description);
+            if (message.data.projectKey) setSelectedProject(message.data.projectKey);
+            if (message.data.labels) setLabelsInput(message.data.labels.join(", "));
+            // Priority will be matched after project metadata loads
+            if (message.data.priority) {
+              // Store for later when priorities are available
+              setTimeout(() => {
+                const matchedPriority = priorities.find(
+                  (p) => p.name.toLowerCase() === message.data.priority?.toLowerCase()
+                );
+                if (matchedPriority) setPriorityId(matchedPriority.id);
+              }, 500);
+            }
+          }
+          break;
       }
     });
-  }, [onMessage]);
+  }, [onMessage, priorities]);
 
   // Load project metadata when project changes
   useEffect(() => {
@@ -111,12 +142,17 @@ function App() {
       .map((l) => l.trim())
       .filter((l) => l.length > 0);
 
+    // Convert markdown description to ADF for Jira
+    const adfDescription = description.trim() 
+      ? JSON.stringify(markdownToAdf(description.trim()))
+      : "";
+
     postMessage({
       command: "createIssue",
       input: {
         projectKey: selectedProject,
         summary: summary.trim(),
-        description: description.trim(),
+        description: adfDescription,
         issueTypeId,
         priorityId: priorityId || undefined,
         assigneeId: assigneeId || undefined,
@@ -193,12 +229,11 @@ function App() {
         {/* Description */}
         <div className={styles.field}>
           <label className={styles.label}>Description</label>
-          <textarea
+          <MarkdownEditor
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={setDescription}
             placeholder="Detailed description..."
-            className={styles.textarea}
-            rows={6}
+            minHeight={150}
           />
         </div>
 

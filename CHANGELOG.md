@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 * clickable tickets ([bc655b4](https://github.com/angelo-hub/devbuddy/commit/bc655b482cc0a817f29a54cdc1269b4e779f1836))
 
+
 ### [0.7.4](https://github.com/angelo-hub/devbuddy/compare/v0.7.3...v0.7.4) (2025-11-23)
 
 

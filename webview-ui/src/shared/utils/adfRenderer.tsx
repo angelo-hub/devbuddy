@@ -2,40 +2,18 @@
  * ADF (Atlassian Document Format) to React/HTML Renderer
  * 
  * Converts Jira's ADF format to React components with syntax highlighting
+ * Uses lowlight (highlight.js) for syntax highlighting
  */
 
 import React from "react";
-import Prism from "prismjs";
+import { common, createLowlight } from "lowlight";
+import { toHtml } from "hast-util-to-html";
 
-// Import Prism theme - using a dark theme that works well with VS Code
-import "prismjs/themes/prism-tomorrow.css";
+// Import highlight styles (shared with editor)
+import "../components/MarkdownEditor/highlight.css";
 
-// Import common languages
-import "prismjs/components/prism-typescript";
-import "prismjs/components/prism-javascript";
-import "prismjs/components/prism-jsx";
-import "prismjs/components/prism-tsx";
-import "prismjs/components/prism-python";
-import "prismjs/components/prism-java";
-import "prismjs/components/prism-go";
-import "prismjs/components/prism-rust";
-import "prismjs/components/prism-c";
-import "prismjs/components/prism-cpp";
-import "prismjs/components/prism-csharp";
-import "prismjs/components/prism-ruby";
-import "prismjs/components/prism-php";
-import "prismjs/components/prism-swift";
-import "prismjs/components/prism-kotlin";
-import "prismjs/components/prism-scala";
-import "prismjs/components/prism-bash";
-import "prismjs/components/prism-json";
-import "prismjs/components/prism-yaml";
-import "prismjs/components/prism-markdown";
-import "prismjs/components/prism-sql";
-import "prismjs/components/prism-graphql";
-import "prismjs/components/prism-css";
-import "prismjs/components/prism-scss";
-import "prismjs/components/prism-markup";
+// Create lowlight instance with common languages
+const lowlight = createLowlight(common);
 
 // ADF Types (simplified)
 interface ADFNode {
@@ -53,13 +31,13 @@ interface ADFDocument {
 }
 
 /**
- * Map ADF language codes to Prism language identifiers
+ * Map ADF language codes to lowlight language identifiers
  */
 const languageMap: Record<string, string> = {
   typescript: "typescript",
-  tsx: "tsx",
+  tsx: "typescript", // lowlight uses typescript for tsx
   javascript: "javascript",
-  jsx: "jsx",
+  jsx: "javascript", // lowlight uses javascript for jsx
   python: "python",
   java: "java",
   go: "go",
@@ -83,8 +61,8 @@ const languageMap: Record<string, string> = {
   css: "css",
   sass: "scss",
   scss: "scss",
-  html: "markup",
-  xml: "markup",
+  html: "xml",
+  xml: "xml",
   text: "text",
 };
 
@@ -163,29 +141,22 @@ function renderParagraph(node: ADFNode, key: number): React.ReactNode {
  */
 function renderCodeBlock(node: ADFNode, key: number): React.ReactNode {
   const language = node.attrs?.language || "text";
-  const prismLanguage = languageMap[language.toLowerCase()] || "text";
+  const langName = languageMap[language.toLowerCase()] || "text";
   const code = node.content?.[0]?.text || "";
-
-  console.log("[ADF Renderer] Code block:", { language, prismLanguage, hasCode: !!code });
 
   try {
     // Check if language is supported
-    if (!Prism.languages[prismLanguage]) {
-      console.warn(`[ADF Renderer] Language not loaded: ${prismLanguage}, falling back to text`);
+    if (langName === "text" || !lowlight.registered(langName)) {
       return renderPlainCodeBlock(code, key);
     }
 
-    // Highlight code with Prism
-    const highlighted = Prism.highlight(
-      code,
-      Prism.languages[prismLanguage],
-      prismLanguage
-    );
+    // Highlight code with lowlight
+    const tree = lowlight.highlight(langName, code);
+    const highlighted = toHtml(tree);
 
     return (
       <pre
         key={key}
-        className={`language-${prismLanguage}`}
         style={{
           backgroundColor: "var(--vscode-editor-background)",
           border: "1px solid var(--vscode-panel-border)",
@@ -199,7 +170,6 @@ function renderCodeBlock(node: ADFNode, key: number): React.ReactNode {
         }}
       >
         <code
-          className={`language-${prismLanguage}`}
           style={{
             fontFamily: "inherit",
             fontSize: "inherit",

@@ -504,6 +504,10 @@
           {
             "name": "suggest",
             "description": "Get intelligent suggestions on what to work on next"
+          },
+          {
+            "name": "create",
+            "description": "💎 Create a ticket with AI assistance (Pro feature)"
           }
         ]
       }
@@ -567,6 +571,60 @@
         "inputSchema": {
           "type": "object",
           "properties": {}
+        }
+      },
+      {
+        "name": "devbuddy_create_ticket",
+        "displayName": "💎 Create Ticket (Pro)",
+        "userDescription": "AI-powered ticket creation with template support for Linear and Jira (Pro feature)",
+        "modelDescription": "Use this tool to create a new ticket/issue on Linear or Jira. This is a Pro feature. Provide ticket details like title (required), description, priority, assignee, project, team, and labels. The tool will create the ticket on the currently configured platform (Linear or Jira) and return the created ticket details with a clickable link. IMPORTANT: The response includes 'openInDevBuddy' - you MUST format it as a clickable markdown link.",
+        "icon": "$(add)",
+        "tags": [
+          "tickets",
+          "devbuddy",
+          "pro",
+          "creation"
+        ],
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "createTicket",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "description": "The ticket title/summary (required)"
+            },
+            "description": {
+              "type": "string",
+              "description": "Detailed description of the ticket (optional, supports markdown)"
+            },
+            "priority": {
+              "type": "string",
+              "description": "Priority level: '1' (urgent), '2' (high), '3' (medium), '4' (low), or '0' (none). Optional."
+            },
+            "assigneeId": {
+              "type": "string",
+              "description": "User ID to assign the ticket to. Use 'me' to assign to the current user. Optional."
+            },
+            "projectId": {
+              "type": "string",
+              "description": "Project ID or key to create the ticket in (optional)"
+            },
+            "teamId": {
+              "type": "string",
+              "description": "Team ID for Linear (optional, uses default if not specified)"
+            },
+            "labels": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Array of label names to add to the ticket (optional)"
+            }
+          },
+          "required": [
+            "title"
+          ]
         }
       }
     ],
@@ -814,6 +872,21 @@
           "default": "professional",
           "description": "Writing tone for AI-generated summaries"
         },
+        "devBuddy.ai.ticketCreation.enabled": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "**💎 Pro Feature:** Enable AI-powered ticket creation with natural language.\n\n✅ **When enabled:**\n- Create tickets using conversational AI\n- Auto-fill fields from your description\n- Template support for Linear and Jira\n- Smart validation and suggestions\n\n⚠️ **Requires DevBuddy Pro license**"
+        },
+        "devBuddy.ai.ticketCreation.useTemplates": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "**💎 Pro Feature:** Use issue templates when creating tickets.\n\n✅ **When enabled:**\n- Automatically applies platform templates\n- Validates required fields\n- Provides template-based suggestions\n\n⚠️ **Requires DevBuddy Pro license**"
+        },
+        "devBuddy.ai.ticketCreation.confirmBeforeCreate": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "**💎 Pro Feature:** Require confirmation before creating tickets.\n\n✅ **When enabled:**\n- Shows ticket preview before creation\n- Allows editing before final submission\n- Prevents accidental ticket creation\n\n⚠️ **Requires DevBuddy Pro license**"
+        },
         "devBuddy.debugMode": {
           "type": "boolean",
           "default": false,
@@ -998,14 +1071,30 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@types/prismjs": "^1.26.5",
+    "@tiptap/extension-bubble-menu": "^3.13.0",
+    "@tiptap/extension-code-block-lowlight": "^3.13.0",
+    "@tiptap/extension-link": "^3.13.0",
+    "@tiptap/extension-placeholder": "^3.13.0",
+    "@tiptap/extension-table": "^3.13.0",
+    "@tiptap/extension-table-cell": "^3.13.0",
+    "@tiptap/extension-table-header": "^3.13.0",
+    "@tiptap/extension-table-row": "^3.13.0",
+    "@tiptap/extension-task-item": "^3.13.0",
+    "@tiptap/extension-task-list": "^3.13.0",
+    "@tiptap/react": "^3.13.0",
+    "@tiptap/starter-kit": "^3.13.0",
+    "@tiptap/suggestion": "^3.13.0",
     "@vscode/extension-telemetry": "^1.1.0",
     "axios": "^1.13.2",
+    "hast-util-to-html": "^9.0.5",
     "jira2md": "^3.0.1",
+    "lowlight": "^3.3.0",
     "prismjs": "^1.30.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "simple-git": "^3.30.0",
+    "tippy.js": "^6.3.7",
+    "tiptap-markdown": "^0.9.0",
     "zod": "^4.1.12"
   }
 }

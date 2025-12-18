@@ -1,0 +1,268 @@
+/* Container */
+.container {
+  position: relative;
+  border: 1px solid var(--vscode-input-border, #3c3c3c);
+  border-radius: 4px;
+  background-color: var(--vscode-input-background, #1e1e1e);
+  transition: border-color 0.15s ease;
+}
+
+.container:focus-within {
+  border-color: var(--vscode-focusBorder, #007acc);
+}
+
+.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.disabled .editor {
+  pointer-events: none;
+}
+
+/* Editor content wrapper */
+.editorContent {
+  padding: 0;
+}
+
+/* Main editor styles */
+.editor {
+  padding: 12px;
+  color: var(--vscode-input-foreground, #cccccc);
+  font-family: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  font-size: var(--vscode-editor-font-size, 13px);
+  line-height: 1.6;
+  outline: none;
+}
+
+/* Placeholder styling */
+.isEmpty::before {
+  content: attr(data-placeholder);
+  color: var(--vscode-input-placeholderForeground, #6e6e6e);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Loading state */
+.loading {
+  padding: 12px;
+  color: var(--vscode-input-placeholderForeground, #6e6e6e);
+  font-style: italic;
+}
+
+/* Hint text */
+.hint {
+  padding: 4px 12px 8px;
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground, #8a8a8a);
+  border-top: 1px solid var(--vscode-widget-border, #2d2d2d);
+}
+
+.hint code {
+  background-color: var(--vscode-textCodeBlock-background, #2d2d2d);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: var(--vscode-editor-font-family, 'Menlo', monospace);
+  font-size: 11px;
+}
+
+/* Link styling */
+.link {
+  color: var(--vscode-textLink-foreground, #3794ff);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.link:hover {
+  color: var(--vscode-textLink-activeForeground, #3794ff);
+}
+
+/* ProseMirror content styling */
+.editor :global(.ProseMirror) {
+  outline: none;
+}
+
+/* Headings */
+.editor :global(h1) {
+  font-size: 1.75em;
+  font-weight: 600;
+  margin: 0.5em 0 0.25em;
+  color: var(--vscode-editor-foreground);
+}
+
+.editor :global(h2) {
+  font-size: 1.4em;
+  font-weight: 600;
+  margin: 0.5em 0 0.25em;
+  color: var(--vscode-editor-foreground);
+}
+
+.editor :global(h3) {
+  font-size: 1.15em;
+  font-weight: 600;
+  margin: 0.5em 0 0.25em;
+  color: var(--vscode-editor-foreground);
+}
+
+/* Paragraphs */
+.editor :global(p) {
+  margin: 0.25em 0;
+}
+
+/* Lists */
+.editor :global(ul),
+.editor :global(ol) {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+.editor :global(li) {
+  margin: 0.15em 0;
+}
+
+.editor :global(li > p) {
+  margin: 0;
+}
+
+/* Task lists */
+.editor :global(ul[data-type="taskList"]) {
+  list-style: none;
+  padding-left: 0;
+}
+
+.editor :global(ul[data-type="taskList"] li) {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.editor :global(ul[data-type="taskList"] li > label) {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.editor :global(ul[data-type="taskList"] li > div) {
+  flex: 1;
+}
+
+.editor :global(ul[data-type="taskList"] input[type="checkbox"]) {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: var(--vscode-checkbox-background, #3794ff);
+}
+
+/* Blockquotes */
+.editor :global(blockquote) {
+  border-left: 3px solid var(--vscode-textBlockQuote-border, #4e4e4e);
+  padding-left: 1em;
+  margin: 0.5em 0;
+  color: var(--vscode-textBlockQuote-foreground, #9e9e9e);
+  font-style: italic;
+}
+
+/* Code blocks */
+.editor :global(pre) {
+  background-color: var(--vscode-textCodeBlock-background, #1a1a1a);
+  border: 1px solid var(--vscode-widget-border, #3c3c3c);
+  border-radius: 4px;
+  padding: 12px;
+  margin: 0.5em 0;
+  overflow-x: auto;
+  font-family: var(--vscode-editor-font-family, 'Menlo', 'Monaco', 'Courier New', monospace);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.editor :global(pre code) {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* Inline code */
+.editor :global(code) {
+  background-color: var(--vscode-textCodeBlock-background, #2d2d2d);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: var(--vscode-editor-font-family, 'Menlo', 'Monaco', 'Courier New', monospace);
+  font-size: 0.9em;
+  color: var(--vscode-textPreformat-foreground, #d7ba7d);
+}
+
+/* Horizontal rule */
+.editor :global(hr) {
+  border: none;
+  border-top: 1px solid var(--vscode-widget-border, #3c3c3c);
+  margin: 1em 0;
+}
+
+/* Tables */
+.editor :global(table) {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.5em 0;
+  overflow: auto;
+}
+
+.editor :global(th),
+.editor :global(td) {
+  border: 1px solid var(--vscode-widget-border, #3c3c3c);
+  padding: 8px 12px;
+  text-align: left;
+  min-width: 80px;
+}
+
+.editor :global(th) {
+  background-color: var(--vscode-editor-background, #252526);
+  font-weight: 600;
+}
+
+.editor :global(td) {
+  background-color: var(--vscode-input-background, #1e1e1e);
+}
+
+.editor :global(tr:hover td) {
+  background-color: var(--vscode-list-hoverBackground, #2a2d2e);
+}
+
+/* Selection styling */
+.editor :global(.ProseMirror-selectednode) {
+  outline: 2px solid var(--vscode-focusBorder, #007acc);
+  outline-offset: 2px;
+}
+
+/* Links */
+.editor :global(a) {
+  color: var(--vscode-textLink-foreground, #3794ff);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.editor :global(a:hover) {
+  color: var(--vscode-textLink-activeForeground, #3794ff);
+}
+
+/* Bold */
+.editor :global(strong) {
+  font-weight: 600;
+}
+
+/* Strikethrough */
+.editor :global(s) {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+/* Italic */
+.editor :global(em) {
+  font-style: italic;
+}
+
+/* Gapcursor (for tables) */
+.editor :global(.ProseMirror-gapcursor:after) {
+  border-top-color: var(--vscode-editor-foreground, #cccccc);
+}
+
+
