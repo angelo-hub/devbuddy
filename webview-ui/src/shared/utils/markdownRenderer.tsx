@@ -256,7 +256,9 @@ export function renderMarkdown(markdown: string | undefined): React.ReactNode {
   }
 
   try {
-    const lines = markdown.split("\n");
+    // Normalize line endings (handle \r\n from jira2md or other sources)
+    const normalizedMarkdown = markdown.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const lines = normalizedMarkdown.split("\n");
     const elements: React.ReactNode[] = [];
     let inCodeBlock = false;
     let codeBlockLanguage = "";

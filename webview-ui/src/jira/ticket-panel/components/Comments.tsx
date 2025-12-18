@@ -1,5 +1,6 @@
 import React from "react";
-import { renderADF } from "@shared/utils/adfRenderer";
+import { renderMarkdown } from "@shared/utils/markdownRenderer";
+import { descriptionToMarkdown } from "@shared/utils/wikiMarkupConverter";
 import styles from "./Comments.module.css";
 
 interface Comment {
@@ -43,15 +44,9 @@ export const Comments: React.FC<CommentsProps> = ({ comments }) => {
   };
 
   const renderCommentBody = (body: string) => {
-    try {
-      const adf = JSON.parse(body);
-      if (adf && adf.type === "doc") {
-        return renderADF(adf);
-      }
-      return body;
-    } catch {
-      return body;
-    }
+    // Convert any format (ADF, wiki, plain) to markdown, then render
+    const markdown = descriptionToMarkdown(body);
+    return renderMarkdown(markdown);
   };
 
   if (!comments || comments.length === 0) {

@@ -79832,7 +79832,8 @@ ${element2.innerHTML}
       return null;
     }
     try {
-      const lines = markdown2.split("\n");
+      const normalizedMarkdown = markdown2.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+      const lines = normalizedMarkdown.split("\n");
       const elements = [];
       let inCodeBlock = false;
       let codeBlockLanguage = "";

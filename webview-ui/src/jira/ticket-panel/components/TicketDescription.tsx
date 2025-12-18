@@ -1,43 +1,52 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { MarkdownEditor } from "@shared/components";
-import { renderADF } from "@shared/utils/adfRenderer";
-import { adfToMarkdown, markdownToAdf, isAdfDocument } from "@shared/utils/adfConverter";
+import { renderMarkdown } from "@shared/utils/markdownRenderer";
+import { markdownToAdf } from "@shared/utils/adfConverter";
+import { 
+  descriptionToMarkdown, 
+  markdownToWiki 
+} from "@shared/utils/wikiMarkupConverter";
 import styles from "./TicketDescription.module.css";
 
 interface TicketDescriptionProps {
   description: string;
+  deploymentType?: 'cloud' | 'server';
   onUpdateDescription: (description: string) => void;
 }
 
 export const TicketDescription: React.FC<TicketDescriptionProps> = ({
   description,
+  deploymentType = 'cloud',
   onUpdateDescription,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   
-  // Convert ADF to Markdown for editing
+  // Convert any format (ADF, wiki, plain) to Markdown for display/editing
   const markdownDescription = useMemo(() => {
-    if (isAdfDocument(description)) {
-      return adfToMarkdown(description);
-    }
-    return description;
+    return descriptionToMarkdown(description);
   }, [description]);
   
   const [editedMarkdown, setEditedMarkdown] = useState(markdownDescription);
 
-  // Sync when description prop changes
+  // Sync when description prop changes (only when not editing)
   useEffect(() => {
     if (!isEditing) {
-      // TODO: Avoid calling setState() directly within an effect
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEditedMarkdown(markdownDescription);
     }
   }, [markdownDescription, isEditing]);
 
   const handleSave = () => {
-    // Convert Markdown back to ADF for Jira
-    const adf = markdownToAdf(editedMarkdown);
-    onUpdateDescription(JSON.stringify(adf));
+    // Convert Markdown back to native format based on deployment type
+    if (deploymentType === 'server') {
+      // Jira Server uses wiki markup
+      const wiki = markdownToWiki(editedMarkdown);
+      onUpdateDescription(wiki);
+    } else {
+      // Jira Cloud uses ADF
+      const adf = markdownToAdf(editedMarkdown);
+      onUpdateDescription(JSON.stringify(adf));
+    }
     setIsEditing(false);
   };
 
@@ -46,14 +55,13 @@ export const TicketDescription: React.FC<TicketDescriptionProps> = ({
     setIsEditing(false);
   };
 
-  // Render ADF for viewing
+  // Render markdown for viewing (works for all formats after conversion)
   const renderedDescription = useMemo(() => {
-    if (isAdfDocument(description)) {
-      return renderADF(description);
+    if (!markdownDescription) {
+      return null;
     }
-    // Plain text fallback
-    return description ? <p>{description}</p> : null;
-  }, [description]);
+    return renderMarkdown(markdownDescription);
+  }, [markdownDescription]);
 
   return (
     <div className={styles.container}>
@@ -91,4 +99,3 @@ export const TicketDescription: React.FC<TicketDescriptionProps> = ({
     </div>
   );
 };
-

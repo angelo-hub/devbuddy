@@ -137,6 +137,7 @@ declare global {
   interface Window {
     __JIRA_INITIAL_STATE__?: {
       issue: JiraIssue;
+      deploymentType?: 'cloud' | 'server';
     };
   }
 }
@@ -149,6 +150,9 @@ function App() {
 
   const [issue, setIssue] = useState<JiraIssue | null>(
     window.__JIRA_INITIAL_STATE__?.issue || null
+  );
+  const [deploymentType] = useState<'cloud' | 'server'>(
+    window.__JIRA_INITIAL_STATE__?.deploymentType || 'cloud'
   );
   const [transitions, setTransitions] = useState<JiraTransition[]>([]);
   const [users, setUsers] = useState<JiraUser[]>([]);
@@ -289,6 +293,7 @@ function App() {
 
       <TicketDescription 
         description={issue.description} 
+        deploymentType={deploymentType}
         onUpdateDescription={handleUpdateDescription} 
       />
 

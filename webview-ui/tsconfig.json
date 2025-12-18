@@ -18,15 +18,26 @@
     "noEmit": true,
     "baseUrl": "./src",
     "paths": {
-      "@shared/*": ["shared/*"],
-      "@core/*": ["core/*"],
-      "@pro/*": ["pro/*"],
-      "@linear/*": ["linear/*"],
-      "@jira/*": ["jira/*"]
+      "@shared/*": [
+        "shared/*"
+      ],
+      "@core/*": [
+        "core/*"
+      ],
+      "@pro/*": [
+        "pro/*"
+      ],
+      "@linear/*": [
+        "linear/*"
+      ],
+      "@jira/*": [
+        "jira/*"
+      ]
     }
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "../src/types/**/*"
   ],
   "exclude": [
     "node_modules"

@@ -415,6 +415,7 @@ export class JiraIssuePanel {
     // Pass initial state to React
     const initialState = {
       issue: this._issue,
+      deploymentType: jiraType,
     };
 
     return `<!DOCTYPE html>
