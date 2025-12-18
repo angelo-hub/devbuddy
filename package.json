@@ -196,6 +196,23 @@
         "category": "DevBuddy"
       },
       {
+        "command": "devBuddy.searchTickets",
+        "title": "DevBuddy: Search Tickets",
+        "icon": "$(search)",
+        "category": "DevBuddy"
+      },
+      {
+        "command": "devBuddy.clearSearch",
+        "title": "DevBuddy: Clear Search",
+        "icon": "$(close)",
+        "category": "DevBuddy"
+      },
+      {
+        "command": "devBuddy.quickOpenTicket",
+        "title": "DevBuddy: Quick Open Ticket",
+        "category": "DevBuddy"
+      },
+      {
         "command": "devBuddy.manageTelemetry",
         "title": "DevBuddy: Manage Telemetry Settings",
         "icon": "$(graph)",
@@ -394,12 +411,22 @@
           "group": "navigation@3"
         },
         {
+          "command": "devBuddy.searchTickets",
+          "when": "view == myTickets && devBuddy.hasProvider",
+          "group": "navigation@4"
+        },
+        {
           "command": "devBuddy.showHelp",
           "when": "view == myTickets",
-          "group": "navigation@4"
+          "group": "navigation@5"
         }
       ],
       "view/item/context": [
+        {
+          "command": "devBuddy.clearSearch",
+          "when": "view == myTickets && viewItem == searchIndicator",
+          "group": "inline@1"
+        },
         {
           "comment": "Branch creation for Linear issues",
           "command": "devBuddy.startBranch",
@@ -474,6 +501,14 @@
         }
       ]
     },
+    "keybindings": [
+      {
+        "command": "devBuddy.quickOpenTicket",
+        "key": "ctrl+shift+t",
+        "mac": "cmd+shift+t",
+        "when": "devBuddy.hasProvider"
+      }
+    ],
     "chatParticipants": [
       {
         "id": "dev-buddy",

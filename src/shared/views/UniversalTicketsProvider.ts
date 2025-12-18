@@ -14,10 +14,12 @@ import { JiraIssue } from "@providers/jira/common/types";
 import { BaseJiraClient } from "@providers/jira/common/BaseJiraClient";
 import { getLogger } from "@shared/utils/logger";
 import { BranchAssociationManager } from "@shared/git/branchAssociationManager";
+import { fuzzySearch } from "@shared/utils/fuzzySearch";
+import { debounce } from "@shared/utils/debounce";
 
 const logger = getLogger();
 
-type TicketItem = LinearIssue | JiraIssue;
+export type TicketItem = LinearIssue | JiraIssue;
 type Platform = "linear" | "jira" | null;
 
 /**
@@ -55,12 +57,20 @@ export class UniversalTicketsProvider
 
   private currentPlatform: Platform = null;
   private branchManager: BranchAssociationManager;
+  private searchQuery: string | null = null;
+  private cachedIssues: TicketItem[] = [];
+  private debouncedRefresh: () => void;
 
   constructor(private context: vscode.ExtensionContext) {
     this.detectPlatform();
     
     // Initialize branch manager for Linear
     this.branchManager = new BranchAssociationManager(context);
+    
+    // Create debounced refresh for search (300ms delay)
+    this.debouncedRefresh = debounce(() => {
+      this._onDidChangeTreeData.fire();
+    }, 300);
     
     // Listen for configuration changes
     vscode.workspace.onDidChangeConfiguration((e) => {
@@ -86,6 +96,40 @@ export class UniversalTicketsProvider
   refresh(): void {
     this._onDidChangeTreeData.fire();
     this._onDidRefresh.fire();
+  }
+
+  /**
+   * Set search query and refresh view with debounce
+   */
+  public setSearchQuery(query: string | null): void {
+    this.searchQuery = query;
+    
+    // Only filter if query is 3+ characters or empty (clear)
+    if (!query || query.length >= 3) {
+      this.debouncedRefresh();
+    }
+  }
+
+  /**
+   * Get current search query
+   */
+  public getSearchQuery(): string | null {
+    return this.searchQuery;
+  }
+
+  /**
+   * Clear search and refresh
+   */
+  public clearSearch(): void {
+    this.searchQuery = null;
+    this.refresh();
+  }
+
+  /**
+   * Get the current issues list (for quick open)
+   */
+  public getIssues(): TicketItem[] {
+    return this.cachedIssues;
   }
 
   /**
@@ -182,9 +226,34 @@ export class UniversalTicketsProvider
         return this.getLinearSetupInstructions();
       }
 
-      // Root level - show 4 main sections
+      // Root level - show sections with optional search indicator
       if (!element) {
-        return this.getLinearRootSections();
+        const items: UniversalTicketTreeItem[] = [];
+        
+        // Show search indicator if there's an active search
+        if (this.searchQuery && this.searchQuery.length >= 3) {
+          const searchIndicator = new UniversalTicketTreeItem(
+            `🔍 "${this.searchQuery}"`,
+            vscode.TreeItemCollapsibleState.None,
+            "linear",
+            undefined,
+            "searchIndicator"
+          );
+          searchIndicator.iconPath = new vscode.ThemeIcon(
+            "filter",
+            new vscode.ThemeColor("charts.blue")
+          );
+          searchIndicator.description = "filtering";
+          searchIndicator.command = {
+            command: "devBuddy.clearSearch",
+            title: "Click to clear",
+          };
+          searchIndicator.tooltip = "Click to clear search filter";
+          items.push(searchIndicator);
+        }
+        
+        const sections = this.getLinearRootSections();
+        return [...items, ...sections];
       }
 
       // Handle section expansions
@@ -276,7 +345,30 @@ export class UniversalTicketsProvider
   private async getLinearMyIssues(client: LinearClient): Promise<UniversalTicketTreeItem[]> {
     const issues = await client.getMyIssues({ state: ["backlog", "unstarted", "started"] });
 
-    if (issues.length === 0) {
+    // Cache all issues for getIssues() method and quick open
+    this.cachedIssues = issues;
+
+    // Apply search filter if active
+    const filteredIssues = this.searchQuery 
+      ? fuzzySearch(issues, this.searchQuery, [
+          (issue) => (issue as LinearIssue).identifier,
+          (issue) => (issue as LinearIssue).title,
+          (issue) => (issue as LinearIssue).description || "",
+        ])
+      : issues;
+
+    if (filteredIssues.length === 0 && this.searchQuery) {
+      // No search results
+      const item = new UniversalTicketTreeItem(
+        `No tickets found for "${this.searchQuery}"`,
+        vscode.TreeItemCollapsibleState.None,
+        "linear"
+      );
+      item.iconPath = new vscode.ThemeIcon("search-stop");
+      return [item];
+    }
+
+    if (filteredIssues.length === 0) {
       const item = new UniversalTicketTreeItem(
         "No active issues",
         vscode.TreeItemCollapsibleState.None,
@@ -287,7 +379,7 @@ export class UniversalTicketsProvider
     }
 
     // Group by status
-    const grouped = this.groupLinearIssuesByStatus(issues);
+    const grouped = this.groupLinearIssuesByStatus(filteredIssues as LinearIssue[]);
     const items: UniversalTicketTreeItem[] = [];
 
     // Show status groups
@@ -694,9 +786,34 @@ export class UniversalTicketsProvider
         return this.getJiraSetupInstructions();
       }
 
-      // Root level - show 3 main sections
+      // Root level - show sections with optional search indicator
       if (!element) {
-        return this.getJiraRootSections();
+        const items: UniversalTicketTreeItem[] = [];
+        
+        // Show search indicator if there's an active search
+        if (this.searchQuery && this.searchQuery.length >= 3) {
+          const searchIndicator = new UniversalTicketTreeItem(
+            `🔍 "${this.searchQuery}"`,
+            vscode.TreeItemCollapsibleState.None,
+            "jira",
+            undefined,
+            "searchIndicator"
+          );
+          searchIndicator.iconPath = new vscode.ThemeIcon(
+            "filter",
+            new vscode.ThemeColor("charts.blue")
+          );
+          searchIndicator.description = "filtering";
+          searchIndicator.command = {
+            command: "devBuddy.clearSearch",
+            title: "Click to clear",
+          };
+          searchIndicator.tooltip = "Click to clear search filter";
+          items.push(searchIndicator);
+        }
+        
+        const sections = this.getJiraRootSections();
+        return [...items, ...sections];
       }
 
       // Handle section expansions
@@ -793,7 +910,30 @@ export class UniversalTicketsProvider
       (i) => i.status.statusCategory.key !== "done"
     );
 
-    if (activeIssues.length === 0) {
+    // Cache all issues for getIssues() method and quick open
+    this.cachedIssues = activeIssues;
+
+    // Apply search filter if active
+    const filteredIssues = this.searchQuery 
+      ? fuzzySearch(activeIssues, this.searchQuery, [
+          (issue) => (issue as JiraIssue).key,
+          (issue) => (issue as JiraIssue).summary,
+          (issue) => (issue as JiraIssue).description || "",
+        ])
+      : activeIssues;
+
+    if (filteredIssues.length === 0 && this.searchQuery) {
+      // No search results
+      const item = new UniversalTicketTreeItem(
+        `No issues found for "${this.searchQuery}"`,
+        vscode.TreeItemCollapsibleState.None,
+        "jira"
+      );
+      item.iconPath = new vscode.ThemeIcon("search-stop");
+      return [item];
+    }
+
+    if (filteredIssues.length === 0) {
       const item = new UniversalTicketTreeItem(
         "No active issues",
         vscode.TreeItemCollapsibleState.None,
@@ -804,7 +944,7 @@ export class UniversalTicketsProvider
     }
 
     // Group by status category
-    const groups = this.groupJiraIssuesByStatusCategory(activeIssues);
+    const groups = this.groupJiraIssuesByStatusCategory(filteredIssues as JiraIssue[]);
     const items: UniversalTicketTreeItem[] = [];
 
     // In Progress
