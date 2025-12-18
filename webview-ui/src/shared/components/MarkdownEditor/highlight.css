@@ -1,0 +1,99 @@
+/* Syntax highlighting - VS Code Dark+ theme colors */
+/* These classes are applied by lowlight/highlight.js */
+
+/* Reset - ensure no backgrounds on any code elements */
+pre code,
+pre code *,
+pre code span,
+code[class*="language-"],
+code[class*="language-"] *,
+.hljs,
+.hljs *,
+[class^="hljs"],
+[class*=" hljs"] {
+  background: none !important;
+  background-color: transparent !important;
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: #6a9955;
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-addition {
+  color: #569cd6;
+}
+
+.hljs-number,
+.hljs-string,
+.hljs-meta .hljs-meta-string,
+.hljs-literal,
+.hljs-doctag,
+.hljs-regexp {
+  color: #ce9178;
+}
+
+.hljs-title,
+.hljs-section,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class {
+  color: #dcdcaa;
+}
+
+.hljs-attribute,
+.hljs-attr,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-class .hljs-title,
+.hljs-type {
+  color: #4ec9b0;
+}
+
+.hljs-symbol,
+.hljs-bullet,
+.hljs-subst,
+.hljs-meta,
+.hljs-meta .hljs-keyword,
+.hljs-selector-attr,
+.hljs-selector-pseudo,
+.hljs-link {
+  color: #d4d4d4;
+}
+
+.hljs-built_in,
+.hljs-deletion {
+  color: #c586c0;
+}
+
+.hljs-params {
+  color: #9cdcfe;
+}
+
+.hljs-property {
+  color: #9cdcfe;
+}
+
+.hljs-function {
+  color: #dcdcaa;
+}
+
+.hljs-tag {
+  color: #569cd6;
+}
+
+.hljs-formula {
+  background: #1e1e1e;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: bold;
+}
+

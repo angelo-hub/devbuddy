@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 
 import React, { useState, useEffect } from "react";
-import { Input, TextArea, Select, Button } from "@shared/components";
+import { Input, Select, Button, MarkdownEditor } from "@shared/components";
 import styles from "./TicketForm.module.css";
 
 interface TicketFormProps {
@@ -256,11 +256,11 @@ export const TicketForm: React.FC<TicketFormProps> = ({
           {/* Description */}
           <div className={styles.field}>
             <label className={styles.label}>Description</label>
-            <TextArea
+            <MarkdownEditor
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Add a description..."
-              rows={6}
+              onChange={setDescription}
+              placeholder="Add a description... (supports Markdown)"
+              minHeight={150}
             />
           </div>
 

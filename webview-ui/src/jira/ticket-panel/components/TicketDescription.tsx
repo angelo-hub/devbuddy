@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { TextArea } from "@shared/components/TextArea";
-import { Button } from "@shared/components/Button";
+import React, { useState, useMemo, useEffect } from "react";
+import { MarkdownEditor } from "@shared/components";
 import { renderADF } from "@shared/utils/adfRenderer";
+import { adfToMarkdown, markdownToAdf, isAdfDocument } from "@shared/utils/adfConverter";
 import styles from "./TicketDescription.module.css";
 
 interface TicketDescriptionProps {
@@ -14,34 +14,46 @@ export const TicketDescription: React.FC<TicketDescriptionProps> = ({
   onUpdateDescription,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedDescription, setEditedDescription] = useState(description);
+  
+  // Convert ADF to Markdown for editing
+  const markdownDescription = useMemo(() => {
+    if (isAdfDocument(description)) {
+      return adfToMarkdown(description);
+    }
+    return description;
+  }, [description]);
+  
+  const [editedMarkdown, setEditedMarkdown] = useState(markdownDescription);
+
+  // Sync when description prop changes
+  useEffect(() => {
+    if (!isEditing) {
+      // TODO: Avoid calling setState() directly within an effect
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      setEditedMarkdown(markdownDescription);
+    }
+  }, [markdownDescription, isEditing]);
 
   const handleSave = () => {
-    if (editedDescription !== description) {
-      onUpdateDescription(editedDescription);
-    }
+    // Convert Markdown back to ADF for Jira
+    const adf = markdownToAdf(editedMarkdown);
+    onUpdateDescription(JSON.stringify(adf));
     setIsEditing(false);
   };
 
   const handleCancel = () => {
-    setEditedDescription(description);
+    setEditedMarkdown(markdownDescription);
     setIsEditing(false);
   };
 
-  // Try to parse as ADF, fallback to plain text
-  let renderedDescription: React.ReactNode;
-  try {
-    const adf = JSON.parse(description);
-    if (adf && adf.type === "doc") {
-      renderedDescription = renderADF(adf);
-    } else {
-      // Not ADF format, display as plain text
-      renderedDescription = description;
+  // Render ADF for viewing
+  const renderedDescription = useMemo(() => {
+    if (isAdfDocument(description)) {
+      return renderADF(description);
     }
-  } catch {
-    // Not JSON or parse error, display as plain text
-    renderedDescription = description;
-  }
+    // Plain text fallback
+    return description ? <p>{description}</p> : null;
+  }, [description]);
 
   return (
     <div className={styles.container}>
@@ -55,11 +67,12 @@ export const TicketDescription: React.FC<TicketDescriptionProps> = ({
       </div>
       {isEditing ? (
         <div className={styles.editContainer}>
-          <textarea
-            value={editedDescription}
-            onChange={(e) => setEditedDescription(e.target.value)}
-            className={styles.textarea}
-            rows={10}
+          <MarkdownEditor
+            value={editedMarkdown}
+            onChange={setEditedMarkdown}
+            placeholder="Add a description..."
+            minHeight={200}
+            autoFocus
           />
           <div className={styles.actions}>
             <button onClick={handleSave} className={styles.saveButton}>

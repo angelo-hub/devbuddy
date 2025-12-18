@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useVSCode } from "@shared/hooks/useVSCode";
+import { MarkdownEditor } from "@shared/components";
+import { markdownToAdf } from "@shared/utils/adfConverter";
 import styles from "./App.module.css";
 
 interface JiraProject {
@@ -140,12 +142,17 @@ function App() {
       .map((l) => l.trim())
       .filter((l) => l.length > 0);
 
+    // Convert markdown description to ADF for Jira
+    const adfDescription = description.trim() 
+      ? JSON.stringify(markdownToAdf(description.trim()))
+      : "";
+
     postMessage({
       command: "createIssue",
       input: {
         projectKey: selectedProject,
         summary: summary.trim(),
-        description: description.trim(),
+        description: adfDescription,
         issueTypeId,
         priorityId: priorityId || undefined,
         assigneeId: assigneeId || undefined,
@@ -222,12 +229,11 @@ function App() {
         {/* Description */}
         <div className={styles.field}>
           <label className={styles.label}>Description</label>
-          <textarea
+          <MarkdownEditor
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={setDescription}
             placeholder="Detailed description..."
-            className={styles.textarea}
-            rows={6}
+            minHeight={150}
           />
         </div>
 

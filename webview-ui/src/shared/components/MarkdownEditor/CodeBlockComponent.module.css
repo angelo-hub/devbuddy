@@ -1,0 +1,126 @@
+/* Code block wrapper */
+.codeBlockWrapper {
+  position: relative;
+  margin: 12px 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: var(--vscode-textCodeBlock-background, #1e1e1e);
+  border: 1px solid var(--vscode-widget-border, #454545);
+}
+
+/* Header with language selector */
+.codeBlockHeader {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 4px 8px;
+  background-color: var(--vscode-editorWidget-background, #252526);
+  border-bottom: 1px solid var(--vscode-widget-border, #454545);
+}
+
+/* Language selector dropdown */
+.languageSelect {
+  appearance: none;
+  background-color: var(--vscode-dropdown-background, #3c3c3c);
+  color: var(--vscode-dropdown-foreground, #cccccc);
+  border: 1px solid var(--vscode-dropdown-border, #3c3c3c);
+  border-radius: 4px;
+  padding: 2px 24px 2px 8px;
+  font-size: 11px;
+  font-family: var(--vscode-font-family, system-ui);
+  cursor: pointer;
+  outline: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+}
+
+.languageSelect:hover {
+  background-color: var(--vscode-dropdown-background, #3c3c3c);
+  border-color: var(--vscode-focusBorder, #007acc);
+}
+
+.languageSelect:focus {
+  border-color: var(--vscode-focusBorder, #007acc);
+}
+
+.languageSelect option {
+  background-color: var(--vscode-dropdown-background, #3c3c3c);
+  color: var(--vscode-dropdown-foreground, #cccccc);
+}
+
+/* Container for overlay approach */
+.codeBlockContainer {
+  position: relative;
+  overflow-x: auto;
+}
+
+/* Highlighted backdrop - shows syntax highlighting (not editable) */
+.codeBlockBackdrop {
+  margin: 0;
+  padding: 12px 16px;
+  font-family: var(--vscode-editor-font-family, "Consolas", "Courier New", monospace);
+  font-size: var(--vscode-editor-font-size, 13px);
+  line-height: 1.5;
+  tab-size: 2;
+  white-space: pre;
+  pointer-events: none;
+  color: var(--vscode-editor-foreground, #d4d4d4);
+}
+
+.codeBlockBackdrop code {
+  font-family: inherit;
+  background: transparent;
+}
+
+/* Editable layer - on top, with transparent text */
+.codeBlockPre {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 12px 16px;
+  font-family: var(--vscode-editor-font-family, "Consolas", "Courier New", monospace);
+  font-size: var(--vscode-editor-font-size, 13px);
+  line-height: 1.5;
+  tab-size: 2;
+  white-space: pre;
+  overflow: visible;
+  background: transparent;
+}
+
+/* Code element - transparent text so backdrop shows through */
+.codeBlockCode {
+  font-family: inherit;
+  font-size: inherit;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--vscode-editorCursor-foreground, #aeafad);
+  outline: none;
+}
+
+/* Selection should be visible */
+.codeBlockCode::selection {
+  background: var(--vscode-editor-selectionBackground, rgba(38, 79, 120, 0.5));
+}
+
+/* Scrollbar styling */
+.codeBlockPre::-webkit-scrollbar {
+  height: 8px;
+}
+
+.codeBlockPre::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.codeBlockPre::-webkit-scrollbar-thumb {
+  background-color: var(--vscode-scrollbarSlider-background, #464646);
+  border-radius: 4px;
+}
+
+.codeBlockPre::-webkit-scrollbar-thumb:hover {
+  background-color: var(--vscode-scrollbarSlider-hoverBackground, #5a5a5a);
+}
+

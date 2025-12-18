@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { renderMarkdown } from "@shared/utils/markdownRenderer";
+import { MarkdownEditor } from "@shared/components";
 import styles from "./TicketDescription.module.css";
 
 interface TicketDescriptionProps {
@@ -13,6 +14,14 @@ export const TicketDescription: React.FC<TicketDescriptionProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedDescription, setEditedDescription] = useState(description || "");
+
+  // Sync editedDescription when description prop changes (e.g., after save)
+  useEffect(() => {
+    if (!isEditing) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setEditedDescription(description || "");
+    }
+  }, [description, isEditing]);
 
   const handleSave = () => {
     if (editedDescription !== description && onUpdateDescription) {
@@ -60,11 +69,11 @@ export const TicketDescription: React.FC<TicketDescriptionProps> = ({
 
       {isEditing ? (
         <>
-          <textarea
+          <MarkdownEditor
             value={editedDescription}
-            onChange={(e) => setEditedDescription(e.target.value)}
-            className={styles.descriptionTextarea}
-            rows={10}
+            onChange={setEditedDescription}
+            placeholder="Add a description..."
+            minHeight={200}
             autoFocus
           />
           <div className={styles.editButtons}>

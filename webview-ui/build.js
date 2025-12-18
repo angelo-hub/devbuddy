@@ -143,6 +143,11 @@ async function main() {
     bundle: true,
     format: "iife",
     minify: production,
+    treeShaking: true,
+    drop: production ? ["console", "debugger"] : [],
+    define: {
+      "process.env.NODE_ENV": production ? '"production"' : '"development"',
+    },
     sourcemap: false, // Disabled to prevent corruption issues in Cursor
     sourcesContent: false,
     platform: "browser",
