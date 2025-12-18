@@ -117,7 +117,9 @@ export const CodeBlockComponent: React.FC<NodeViewProps> = ({
         </pre>
         {/* Editable overlay - transparent text, handles editing */}
         <pre className={styles.codeBlockPre}>
-          <NodeViewContent as="code" className={styles.codeBlockCode} />
+          <code className={styles.codeBlockCode}>
+            <NodeViewContent />
+          </code>
         </pre>
       </div>
     </NodeViewWrapper>
