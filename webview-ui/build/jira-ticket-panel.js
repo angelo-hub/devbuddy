@@ -82527,23 +82527,16 @@ ${code2}
       return "";
     }
     const format2 = detectDescriptionFormat(description);
-    console.log("[Wiki Converter] Detected format:", format2);
-    console.log("[Wiki Converter] Input:", JSON.stringify(description.substring(0, 200)));
-    let result;
     switch (format2) {
       case "adf":
-        result = adfToMarkdown(description);
-        break;
+        return adfToMarkdown(description);
       case "wiki":
-        result = wikiToMarkdown(description);
-        break;
+        return wikiToMarkdown(description);
       case "markdown":
       case "plaintext":
       default:
-        result = description;
+        return description;
     }
-    console.log("[Wiki Converter] Output:", JSON.stringify(result.substring(0, 200)));
-    return result;
   }
 
   // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/jira/ticket-panel/components/TicketDescription.module.css
