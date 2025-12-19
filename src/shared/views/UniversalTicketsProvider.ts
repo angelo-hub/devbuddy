@@ -1086,12 +1086,14 @@ export class UniversalTicketsProvider
     const boards = await client.getBoards();
     
     if (boards.length === 0) {
+      // Check if this is because Agile features aren't available
       const item = new UniversalTicketTreeItem(
-        "No boards found",
+        "No sprints available",
         vscode.TreeItemCollapsibleState.None,
         "jira"
       );
       item.iconPath = new vscode.ThemeIcon("info");
+      item.tooltip = "Sprints require Jira Software. If you have Jira Software, create a Scrum board to use sprints.";
       return [item];
     }
 

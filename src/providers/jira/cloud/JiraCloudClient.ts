@@ -869,11 +869,56 @@ export class JiraCloudClient extends BaseJiraClient {
   }
 
   // ==================== Agile Operations ====================
+  
+  // Track if Agile API is available (Jira Software vs Jira Core)
+  private agileApiAvailable: boolean | null = null;
+
+  /**
+   * Check if Agile API is available (Jira Software feature)
+   * Returns false if instance is Jira Core only
+   */
+  async isAgileAvailable(): Promise<boolean> {
+    if (this.agileApiAvailable !== null) {
+      return this.agileApiAvailable;
+    }
+
+    try {
+      const agileBaseUrl = this.getApiBaseUrl().replace(
+        "/rest/api/3",
+        "/rest/agile/1.0"
+      );
+      const response = await fetch(`${agileBaseUrl}/board?maxResults=1`, {
+        headers: {
+          "Content-Type": "application/json",
+          ...this.getAuthHeaders(),
+        },
+      });
+
+      // 403 or 404 means Agile API not available (Jira Core)
+      this.agileApiAvailable = response.ok || response.status === 400;
+      
+      if (!this.agileApiAvailable) {
+        logger.info("Jira Agile API not available - this may be Jira Core (no Software features)");
+      }
+      
+      return this.agileApiAvailable;
+    } catch {
+      this.agileApiAvailable = false;
+      return false;
+    }
+  }
 
   /**
    * Get boards accessible to the user
+   * Returns empty array if Agile features not available
    */
   async getBoards(projectKey?: string): Promise<JiraBoard[]> {
+    // Check if Agile API is available first
+    if (!(await this.isAgileAvailable())) {
+      logger.debug("Skipping getBoards - Agile API not available");
+      return [];
+    }
+
     try {
       let endpoint = "/board";
       if (projectKey) {
@@ -881,11 +926,11 @@ export class JiraCloudClient extends BaseJiraClient {
       }
 
       // Note: Agile API is not in /rest/api/3, it's in /rest/agile/1.0
-      const agilBaseUrl = this.getApiBaseUrl().replace(
+      const agileBaseUrl = this.getApiBaseUrl().replace(
         "/rest/api/3",
         "/rest/agile/1.0"
       );
-      const url = `${agilBaseUrl}${endpoint}`;
+      const url = `${agileBaseUrl}${endpoint}`;
 
       const response = await fetch(url, {
         headers: {
@@ -895,6 +940,11 @@ export class JiraCloudClient extends BaseJiraClient {
       });
 
       if (!response.ok) {
+        // Don't log error for expected "no boards" cases
+        if (response.status === 404) {
+          logger.debug("No boards found");
+          return [];
+        }
         throw new Error(`Failed to get boards: ${response.statusText}`);
       }
 
