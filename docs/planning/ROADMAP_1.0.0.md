@@ -46,10 +46,10 @@ This document tracks the path to DevBuddy 1.0.0, focusing on:
 
 | Task | Priority | Effort | Status |
 |------|----------|--------|--------|
-| **Jira: Add "Recently Completed" section** | 🔴 P0 | 🟢 | ⬜ Not Started |
-| **Jira: Add "Project Unassigned" section** | 🔴 P0 | 🟢 | ⬜ Not Started |
-| **Jira: Add "Current Sprint" section** | 🔴 P0 | 🟡 | ⬜ Not Started |
-| **Jira: Show Sprint name in tree view** | 🟡 P1 | 🟢 | ⬜ Not Started |
+| **Jira: Add "Recently Completed" section** | 🔴 P0 | 🟢 | ✅ Done |
+| **Jira: Add "Project Unassigned" section** | 🔴 P0 | 🟢 | ✅ Done |
+| **Jira: Add "Current Sprint" section** | 🔴 P0 | 🟡 | ✅ Done |
+| **Jira: Show Sprint name in tree view** | 🟡 P1 | 🟢 | ✅ Done |
 | **Jira: Board quick-view (collapsible)** | 🟢 P2 | 🟡 | ⬜ Not Started |
 | **Linear: Add "Current Cycle" indicator** | 🟢 P2 | 🟢 | ⬜ Not Started |
 
@@ -336,10 +336,10 @@ These features will ship with 1.0 but remain marked as "Beta 💎":
 ## 9. Release Milestones
 
 ### Milestone 1: Sidebar Parity (Week 1-2)
-- [ ] Jira: Recently Completed section
-- [ ] Jira: Project Unassigned section
-- [ ] Jira: Current Sprint section
-- [ ] Jira: Sprint name display
+- [x] Jira: Recently Completed section
+- [x] Jira: Project Unassigned section
+- [x] Jira: Current Sprint section
+- [x] Jira: Sprint name display
 
 ### Milestone 2: Ticket Panel Parity (Week 2-3)
 - [ ] Jira: Branch Manager component

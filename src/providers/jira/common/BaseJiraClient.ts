@@ -94,6 +94,17 @@ export abstract class BaseJiraClient {
   abstract getMyIssues(): Promise<JiraIssue[]>;
 
   /**
+   * Get recently completed issues assigned to current user
+   * Returns issues resolved in the last N days
+   */
+  abstract getRecentlyCompletedIssues(daysAgo?: number): Promise<JiraIssue[]>;
+
+  /**
+   * Get unassigned issues for a project
+   */
+  abstract getProjectUnassignedIssues(projectKey: string, maxResults?: number): Promise<JiraIssue[]>;
+
+  /**
    * Create a new issue
    */
   abstract createIssue(input: CreateJiraIssueInput): Promise<JiraIssue | null>;
@@ -183,6 +194,21 @@ export abstract class BaseJiraClient {
    * Get active sprint for a board
    */
   abstract getActiveSprint(boardId: number): Promise<JiraSprint | null>;
+
+  /**
+   * Get issues in a specific sprint
+   */
+  abstract getSprintIssues(sprintId: number): Promise<JiraIssue[]>;
+
+  /**
+   * Get my issues in a specific sprint
+   */
+  abstract getMySprintIssues(sprintId: number): Promise<JiraIssue[]>;
+
+  /**
+   * Get unassigned issues in a specific sprint
+   */
+  abstract getSprintUnassignedIssues(sprintId: number): Promise<JiraIssue[]>;
 
   // ==================== Configuration ====================
 

@@ -569,8 +569,8 @@ export class UniversalTicketsProvider
    * Get unassigned issues for a project
    */
   private async getLinearProjectUnassigned(
-    client: LinearClient,
-    projectId: string
+    _client: LinearClient,
+    _projectId: string
   ): Promise<UniversalTicketTreeItem[]> {
     // TODO: Need to implement getProjectUnassignedIssues in LinearClient
     // For now, return empty
@@ -738,8 +738,12 @@ export class UniversalTicketsProvider
     }
 
     // Check if ticket has PR attachments
-    const attachmentNodes = (issue.attachments as any)?.nodes || [];
-    const hasPR = attachmentNodes.some((att: any) => {
+    interface AttachmentNode {
+      sourceType?: string;
+    }
+    const attachments = issue.attachments as { nodes?: AttachmentNode[] } | undefined;
+    const attachmentNodes = attachments?.nodes || [];
+    const hasPR = attachmentNodes.some((att: AttachmentNode) => {
       const sourceType = att.sourceType?.toLowerCase() || "";
       return (
         sourceType.includes("github") ||
@@ -821,24 +825,30 @@ export class UniversalTicketsProvider
 
       if (contextValue === "jiraSection:myIssues") {
         return this.getJiraMyIssues(client);
-      } else if (contextValue === "jiraSection:done") {
-        return this.getJiraRecentlyDone(client);
-      } else if (contextValue === "jiraSection:boards") {
-        return this.getJiraBoards(client);
+      } else if (contextValue === "jiraSection:completed") {
+        return this.getJiraRecentlyCompleted(client);
+      } else if (contextValue === "jiraSection:sprint") {
+        return this.getJiraCurrentSprint(client);
       } else if (contextValue === "jiraSection:projects") {
         return this.getJiraProjects(client);
       } else if (contextValue.startsWith("jiraStatusGroup:")) {
         // Expand status group to show issues
         const statusCategory = contextValue.split(":")[1];
         return this.getJiraIssuesByStatusCategory(client, statusCategory);
-      } else if (contextValue.startsWith("jiraBoard:")) {
-        // Expand board to show board's issues
-        const boardId = parseInt(contextValue.split(":")[1]);
-        return this.getJiraBoardIssues(client, boardId);
+      } else if (contextValue.startsWith("jiraSprint:")) {
+        // Expand sprint section (myTasks or unassigned)
+        const parts = contextValue.split(":");
+        const sprintId = parseInt(parts[1]);
+        const section = parts[2];
+        if (section === "myTasks") {
+          return this.getJiraSprintMyTasks(client, sprintId);
+        } else if (section === "unassigned") {
+          return this.getJiraSprintUnassigned(client, sprintId);
+        }
       } else if (contextValue.startsWith("jiraProject:")) {
-        // Expand project to show project's issues
+        // Expand project to show unassigned issues
         const projectKey = contextValue.split(":")[1];
-        return this.getJiraProjectIssues(client, projectKey);
+        return this.getJiraProjectUnassigned(client, projectKey);
       }
 
       return [];
@@ -864,7 +874,12 @@ export class UniversalTicketsProvider
   }
 
   /**
-   * Get the 3 main sections for Jira root view
+   * Get the main sections for Jira root view
+   * Matches the structure defined in ROADMAP_1.0.0.md:
+   * - My Issues (grouped by status)
+   * - Recently Completed
+   * - Current Sprint (with My Tasks and Unassigned)
+   * - Projects (with Unassigned issues)
    */
   private getJiraRootSections(): UniversalTicketTreeItem[] {
     return [
@@ -876,17 +891,17 @@ export class UniversalTicketsProvider
         "jira"
       ),
       this.createSectionHeader(
-        "jiraSection:done",
-        "Recently Done",
+        "jiraSection:completed",
+        "Recently Completed",
         "folder-opened",
         "charts.green",
         "jira"
       ),
       this.createSectionHeader(
-        "jiraSection:boards",
-        "Your Boards",
-        "folder-opened",
-        "charts.purple",
+        "jiraSection:sprint",
+        "Current Sprint",
+        "zap",
+        "charts.yellow",
         "jira"
       ),
       this.createSectionHeader(
@@ -983,19 +998,15 @@ export class UniversalTicketsProvider
   }
 
   /**
-   * Get Recently Done section - shows last 10 done issues
+   * Get Recently Completed section - shows last 10 completed issues
+   * Uses the dedicated API method for better performance
    */
-  private async getJiraRecentlyDone(client: BaseJiraClient): Promise<UniversalTicketTreeItem[]> {
-    const issues = await client.getMyIssues();
-    
-    // Filter for done issues
-    const doneIssues = issues.filter(
-      (i) => i.status.statusCategory.key === "done"
-    );
+  private async getJiraRecentlyCompleted(client: BaseJiraClient): Promise<UniversalTicketTreeItem[]> {
+    const completedIssues = await client.getRecentlyCompletedIssues(14);
 
-    if (doneIssues.length === 0) {
+    if (completedIssues.length === 0) {
       const item = new UniversalTicketTreeItem(
-        "No completed issues",
+        "No completed issues in the last 14 days",
         vscode.TreeItemCollapsibleState.None,
         "jira"
       );
@@ -1003,24 +1014,17 @@ export class UniversalTicketsProvider
       return [item];
     }
 
-    // Sort by updated date and limit to 10
-    const sortedIssues = doneIssues
-      .sort((a, b) => {
-        const dateA = new Date(a.updated).getTime();
-        const dateB = new Date(b.updated).getTime();
-        return dateB - dateA;
-      })
-      .slice(0, 10);
-
-    return sortedIssues.map((issue) => this.createJiraIssueItem(issue));
+    // Limit to 10 for better UX
+    return completedIssues.slice(0, 10).map((issue) => this.createJiraIssueItem(issue));
   }
 
   /**
-   * Get Your Boards section - shows all boards (teams)
+   * Get Current Sprint section - shows sprint info with My Tasks and Unassigned
    */
-  private async getJiraBoards(client: BaseJiraClient): Promise<UniversalTicketTreeItem[]> {
+  private async getJiraCurrentSprint(client: BaseJiraClient): Promise<UniversalTicketTreeItem[]> {
+    // First, get boards to find one with an active sprint
     const boards = await client.getBoards();
-
+    
     if (boards.length === 0) {
       const item = new UniversalTicketTreeItem(
         "No boards found",
@@ -1031,58 +1035,134 @@ export class UniversalTicketsProvider
       return [item];
     }
 
-    return boards.map((board) => {
-      const item = new UniversalTicketTreeItem(
-        board.name,
-        vscode.TreeItemCollapsibleState.Collapsed,
-        "jira",
-        undefined,
-        `jiraBoard:${board.id}`
-      );
-      
-      // Different icons for Scrum vs Kanban
-      const icon = board.type === "scrum" ? "rocket" : "layout";
-      item.iconPath = new vscode.ThemeIcon(icon);
-      
-      // Show board type and project in tooltip
-      const projectInfo = board.location 
-        ? ` (${board.location.projectName})`
-        : "";
-      item.tooltip = `${board.name} - ${board.type}${projectInfo}`;
-      
-      return item;
-    });
-  }
-
-  /**
-   * Get issues for a specific board
-   */
-  private async getJiraBoardIssues(
-    client: BaseJiraClient,
-    _boardId: number
-  ): Promise<UniversalTicketTreeItem[]> {
-    // Get all issues and filter by board
-    // Note: We'd need to implement getBoardIssues in JiraCloudClient for proper filtering
-    // For now, we'll show a placeholder or filter from all issues
-    const allIssues = await client.getMyIssues();
+    // Find first board with an active sprint (try scrum boards first)
+    const scrumBoards = boards.filter(b => b.type === "scrum");
+    const boardsToCheck = [...scrumBoards, ...boards.filter(b => b.type !== "scrum")];
     
-    if (allIssues.length === 0) {
+    let activeSprint = null;
+    let boardWithSprint = null;
+    
+    for (const board of boardsToCheck.slice(0, 5)) { // Limit to 5 boards to avoid too many API calls
+      const sprint = await client.getActiveSprint(board.id);
+      if (sprint) {
+        activeSprint = sprint;
+        boardWithSprint = board;
+        break;
+      }
+    }
+
+    if (!activeSprint) {
       const item = new UniversalTicketTreeItem(
-        "No issues on this board",
+        "No active sprint found",
         vscode.TreeItemCollapsibleState.None,
         "jira"
       );
       item.iconPath = new vscode.ThemeIcon("info");
+      item.tooltip = "Start a sprint in Jira to see it here";
       return [item];
     }
 
-    // TODO: Implement proper board issue filtering in JiraCloudClient
-    // For now, show all user's issues as a fallback
-    return allIssues.slice(0, 20).map((issue) => this.createJiraIssueItem(issue));
+    const items: UniversalTicketTreeItem[] = [];
+
+    // Sprint name header
+    const sprintHeader = new UniversalTicketTreeItem(
+      `⚡ ${activeSprint.name}`,
+      vscode.TreeItemCollapsibleState.None,
+      "jira",
+      undefined,
+      "jiraSprintHeader"
+    );
+    sprintHeader.iconPath = new vscode.ThemeIcon("milestone", new vscode.ThemeColor("charts.yellow"));
+    sprintHeader.description = boardWithSprint?.name;
+    sprintHeader.tooltip = activeSprint.goal 
+      ? `Goal: ${activeSprint.goal}\nBoard: ${boardWithSprint?.name}`
+      : `Board: ${boardWithSprint?.name}`;
+    items.push(sprintHeader);
+
+    // Get sprint issues to show counts
+    const sprintIssues = await client.getSprintIssues(activeSprint.id);
+    const myIssues = sprintIssues.filter(i => i.assignee !== null);
+    const unassignedIssues = sprintIssues.filter(i => i.assignee === null);
+
+    // My Sprint Tasks (collapsible)
+    const myTasksItem = new UniversalTicketTreeItem(
+      `My Tasks (${myIssues.length})`,
+      vscode.TreeItemCollapsibleState.Collapsed,
+      "jira",
+      undefined,
+      `jiraSprint:${activeSprint.id}:myTasks`
+    );
+    myTasksItem.iconPath = new vscode.ThemeIcon("account", new vscode.ThemeColor("charts.blue"));
+    items.push(myTasksItem);
+
+    // Unassigned (collapsible)
+    const unassignedItem = new UniversalTicketTreeItem(
+      `Unassigned (${unassignedIssues.length})`,
+      vscode.TreeItemCollapsibleState.Collapsed,
+      "jira",
+      undefined,
+      `jiraSprint:${activeSprint.id}:unassigned`
+    );
+    unassignedItem.iconPath = new vscode.ThemeIcon("person", new vscode.ThemeColor("charts.orange"));
+    items.push(unassignedItem);
+
+    return items;
   }
 
   /**
-   * Get Projects section - shows all projects
+   * Get my tasks in a specific sprint
+   */
+  private async getJiraSprintMyTasks(client: BaseJiraClient, sprintId: number): Promise<UniversalTicketTreeItem[]> {
+    const myIssues = await client.getMySprintIssues(sprintId);
+
+    if (myIssues.length === 0) {
+      const item = new UniversalTicketTreeItem(
+        "No tasks assigned to you in this sprint",
+        vscode.TreeItemCollapsibleState.None,
+        "jira"
+      );
+      item.iconPath = new vscode.ThemeIcon("check", new vscode.ThemeColor("charts.green"));
+      return [item];
+    }
+
+    return myIssues.map((issue) => this.createJiraIssueItem(issue));
+  }
+
+  /**
+   * Get unassigned issues in a specific sprint
+   */
+  private async getJiraSprintUnassigned(client: BaseJiraClient, sprintId: number): Promise<UniversalTicketTreeItem[]> {
+    const unassignedIssues = await client.getSprintUnassignedIssues(sprintId);
+
+    if (unassignedIssues.length === 0) {
+      const item = new UniversalTicketTreeItem(
+        "No unassigned issues in this sprint",
+        vscode.TreeItemCollapsibleState.None,
+        "jira"
+      );
+      item.iconPath = new vscode.ThemeIcon("check", new vscode.ThemeColor("charts.green"));
+      return [item];
+    }
+
+    // Limit to 20 for performance
+    const items = unassignedIssues.slice(0, 20).map((issue) => this.createJiraIssueItem(issue));
+    
+    if (unassignedIssues.length > 20) {
+      const moreItem = new UniversalTicketTreeItem(
+        `... and ${unassignedIssues.length - 20} more`,
+        vscode.TreeItemCollapsibleState.None,
+        "jira"
+      );
+      moreItem.iconPath = new vscode.ThemeIcon("ellipsis");
+      moreItem.tooltip = "View more in Jira";
+      items.push(moreItem);
+    }
+
+    return items;
+  }
+
+  /**
+   * Get Projects section - shows all projects with unassigned issues
    */
   private async getJiraProjects(client: BaseJiraClient): Promise<UniversalTicketTreeItem[]> {
     const projects = await client.getProjects();
@@ -1131,27 +1211,40 @@ export class UniversalTicketsProvider
   }
 
   /**
-   * Get issues for a specific project
+   * Get unassigned issues for a specific project
+   * This matches the Linear sidebar behavior of showing unassigned items under projects
    */
-  private async getJiraProjectIssues(
+  private async getJiraProjectUnassigned(
     client: BaseJiraClient,
     projectKey: string
   ): Promise<UniversalTicketTreeItem[]> {
-    // Filter issues by project
-    const allIssues = await client.getMyIssues();
-    const projectIssues = allIssues.filter((i) => i.project.key === projectKey);
+    const unassignedIssues = await client.getProjectUnassignedIssues(projectKey, 20);
 
-    if (projectIssues.length === 0) {
+    if (unassignedIssues.length === 0) {
       const item = new UniversalTicketTreeItem(
-        "No issues in this project",
+        "No unassigned issues",
         vscode.TreeItemCollapsibleState.None,
         "jira"
       );
-      item.iconPath = new vscode.ThemeIcon("info");
+      item.iconPath = new vscode.ThemeIcon("check", new vscode.ThemeColor("charts.green"));
       return [item];
     }
 
-    return projectIssues.map((issue) => this.createJiraIssueItem(issue));
+    const items = unassignedIssues.map((issue) => this.createJiraIssueItem(issue));
+    
+    // Add "more" indicator if we hit the limit
+    if (unassignedIssues.length === 20) {
+      const moreItem = new UniversalTicketTreeItem(
+        "... and more in Jira",
+        vscode.TreeItemCollapsibleState.None,
+        "jira"
+      );
+      moreItem.iconPath = new vscode.ThemeIcon("ellipsis");
+      moreItem.tooltip = "View more unassigned issues in Jira";
+      items.push(moreItem);
+    }
+
+    return items;
   }
 
   private groupJiraIssuesByStatusCategory(issues: JiraIssue[]) {

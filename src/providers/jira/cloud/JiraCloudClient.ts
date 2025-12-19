@@ -315,6 +315,27 @@ export class JiraCloudClient extends BaseJiraClient {
   }
 
   /**
+   * Get recently completed issues assigned to current user
+   * Returns issues resolved in the last 14 days, sorted by resolution date
+   */
+  async getRecentlyCompletedIssues(daysAgo: number = 14): Promise<JiraIssue[]> {
+    try {
+      const user = await this.getCurrentUser();
+      if (!user) {
+        return [];
+      }
+
+      return this.searchIssues({
+        jql: `assignee = currentUser() AND resolution IS NOT EMPTY AND resolved >= -${daysAgo}d ORDER BY resolved DESC`,
+        maxResults: 20,
+      });
+    } catch (error) {
+      logger.error("Failed to get recently completed issues:", error);
+      return [];
+    }
+  }
+
+  /**
    * Create a new issue
    */
   async createIssue(input: CreateJiraIssueInput): Promise<JiraIssue | null> {
@@ -660,6 +681,22 @@ export class JiraCloudClient extends BaseJiraClient {
   }
 
   /**
+   * Get unassigned issues for a project
+   * Returns issues that have no assignee, limited to recent unresolved ones
+   */
+  async getProjectUnassignedIssues(projectKey: string, maxResults: number = 20): Promise<JiraIssue[]> {
+    try {
+      return this.searchIssues({
+        jql: `project = "${projectKey}" AND assignee IS EMPTY AND resolution = Unresolved ORDER BY priority DESC, created DESC`,
+        maxResults,
+      });
+    } catch (error) {
+      logger.error(`Failed to get unassigned issues for project ${projectKey}:`, error);
+      return [];
+    }
+  }
+
+  /**
    * Get a single project by key
    */
   async getProject(key: string): Promise<JiraProject | null> {
@@ -945,6 +982,61 @@ export class JiraCloudClient extends BaseJiraClient {
       logger.error(`Failed to get active sprint for board ${boardId}:`, error);
       return null;
     }
+  }
+
+  /**
+   * Get issues in a specific sprint
+   */
+  async getSprintIssues(sprintId: number): Promise<JiraIssue[]> {
+    try {
+      const agileBaseUrl = this.getApiBaseUrl().replace(
+        "/rest/api/3",
+        "/rest/agile/1.0"
+      );
+      const url = `${agileBaseUrl}/sprint/${sprintId}/issue?maxResults=100`;
+
+      const response = await fetch(url, {
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          ...this.getAuthHeaders(),
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch sprint issues: ${response.statusText}`);
+      }
+
+      const data = await response.json() as { issues?: any[] };
+      return data.issues?.map((issue: any) => this.normalizeIssue(issue)) || [];
+    } catch (error) {
+      logger.error(`Failed to fetch issues for sprint ${sprintId}`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Get my issues in the current sprint
+   */
+  async getMySprintIssues(sprintId: number): Promise<JiraIssue[]> {
+    const allIssues = await this.getSprintIssues(sprintId);
+    const currentUser = await this.getCurrentUser();
+    
+    if (!currentUser) {
+      return [];
+    }
+
+    return allIssues.filter(
+      (issue) => issue.assignee?.accountId === currentUser.accountId
+    );
+  }
+
+  /**
+   * Get unassigned issues in the current sprint
+   */
+  async getSprintUnassignedIssues(sprintId: number): Promise<JiraIssue[]> {
+    const allIssues = await this.getSprintIssues(sprintId);
+    return allIssues.filter((issue) => !issue.assignee);
   }
 
   // ==================== Helper Methods ====================
