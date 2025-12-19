@@ -326,10 +326,97 @@ These features will ship with 1.0 but remain marked as "Beta 💎":
 |---------|--------|-------|
 | **AI Ticket Creation** | 🚧 In Progress | Via chat `/create` |
 | **Workspace Profiles** | ⬜ Planned | Multi-account support |
-| **Team Analytics** | ⬜ Planned | Post-1.0 |
 | **Advanced AI Prompts** | ⬜ Planned | Custom prompt templates |
 | **Standup Builder** | ✅ Done | Keep Beta label |
 | **PR Summary** | ✅ Done | Keep Beta label |
+
+---
+
+## 8.1 Pro Features Roadmap (Post-1.0)
+
+### Developer Stats Dashboard 💎
+
+Linear is clean but buries stats. Surface the "scoreboard" right in VS Code.
+
+#### Core Stats (Status Bar Widget)
+
+| Metric | Description | Priority |
+|--------|-------------|----------|
+| **WIP Count** | Active issues assigned to me (excluding Done) | 🔴 P0 |
+| **Blocked Count** | Issues in blocked/waiting state | 🔴 P0 |
+| **Done (7d)** | Issues completed in last 7 days | 🔴 P0 |
+| **Cycle Progress** | Personal % of current cycle/sprint completed | 🟡 P1 |
+
+#### Smart Insights
+
+| Metric | Description | Priority |
+|--------|-------------|----------|
+| **Stale Tasks** | Assigned to me, not updated in 5+ days | 🔴 P0 |
+| **Review Load** | PRs open linked to my issues | 🟡 P1 |
+| **Needs Input** | Issues waiting on others (blocked by) | 🟡 P1 |
+| **Lead Time** | Avg time from started → done | 🟢 P2 |
+
+#### UI Design
+
+```
+┌─────────────────────────────────────────────────┐
+│ Status Bar:  📋 WIP: 7  🚫 Blocked: 2  ✅ Done: 9 │
+└─────────────────────────────────────────────────┘
+
+Click → Opens Stats Panel:
+┌─────────────────────────────────────────────────┐
+│ Your Progress                          This Week │
+├─────────────────────────────────────────────────┤
+│ ✅ Completed        9 issues                     │
+│ 🔄 In Progress      4 issues                     │
+│ 📋 To Do            3 issues                     │
+│ 🚫 Blocked          2 issues                     │
+├─────────────────────────────────────────────────┤
+│ ⚠️  Stale Work (5+ days)                         │
+│    • ENG-123: Fix login bug (7 days)            │
+│    • ENG-456: Update docs (12 days)             │
+├─────────────────────────────────────────────────┤
+│ 🔄 Cycle Progress: 60% (6/10 issues)            │
+│ ████████████░░░░░░░░                            │
+└─────────────────────────────────────────────────┘
+```
+
+#### Implementation Notes
+
+- **Platform agnostic** - Same widget for Linear + Jira
+- **Configurable thresholds** - "Stale" = 5 days default, user-configurable
+- **Click-through** - Each stat opens filtered view in sidebar
+- **Refresh interval** - Background refresh every 5 minutes
+- **Offline-friendly** - Cache last known stats
+
+#### API Requirements
+
+Linear:
+```graphql
+query MyStats {
+  viewer {
+    assignedIssues(filter: { state: { type: { nin: ["completed", "canceled"] } } }) {
+      nodes { id updatedAt state { type } }
+    }
+  }
+  # Cycle progress via cycle query
+}
+```
+
+Jira:
+```
+JQL: assignee = currentUser() AND resolution = Unresolved
+JQL: assignee = currentUser() AND updated < -5d AND resolution = Unresolved
+```
+
+### Team Analytics 💎 (Post-1.0)
+
+| Feature | Description | Priority |
+|---------|-------------|----------|
+| **Team velocity** | Story points/issues per sprint | 🟡 P1 |
+| **Burndown chart** | Sprint progress visualization | 🟢 P2 |
+| **Cycle time distribution** | How long issues take | 🟢 P2 |
+| **Bottleneck detection** | States where issues get stuck | 🟢 P2 |
 
 ---
 
