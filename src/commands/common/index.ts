@@ -1,11 +1,15 @@
 import * as vscode from "vscode";
-import { UniversalTicketsProvider } from "@shared/views/UniversalTicketsProvider";
+import { UniversalTicketsProvider, TicketItem } from "@shared/views/UniversalTicketsProvider";
 import { getLogger } from "@shared/utils/logger";
 import { showKeyboardShortcuts, showFAQ } from "./helpCommands";
 import { getTelemetryManager } from "@shared/utils/telemetryManager";
 import { LinearClient } from "@providers/linear/LinearClient";
+import { LinearIssue } from "@providers/linear/types";
+import { JiraIssue } from "@providers/jira/common/types";
 import { runJiraCloudSetup } from "@providers/jira/cloud/firstTimeSetup";
 import { runJiraServerSetup } from "@providers/jira/server/firstTimeSetup";
+import { fuzzySearch } from "@shared/utils/fuzzySearch";
+import { formatRelativeTime } from "@shared/utils/timeFormatter";
 
 /**
  * Register common commands that work across all platforms
@@ -694,6 +698,164 @@ export function registerCommonCommands(
             break;
         }
       }
+    }),
+
+    // ==================== SEARCH COMMANDS ====================
+    
+    vscode.commands.registerCommand("devBuddy.searchTickets", async () => {
+      if (!ticketsProvider) {
+        vscode.window.showErrorMessage("Ticket provider not available");
+        return;
+      }
+
+      const currentQuery = ticketsProvider.getSearchQuery();
+      
+      // Get all cached issues
+      let allIssues = ticketsProvider.getIssues();
+      
+      // If no cached issues, fetch them first
+      if (allIssues.length === 0) {
+        await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: "Loading tickets...",
+            cancellable: false,
+          },
+          async () => {
+            await ticketsProvider.refresh();
+            allIssues = ticketsProvider.getIssues();
+          }
+        );
+      }
+
+      // Create QuickPick
+      const quickPick = vscode.window.createQuickPick<vscode.QuickPickItem & { ticket: TicketItem }>();
+      quickPick.placeholder = "Search tickets by ID, title, or description (min 3 characters)";
+      quickPick.matchOnDescription = true;
+      quickPick.matchOnDetail = true;
+      quickPick.value = currentQuery || "";
+
+      // Helper functions for platform-agnostic ticket access
+      const getIdentifier = (item: TicketItem) => {
+        return 'identifier' in item ? item.identifier : (item as JiraIssue).key;
+      };
+      
+      const getTitle = (item: TicketItem) => {
+        return 'title' in item ? item.title : (item as JiraIssue).summary;
+      };
+
+      // Helper to update items based on query
+      const updateItems = (query: string) => {
+        if (!query || query.length < 3) {
+          quickPick.items = [];
+          quickPick.busy = false;
+          return;
+        }
+
+        // Apply fuzzy search
+        const results = fuzzySearch(
+          allIssues,
+          query,
+          [
+            getIdentifier,
+            getTitle,
+            (item) => item.description || "",
+          ]
+        );
+
+        quickPick.items = results.map((ticket) => {
+          // Determine status and priority (platform agnostic)
+          const identifier = getIdentifier(ticket);
+          const title = getTitle(ticket);
+          const statusName = (ticket as LinearIssue).state?.name || (ticket as JiraIssue).status?.name || "Unknown";
+          const priorityInfo = (ticket as LinearIssue).priority || (ticket as JiraIssue).priority;
+          const priorityName = typeof priorityInfo === 'object' && priorityInfo !== null && 'name' in priorityInfo
+            ? priorityInfo.name 
+            : typeof priorityInfo === 'string' || typeof priorityInfo === 'number'
+              ? String(priorityInfo)
+              : "Unknown";
+          
+          // Get assignee info (platform agnostic)
+          const assignee = (ticket as LinearIssue).assignee || (ticket as JiraIssue).assignee;
+          const assigneeName = assignee 
+            ? ('name' in assignee ? assignee.name : 'displayName' in assignee ? assignee.displayName : "Unknown")
+            : "Unassigned";
+          
+          // Get last updated time
+          const updatedAt = (ticket as LinearIssue).updatedAt || (ticket as JiraIssue).updated;
+          const relativeTime = updatedAt ? formatRelativeTime(updatedAt) : "Unknown";
+          
+          // Build detail string with all info
+          const detailParts = [
+            statusName,
+            `${priorityName} priority`,
+            `Updated ${relativeTime}`,
+            `Assignee: ${assigneeName}`
+          ];
+          
+          // Create QuickPickItem with avatar support
+          const item: vscode.QuickPickItem & { ticket: TicketItem } = {
+            label: `$(issue-opened) ${identifier}`,
+            description: title,
+            detail: detailParts.join(" • "),
+            ticket: ticket,
+          };
+          
+          // Add avatar icon if available
+          const avatarUrl = assignee?.avatarUrl;
+          if (avatarUrl) {
+            item.iconPath = vscode.Uri.parse(avatarUrl);
+          }
+          
+          return item;
+        });
+
+        quickPick.busy = false;
+      };
+
+      // Initial population
+      if (currentQuery && currentQuery.length >= 3) {
+        updateItems(currentQuery);
+      }
+
+      // Handle query changes
+      quickPick.onDidChangeValue((value) => {
+        quickPick.busy = true;
+        updateItems(value);
+      });
+
+      // Handle selection
+      quickPick.onDidAccept(() => {
+        const selectedItem = quickPick.selectedItems[0];
+        if (selectedItem) {
+          quickPick.hide();
+          
+          // Open the ticket
+          const ticket = selectedItem.ticket;
+          if ('identifier' in ticket) {
+            // Linear ticket
+            vscode.commands.executeCommand("devBuddy.openTicket", ticket);
+          } else {
+            // Jira ticket
+            vscode.commands.executeCommand("devBuddy.jira.viewIssueDetails", { issue: ticket });
+          }
+        }
+      });
+
+      quickPick.onDidHide(() => quickPick.dispose());
+      quickPick.show();
+    }),
+
+    vscode.commands.registerCommand("devBuddy.clearSearch", () => {
+      if (ticketsProvider) {
+        ticketsProvider.clearSearch();
+        logger.info("Search cleared");
+      }
+    }),
+
+    vscode.commands.registerCommand("devBuddy.quickOpenTicket", async () => {
+      // This is the keyboard shortcut command - just trigger search
+      await vscode.commands.executeCommand("devBuddy.searchTickets");
     }),
 
     // ==================== DEBUG COMMANDS ====================
