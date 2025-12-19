@@ -81104,6 +81104,18 @@ ${element2.innerHTML}
 
   // webview-ui/src/linear/ticket-panel/App.tsx
   var import_jsx_runtime36 = __toESM(require_jsx_runtime());
+  function extractLabels(labels) {
+    if (!labels) {
+      return [];
+    }
+    if (Array.isArray(labels)) {
+      return labels;
+    }
+    if ("nodes" in labels) {
+      return labels.nodes;
+    }
+    return [];
+  }
   function App() {
     const { postMessage, onMessage } = useVSCode();
     const [issue, setIssue] = (0, import_react33.useState)(
@@ -81284,7 +81296,7 @@ ${element2.innerHTML}
       /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(
         LabelSelector,
         {
-          currentLabels: issue.labels || [],
+          currentLabels: extractLabels(issue.labels),
           availableLabels,
           onUpdateLabels: handleUpdateLabels,
           onLoadLabels: handleLoadLabels,

@@ -35,6 +35,20 @@ declare global {
   }
 }
 
+// Helper to extract labels from either array or { nodes: [] } format
+function extractLabels(labels: LinearIssue["labels"]): LinearLabel[] {
+  if (!labels) {
+    return [];
+  }
+  if (Array.isArray(labels)) {
+    return labels;
+  }
+  if ("nodes" in labels) {
+    return labels.nodes;
+  }
+  return [];
+}
+
 function App() {
   const { postMessage, onMessage } = useVSCode<
     TicketPanelMessageFromExtension,
@@ -248,7 +262,7 @@ function App() {
       />
 
       <LabelSelector
-        currentLabels={issue.labels || []}
+        currentLabels={extractLabels(issue.labels)}
         availableLabels={availableLabels}
         onUpdateLabels={handleUpdateLabels}
         onLoadLabels={handleLoadLabels}

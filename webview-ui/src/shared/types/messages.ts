@@ -94,7 +94,13 @@ export interface LinearIssue {
     id: string;
     name: string;
     color: string;
-  }>;
+  }> | {
+    nodes: Array<{
+      id: string;
+      name: string;
+      color: string;
+    }>;
+  };
   team?: {
     id: string;
     name: string;
