@@ -24466,10 +24466,10 @@
             }
           }
           var jsx19 = jsxWithValidationDynamic;
-          var jsxs15 = jsxWithValidationStatic;
+          var jsxs16 = jsxWithValidationStatic;
           exports.Fragment = REACT_FRAGMENT_TYPE;
           exports.jsx = jsx19;
-          exports.jsxs = jsxs15;
+          exports.jsxs = jsxs16;
         })();
       }
     }
@@ -26334,7 +26334,7 @@
 
   // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/shared/components/Badge.module.css
   var style6 = document.createElement("style");
-  style6.textContent = ".badge_Badge {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  padding: 3px 8px;\n  border-radius: 4px;\n  font-size: 11px;\n  font-weight: 500;\n}\n\n.default_Badge {\n  background-color: var(--badge-background);\n  color: var(--badge-foreground);\n}\n\n.status_Badge {\n  padding: 4px 10px;\n  border-radius: 12px;\n  font-size: 12px;\n  border: 1px solid;\n}\n\n.priority_Badge {\n  font-size: 12px;\n}\n\n";
+  style6.textContent = ".badge_Badge {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  padding: 3px 8px;\n  border-radius: 4px;\n  font-size: 11px;\n  font-weight: 500;\n}\n\n.default_Badge {\n  background-color: var(--badge-background);\n  color: var(--badge-foreground);\n}\n\n.status_Badge {\n  padding: 4px 10px;\n  border-radius: 12px;\n  font-size: 12px;\n  border: 1px solid;\n}\n\n.priority_Badge {\n  font-size: 12px;\n}\n\n.removable_Badge {\n  padding-right: 4px;\n}\n\n.removeButton_Badge {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  width: 14px;\n  height: 14px;\n  padding: 0;\n  margin-left: 2px;\n  background: transparent;\n  border: none;\n  border-radius: 50%;\n  color: currentColor;\n  opacity: 0.6;\n  cursor: pointer;\n  transition: all 0.15s ease;\n}\n\n.removeButton_Badge:hover {\n  opacity: 1;\n  background-color: rgba(0, 0, 0, 0.15);\n}\n\n";
   document.head.appendChild(style6);
 
   // webview-ui/src/shared/components/Badge.tsx

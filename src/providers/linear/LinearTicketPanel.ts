@@ -97,6 +97,18 @@ export class LinearTicketPanel {
           case "loadAllBranches":
             await this.handleLoadAllBranches();
             break;
+          case "loadLabels":
+            await this.handleLoadLabels(message.teamId);
+            break;
+          case "updateLabels":
+            await this.handleUpdateLabels(message.labelIds);
+            break;
+          case "loadCycles":
+            await this.handleLoadCycles(message.teamId);
+            break;
+          case "updateCycle":
+            await this.handleUpdateCycle(message.cycleId);
+            break;
         }
       },
       null,
@@ -452,6 +464,94 @@ export class LinearTicketPanel {
         currentBranch: null,
         suggestions: [],
       });
+    }
+  }
+
+  /**
+   * Handle loading labels for a team
+   */
+  private async handleLoadLabels(teamId: string): Promise<void> {
+    try {
+      const client = await this.getClient();
+      const labels = await client.getTeamLabels(teamId);
+      this._panel.webview.postMessage({
+        command: "labelsLoaded",
+        labels,
+      });
+    } catch (error) {
+      console.error("[Linear Buddy] Failed to load labels:", error);
+      this._panel.webview.postMessage({
+        command: "labelsLoaded",
+        labels: [],
+      });
+    }
+  }
+
+  /**
+   * Handle updating labels on an issue
+   */
+  private async handleUpdateLabels(labelIds: string[]): Promise<void> {
+    if (!this._issue) {
+      return;
+    }
+
+    const client = await this.getClient();
+    const success = await client.updateIssueLabels(
+      this._issue.id,
+      labelIds
+    );
+
+    if (success) {
+      vscode.window.showInformationMessage("Labels updated!");
+      await this.refresh();
+      // Refresh the sidebar
+      vscode.commands.executeCommand("devBuddy.refreshTickets");
+    } else {
+      vscode.window.showErrorMessage("Failed to update labels");
+    }
+  }
+
+  /**
+   * Handle loading cycles for a team
+   */
+  private async handleLoadCycles(teamId: string): Promise<void> {
+    try {
+      const client = await this.getClient();
+      const cycles = await client.getTeamCycles(teamId);
+      this._panel.webview.postMessage({
+        command: "cyclesLoaded",
+        cycles,
+      });
+    } catch (error) {
+      console.error("[Linear Buddy] Failed to load cycles:", error);
+      this._panel.webview.postMessage({
+        command: "cyclesLoaded",
+        cycles: [],
+      });
+    }
+  }
+
+  /**
+   * Handle updating the cycle on an issue
+   */
+  private async handleUpdateCycle(cycleId: string | null): Promise<void> {
+    if (!this._issue) {
+      return;
+    }
+
+    const client = await this.getClient();
+    const success = await client.updateIssueCycle(
+      this._issue.id,
+      cycleId
+    );
+
+    if (success) {
+      vscode.window.showInformationMessage("Cycle updated!");
+      await this.refresh();
+      // Refresh the sidebar
+      vscode.commands.executeCommand("devBuddy.refreshTickets");
+    } else {
+      vscode.window.showErrorMessage("Failed to update cycle");
     }
   }
 

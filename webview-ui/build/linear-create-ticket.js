@@ -24470,10 +24470,10 @@
             }
           }
           var jsx16 = jsxWithValidationDynamic;
-          var jsxs11 = jsxWithValidationStatic;
+          var jsxs12 = jsxWithValidationStatic;
           exports.Fragment = REACT_FRAGMENT_TYPE;
           exports.jsx = jsx16;
-          exports.jsxs = jsxs11;
+          exports.jsxs = jsxs12;
         })();
       }
     }
@@ -26404,7 +26404,7 @@
 
   // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/shared/components/Badge.module.css
   var style5 = document.createElement("style");
-  style5.textContent = ".badge_Badge {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  padding: 3px 8px;\n  border-radius: 4px;\n  font-size: 11px;\n  font-weight: 500;\n}\n\n.default_Badge {\n  background-color: var(--badge-background);\n  color: var(--badge-foreground);\n}\n\n.status_Badge {\n  padding: 4px 10px;\n  border-radius: 12px;\n  font-size: 12px;\n  border: 1px solid;\n}\n\n.priority_Badge {\n  font-size: 12px;\n}\n\n";
+  style5.textContent = ".badge_Badge {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  padding: 3px 8px;\n  border-radius: 4px;\n  font-size: 11px;\n  font-weight: 500;\n}\n\n.default_Badge {\n  background-color: var(--badge-background);\n  color: var(--badge-foreground);\n}\n\n.status_Badge {\n  padding: 4px 10px;\n  border-radius: 12px;\n  font-size: 12px;\n  border: 1px solid;\n}\n\n.priority_Badge {\n  font-size: 12px;\n}\n\n.removable_Badge {\n  padding-right: 4px;\n}\n\n.removeButton_Badge {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  width: 14px;\n  height: 14px;\n  padding: 0;\n  margin-left: 2px;\n  background: transparent;\n  border: none;\n  border-radius: 50%;\n  color: currentColor;\n  opacity: 0.6;\n  cursor: pointer;\n  transition: all 0.15s ease;\n}\n\n.removeButton_Badge:hover {\n  opacity: 1;\n  background-color: rgba(0, 0, 0, 0.15);\n}\n\n";
   document.head.appendChild(style5);
 
   // webview-ui/src/shared/components/Badge.tsx
@@ -78891,7 +78891,7 @@ ${element2.innerHTML}
       ) }),
       /* @__PURE__ */ (0, import_jsx_runtime19.jsxs)("div", { className: CodeBlockComponent_default.codeBlockContainer, children: [
         /* @__PURE__ */ (0, import_jsx_runtime19.jsx)("pre", { className: CodeBlockComponent_default.codeBlockBackdrop, "aria-hidden": "true", children: /* @__PURE__ */ (0, import_jsx_runtime19.jsx)("code", { dangerouslySetInnerHTML: { __html: highlightedCode } }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime19.jsx)("pre", { className: CodeBlockComponent_default.codeBlockPre, children: /* @__PURE__ */ (0, import_jsx_runtime19.jsx)(NodeViewContent, { as: "code", className: CodeBlockComponent_default.codeBlockCode }) })
+        /* @__PURE__ */ (0, import_jsx_runtime19.jsx)("pre", { className: CodeBlockComponent_default.codeBlockPre, children: /* @__PURE__ */ (0, import_jsx_runtime19.jsx)("code", { className: CodeBlockComponent_default.codeBlockCode, children: /* @__PURE__ */ (0, import_jsx_runtime19.jsx)(NodeViewContent, {}) }) })
       ] })
     ] });
   };

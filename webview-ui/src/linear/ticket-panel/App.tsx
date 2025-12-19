@@ -6,13 +6,16 @@ import {
   LinearIssue,
   WorkflowState,
   LinearUser,
+  LinearLabel,
+  LinearCycle,
 } from "../../shared/types/messages";
 import { TicketHeader } from "./components/TicketHeader";
 import { TicketMetadata } from "./components/TicketMetadata";
-import { TicketLabels } from "./components/TicketLabels";
 import { TicketDescription } from "./components/TicketDescription";
 import { StatusSelector } from "./components/StatusSelector";
 import { AssigneeSelector } from "./components/AssigneeSelector";
+import { LabelSelector } from "./components/LabelSelector";
+import { CycleSelector } from "./components/CycleSelector";
 import { CommentForm } from "./components/CommentForm";
 import { ActionButtons } from "./components/ActionButtons";
 import { AttachedPRs } from "./components/AttachedPRs";
@@ -47,6 +50,8 @@ function App() {
   const [users, setUsers] = useState<LinearUser[]>(
     window.__LINEAR_INITIAL_STATE__?.users || []
   );
+  const [availableLabels, setAvailableLabels] = useState<LinearLabel[]>([]);
+  const [availableCycles, setAvailableCycles] = useState<LinearCycle[]>([]);
   const [branchInfo, setBranchInfo] = useState<{
     branchName: string | null;
     exists: boolean;
@@ -86,6 +91,14 @@ function App() {
             currentBranch: message.currentBranch,
             suggestions: message.suggestions,
           });
+          break;
+
+        case "labelsLoaded":
+          setAvailableLabels(message.labels);
+          break;
+
+        case "cyclesLoaded":
+          setAvailableCycles(message.cycles);
           break;
       }
     });
@@ -159,6 +172,22 @@ function App() {
     postMessage({ command: "loadAllBranches" });
   };
 
+  const handleLoadLabels = (teamId: string) => {
+    postMessage({ command: "loadLabels", teamId });
+  };
+
+  const handleUpdateLabels = (labelIds: string[]) => {
+    postMessage({ command: "updateLabels", labelIds });
+  };
+
+  const handleLoadCycles = (teamId: string) => {
+    postMessage({ command: "loadCycles", teamId });
+  };
+
+  const handleUpdateCycle = (cycleId: string | null) => {
+    postMessage({ command: "updateCycle", cycleId });
+  };
+
   if (!issue) {
     return (
       <div className={styles.container}>
@@ -218,12 +247,23 @@ function App() {
         projectName={issue.project?.name}
       />
 
-      {issue.labels && issue.labels.length > 0 && (
-        <>
-          <TicketLabels labels={issue.labels} />
-          <div className={styles.divider} />
-        </>
-      )}
+      <LabelSelector
+        currentLabels={issue.labels || []}
+        availableLabels={availableLabels}
+        onUpdateLabels={handleUpdateLabels}
+        onLoadLabels={handleLoadLabels}
+        teamId={issue.team?.id}
+      />
+
+      <CycleSelector
+        currentCycle={issue.cycle}
+        availableCycles={availableCycles}
+        onUpdateCycle={handleUpdateCycle}
+        onLoadCycles={handleLoadCycles}
+        teamId={issue.team?.id}
+      />
+
+      <div className={styles.divider} />
 
       <AttachedPRs attachments={issue.attachments} />
 

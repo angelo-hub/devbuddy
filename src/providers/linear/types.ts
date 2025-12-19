@@ -42,6 +42,13 @@ export interface LinearIssue {
     id: string;
     name: string;
   };
+  cycle?: {
+    id: string;
+    name: string;
+    number: number;
+    startsAt?: string;
+    endsAt?: string;
+  };
   attachments?: {
     nodes: Array<{
       id: string;
