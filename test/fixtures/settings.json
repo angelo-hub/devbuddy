@@ -1,0 +1,13 @@
+{
+  "devBuddy.provider": "linear",
+  "devBuddy.debugMode": true,
+  "devBuddy.linearOrganization": "test-org",
+  "devBuddy.autoRefreshInterval": 0,
+  "devBuddy.jira.autoRefreshInterval": 0,
+  "devBuddy.telemetry.optOut": true,
+  "devBuddy.ai.disabled": true,
+  "workbench.startupEditor": "none",
+  "workbench.colorTheme": "Default Dark Modern",
+  "window.restoreWindows": "none",
+  "telemetry.telemetryLevel": "off"
+}

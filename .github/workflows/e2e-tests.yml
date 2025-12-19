@@ -1,0 +1,199 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run (all, linear, jira)'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - linear
+          - jira
+
+# Cancel in-progress runs for the same branch
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        vscode-version: ['stable', 'insiders']
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Compile extension
+        run: npm run compile
+        
+      - name: Compile webviews
+        run: npm run compile:webview
+        
+      - name: Package extension
+        run: npm run package
+        
+      # Setup display for headless testing
+      - name: Setup display (xvfb)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libgbm1 libnss3 libasound2
+          
+      # Download VS Code and ChromeDriver
+      - name: Setup VS Code and ChromeDriver
+        run: |
+          npx extest get-vscode -s ${{ matrix.vscode-version }}
+          npx extest get-chromedriver
+          
+      # Install extension into test VS Code instance
+      - name: Install extension
+        run: npx extest install-vsix --vsix_file *.vsix
+        
+      # Run E2E tests with xvfb
+      - name: Run E2E tests
+        id: e2e
+        run: |
+          TEST_SUITE="${{ github.event.inputs.test_suite || 'all' }}"
+          if [ "$TEST_SUITE" = "linear" ]; then
+            xvfb-run -a npm run test:e2e:linear
+          elif [ "$TEST_SUITE" = "jira" ]; then
+            xvfb-run -a npm run test:e2e:jira
+          else
+            xvfb-run -a npm run test:e2e
+          fi
+        env:
+          DISPLAY: ':99'
+          DEVBUDDY_TEST_DEBUG: 'true'
+        continue-on-error: true
+        
+      # Upload test results
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results-${{ matrix.vscode-version }}
+          path: |
+            test-results/
+            screenshots/
+            *.log
+          retention-days: 14
+          if-no-files-found: ignore
+          
+      # Upload screenshots on failure
+      - name: Upload failure screenshots
+        if: failure() || steps.e2e.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-failure-screenshots-${{ matrix.vscode-version }}
+          path: |
+            test-results/*.png
+            screenshots/*.png
+          retention-days: 7
+          if-no-files-found: ignore
+          
+      # Check test outcome
+      - name: Check test outcome
+        if: steps.e2e.outcome == 'failure'
+        run: exit 1
+
+  # Platform-specific tests (optional, can be enabled)
+  e2e-tests-platform:
+    runs-on: ubuntu-latest
+    needs: e2e-tests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ['linear', 'jira']
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Compile
+        run: |
+          npm run compile
+          npm run compile:webview
+          
+      - name: Package extension
+        run: npm run package
+        
+      - name: Setup display
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libgbm1 libnss3 libasound2
+          
+      - name: Setup VS Code
+        run: |
+          npx extest get-vscode
+          npx extest get-chromedriver
+          npx extest install-vsix --vsix_file *.vsix
+          
+      - name: Run ${{ matrix.platform }} E2E tests
+        run: |
+          if [ "${{ matrix.platform }}" = "linear" ]; then
+            xvfb-run -a npm run test:e2e:linear
+          else
+            xvfb-run -a npm run test:e2e:jira
+          fi
+        env:
+          DISPLAY: ':99'
+        continue-on-error: true
+        
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-${{ matrix.platform }}-results
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # Summary job
+  e2e-summary:
+    runs-on: ubuntu-latest
+    needs: [e2e-tests]
+    if: always()
+    
+    steps:
+      - name: Check test results
+        run: |
+          if [ "${{ needs.e2e-tests.result }}" = "failure" ]; then
+            echo "E2E tests failed!"
+            exit 1
+          elif [ "${{ needs.e2e-tests.result }}" = "cancelled" ]; then
+            echo "E2E tests were cancelled"
+            exit 1
+          else
+            echo "E2E tests passed!"
+          fi
