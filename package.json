@@ -1064,6 +1064,7 @@
   "scripts": {
     "vscode:prepublish": "npm run compile && npm run compile:webview",
     "compile": "tsc -p ./ && tsc-alias -p ./tsconfig.json",
+    "compile:tests": "tsc -p ./test/tsconfig.json",
     "compile:webview": "node webview-ui/build.js",
     "watch": "tsc -watch -p ./",
     "watch:webview": "node webview-ui/build.js --watch",
@@ -1085,9 +1086,14 @@
     "release:dry-run": "standard-version --dry-run",
     "beta": "node scripts/beta-release.js",
     "beta:publish": "vsce publish --pre-release",
-    "beta:package": "vsce package --pre-release"
+    "beta:package": "vsce package --pre-release",
+    "test:e2e": "npm run compile && npm run compile:tests && npm run compile:webview && extest setup-and-run './out/test/e2e/suite/*.test.js' --code_version max --code_settings './test/fixtures/settings.json'",
+    "test:e2e:linear": "npm run compile && npm run compile:tests && extest setup-and-run './out/test/e2e/suite/linear/*.test.js' --code_version max --code_settings './test/fixtures/settings.json'",
+    "test:e2e:jira": "npm run compile && npm run compile:tests && extest setup-and-run './out/test/e2e/suite/jira/*.test.js' --code_version max --code_settings './test/fixtures/settings.json'"
   },
   "devDependencies": {
+    "@types/chai": "^5.2.3",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^20.19.25",
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",
@@ -1095,15 +1101,19 @@
     "@typescript-eslint/eslint-plugin": "^8.21.0",
     "@typescript-eslint/parser": "^8.21.0",
     "@vscode/vsce": "^3.6.2",
+    "chai": "^5.3.3",
     "esbuild": "^0.25.12",
     "eslint": "^8.56.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
+    "mocha": "^10.8.2",
+    "msw": "^2.12.4",
     "prettier": "^3.4.2",
     "sharp": "^0.34.5",
     "standard-version": "^9.5.0",
     "tsc-alias": "^1.8.16",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vscode-extension-tester": "^8.19.0"
   },
   "dependencies": {
     "@tiptap/extension-bubble-menu": "^3.13.0",
