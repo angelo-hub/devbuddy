@@ -196,7 +196,7 @@ Features from Linear/Jira web UIs that would add significant value.
 
 | Task | Priority | Effort | Platforms |
 |------|----------|--------|-----------|
-| **Add/remove labels** in ticket panel | 🟡 P1 | 🟢 | Linear ✅, Jira ⬜ |
+| **Add/remove labels** in ticket panel | ✅ Done | 🟢 | Linear ✅, Jira ⬜ |
 | **Jira components** support | 🟢 P2 | 🟡 | Jira |
 | **Label color coding** in sidebar | 🟢 P2 | 🟢 | Both |
 
@@ -230,7 +230,7 @@ Features from Linear/Jira web UIs that would add significant value.
 | Comments | ✅ | ✅ | ✅ |
 | Add Comment | ✅ | ✅ | ✅ |
 | Labels Display | ✅ | ⬜ | 🟡 |
-| Labels Edit | ⬜ | ⬜ | 🟡 |
+| Labels Edit | ✅ | ⬜ | 🟡 |
 | Priority Display | ✅ | ✅ | ✅ |
 | Priority Edit | ⬜ | ⬜ | 🟡 |
 | Due Date Display | ✅ | ✅ | ✅ |
@@ -242,7 +242,7 @@ Features from Linear/Jira web UIs that would add significant value.
 | Issue Links | ✅ | ⬜ | 🟡 |
 | Activity Feed | ⬜ | ⬜ | 🟢 |
 | Estimates | ✅ (display) | ✅ (display) | 🟡 edit |
-| Sprint/Cycle | ⬜ | ⬜ | 🟡 |
+| Sprint/Cycle | ✅ | ⬜ | 🟡 |
 
 ### Priority Tasks for Ticket Panels
 

@@ -94,10 +94,23 @@ export interface LinearIssue {
     id: string;
     name: string;
     color: string;
-  }>;
+  }> | {
+    nodes: Array<{
+      id: string;
+      name: string;
+      color: string;
+    }>;
+  };
   team?: {
     id: string;
     name: string;
+  };
+  cycle?: {
+    id: string;
+    name: string;
+    number: number;
+    startsAt?: string;
+    endsAt?: string;
   };
   attachments?: {
     nodes: Array<{
@@ -147,6 +160,21 @@ export interface LinearIssue {
   };
 }
 
+export interface LinearLabel {
+  id: string;
+  name: string;
+  color: string;
+}
+
+export interface LinearCycle {
+  id: string;
+  name: string;
+  number: number;
+  startsAt?: string;
+  endsAt?: string;
+  progress?: number;
+}
+
 export type TicketPanelMessageFromWebview =
   | { command: "updateStatus"; stateId: string }
   | { command: "addComment"; body: string }
@@ -162,11 +190,17 @@ export type TicketPanelMessageFromWebview =
   | { command: "associateBranch"; ticketId: string; branchName: string }
   | { command: "removeAssociation"; ticketId: string }
   | { command: "loadBranchInfo"; ticketId: string }
-  | { command: "loadAllBranches" };
+  | { command: "loadAllBranches" }
+  | { command: "loadLabels"; teamId: string }
+  | { command: "updateLabels"; labelIds: string[] }
+  | { command: "loadCycles"; teamId: string }
+  | { command: "updateCycle"; cycleId: string | null };
 
 export type TicketPanelMessageFromExtension =
   | { command: "updateIssue"; issue: LinearIssue }
   | { command: "workflowStates"; states: WorkflowState[] }
   | { command: "usersLoaded"; users: LinearUser[] }
   | { command: "branchInfo"; branchName: string | null; exists: boolean }
-  | { command: "allBranchesLoaded"; branches: string[]; currentBranch: string | null; suggestions: string[] };
+  | { command: "allBranchesLoaded"; branches: string[]; currentBranch: string | null; suggestions: string[] }
+  | { command: "labelsLoaded"; labels: LinearLabel[] }
+  | { command: "cyclesLoaded"; cycles: LinearCycle[] };

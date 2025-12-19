@@ -272,9 +272,17 @@ export class UniversalTicketsProvider
         const status = contextValue.split(":")[1];
         return this.getLinearTicketsByStatus(client, status);
       } else if (contextValue.startsWith("linearTeam:")) {
-        // Expand team to show team's issues, unassigned, and projects
+        // Expand team to show subsections (My Issues, Unassigned)
         const teamId = contextValue.split(":")[1];
         return this.getLinearTeamContent(client, teamId);
+      } else if (contextValue.startsWith("linearTeamMyIssues:")) {
+        // Show my issues in this team
+        const teamId = contextValue.split(":")[1];
+        return this.getLinearTeamMyIssues(client, teamId);
+      } else if (contextValue.startsWith("linearTeamUnassigned:")) {
+        // Show unassigned issues in this team
+        const teamId = contextValue.split(":")[1];
+        return this.getLinearTeamUnassignedIssues(client, teamId);
       } else if (contextValue.startsWith("linearProject:")) {
         // Expand project to show unassigned issues
         const projectId = contextValue.split(":")[1];
@@ -539,26 +547,74 @@ export class UniversalTicketsProvider
   }
 
   /**
-   * Get team content - issues, unassigned, and projects for a team
+   * Get team content - shows "My Issues" and "Unassigned" subsections
    */
   private async getLinearTeamContent(
+    _client: LinearClient,
+    teamId: string
+  ): Promise<UniversalTicketTreeItem[]> {
+    const myIssuesItem = new UniversalTicketTreeItem(
+      "My Issues",
+      vscode.TreeItemCollapsibleState.Collapsed,
+      "linear",
+      undefined,
+      `linearTeamMyIssues:${teamId}`
+    );
+    myIssuesItem.iconPath = new vscode.ThemeIcon("account", new vscode.ThemeColor("charts.blue"));
+
+    const unassignedItem = new UniversalTicketTreeItem(
+      "Unassigned",
+      vscode.TreeItemCollapsibleState.Collapsed,
+      "linear",
+      undefined,
+      `linearTeamUnassigned:${teamId}`
+    );
+    unassignedItem.iconPath = new vscode.ThemeIcon("question", new vscode.ThemeColor("charts.yellow"));
+
+    return [myIssuesItem, unassignedItem];
+  }
+
+  /**
+   * Get my issues in a specific team
+   */
+  private async getLinearTeamMyIssues(
     client: LinearClient,
     teamId: string
   ): Promise<UniversalTicketTreeItem[]> {
-    // TODO: Need to implement these methods in LinearClient
-    // For now, just show my issues in this team
     const issues = await client.getMyIssues({
-      state: ["unstarted", "started"],
+      state: ["unstarted", "started", "backlog"],
       teamId: teamId,
     });
 
     if (issues.length === 0) {
       const item = new UniversalTicketTreeItem(
-        "No issues in this team",
+        "No issues assigned to you",
         vscode.TreeItemCollapsibleState.None,
         "linear"
       );
       item.iconPath = new vscode.ThemeIcon("info");
+      return [item];
+    }
+
+    return issues.map((issue) => this.createLinearTicketItem(issue));
+  }
+
+  /**
+   * Get unassigned issues in a specific team
+   */
+  private async getLinearTeamUnassignedIssues(
+    client: LinearClient,
+    teamId: string
+  ): Promise<UniversalTicketTreeItem[]> {
+    const issues = await client.getTeamUnassignedIssues(teamId);
+
+    if (issues.length === 0) {
+      const item = new UniversalTicketTreeItem(
+        "No unassigned issues",
+        vscode.TreeItemCollapsibleState.None,
+        "linear"
+      );
+      item.iconPath = new vscode.ThemeIcon("check", new vscode.ThemeColor("charts.green"));
       return [item];
     }
 
@@ -572,15 +628,19 @@ export class UniversalTicketsProvider
     _client: LinearClient,
     _projectId: string
   ): Promise<UniversalTicketTreeItem[]> {
-    // TODO: Need to implement getProjectUnassignedIssues in LinearClient
-    // For now, return empty
-    const item = new UniversalTicketTreeItem(
-      "No unassigned issues",
-      vscode.TreeItemCollapsibleState.None,
-      "linear"
-    );
-    item.iconPath = new vscode.ThemeIcon("info");
-    return [item];
+    const issues = await client.getProjectUnassignedIssues(projectId);
+
+    if (issues.length === 0) {
+      const item = new UniversalTicketTreeItem(
+        "No unassigned issues",
+        vscode.TreeItemCollapsibleState.None,
+        "linear"
+      );
+      item.iconPath = new vscode.ThemeIcon("check", new vscode.ThemeColor("charts.green"));
+      return [item];
+    }
+
+    return issues.map((issue) => this.createLinearTicketItem(issue));
   }
 
   private groupLinearIssuesByStatus(issues: LinearIssue[]) {
