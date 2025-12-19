@@ -625,8 +625,8 @@ export class UniversalTicketsProvider
    * Get unassigned issues for a project
    */
   private async getLinearProjectUnassigned(
-    _client: LinearClient,
-    _projectId: string
+    client: LinearClient,
+    projectId: string
   ): Promise<UniversalTicketTreeItem[]> {
     const issues = await client.getProjectUnassignedIssues(projectId);
 
@@ -1141,7 +1141,10 @@ export class UniversalTicketsProvider
 
     // Get sprint issues to show counts
     const sprintIssues = await client.getSprintIssues(activeSprint.id);
-    const myIssues = sprintIssues.filter(i => i.assignee !== null);
+    const currentUser = await client.getCurrentUser();
+    const myIssues = currentUser 
+      ? sprintIssues.filter(i => i.assignee?.accountId === currentUser.accountId)
+      : [];
     const unassignedIssues = sprintIssues.filter(i => i.assignee === null);
 
     // My Sprint Tasks (collapsible)

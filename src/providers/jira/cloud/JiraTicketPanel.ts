@@ -54,6 +54,9 @@ export class JiraTicketPanel {
           case "loadUsers":
             await this.handleLoadUsers(message.projectKey);
             break;
+          case "searchUsers":
+            await this.handleSearchUsers(message.searchTerm);
+            break;
           case "openInJira":
             if (this._issue?.url) {
               vscode.env.openExternal(vscode.Uri.parse(this._issue.url));
@@ -309,7 +312,7 @@ export class JiraTicketPanel {
     }
   }
 
-  private async handleLoadUsers(projectKey: string): Promise<void> {
+  private async handleLoadUsers(_projectKey: string): Promise<void> {
     if (!this._jiraClient) {
       return;
     }
@@ -322,6 +325,22 @@ export class JiraTicketPanel {
       });
     } catch (error) {
       logger.error("Failed to load users:", error);
+    }
+  }
+
+  private async handleSearchUsers(searchTerm: string): Promise<void> {
+    if (!this._jiraClient) {
+      return;
+    }
+
+    try {
+      const users = await this._jiraClient.searchUsers(searchTerm);
+      this._panel.webview.postMessage({
+        command: "usersLoaded",
+        users,
+      });
+    } catch (error) {
+      logger.error("Failed to search users:", error);
     }
   }
 
