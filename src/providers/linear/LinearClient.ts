@@ -162,6 +162,13 @@ export class LinearClient extends BaseTicketProvider<
                 name
                 key
               }
+              cycle {
+                id
+                name
+                number
+                startsAt
+                endsAt
+              }
               attachments {
                 nodes {
                   id
@@ -277,6 +284,13 @@ export class LinearClient extends BaseTicketProvider<
           team {
             id
             name
+          }
+          cycle {
+            id
+            name
+            number
+            startsAt
+            endsAt
           }
           attachments {
             nodes {
@@ -532,6 +546,148 @@ export class LinearClient extends BaseTicketProvider<
       return response.data.issueUpdate.success;
     } catch (error) {
       console.error(`[Linear Buddy] Failed to update issue assignee:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Update issue labels
+   * @param issueId The issue ID
+   * @param labelIds Array of label IDs to set (replaces all existing labels)
+   */
+  async updateIssueLabels(
+    issueId: string,
+    labelIds: string[]
+  ): Promise<boolean> {
+    if (!this.isConfigured()) {
+      return false;
+    }
+
+    const labelIdsString = labelIds.length > 0 
+      ? `[${labelIds.map((id) => `"${id}"`).join(", ")}]`
+      : "[]";
+
+    const mutation = `
+      mutation {
+        issueUpdate(
+          id: "${issueId}",
+          input: { labelIds: ${labelIdsString} }
+        ) {
+          success
+          issue {
+            id
+            labels {
+              nodes {
+                id
+                name
+                color
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    try {
+      const response = await this.executeQuery(mutation);
+      return response.data.issueUpdate.success;
+    } catch (error) {
+      console.error(`[Linear Buddy] Failed to update issue labels:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Get cycles for a team
+   * Returns active and upcoming cycles
+   */
+  async getTeamCycles(
+    teamId: string
+  ): Promise<Array<{ id: string; name: string; number: number; startsAt: string; endsAt: string; progress: number }>> {
+    if (!this.isConfigured()) {
+      return [];
+    }
+
+    const query = `
+      query {
+        team(id: "${teamId}") {
+          cycles(filter: { isActive: { eq: true } }, first: 10) {
+            nodes {
+              id
+              name
+              number
+              startsAt
+              endsAt
+              progress
+            }
+          }
+          upcomingCycles: cycles(filter: { isPast: { eq: false }, isActive: { eq: false } }, first: 5) {
+            nodes {
+              id
+              name
+              number
+              startsAt
+              endsAt
+              progress
+            }
+          }
+        }
+      }
+    `;
+
+    try {
+      const response = await this.executeQuery(query);
+      const activeCycles = response.data.team.cycles?.nodes || [];
+      const upcomingCycles = response.data.team.upcomingCycles?.nodes || [];
+      // Combine and deduplicate
+      const allCycles = [...activeCycles, ...upcomingCycles];
+      const uniqueCycles = allCycles.filter(
+        (cycle, index, self) => self.findIndex((c) => c.id === cycle.id) === index
+      );
+      return uniqueCycles;
+    } catch (error) {
+      console.error(`[Linear Buddy] Failed to fetch cycles:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Update issue cycle (milestone)
+   * @param issueId The issue ID
+   * @param cycleId The cycle ID to assign, or null to remove from cycle
+   */
+  async updateIssueCycle(
+    issueId: string,
+    cycleId: string | null
+  ): Promise<boolean> {
+    if (!this.isConfigured()) {
+      return false;
+    }
+
+    const mutation = `
+      mutation {
+        issueUpdate(
+          id: "${issueId}",
+          input: { cycleId: ${cycleId ? `"${cycleId}"` : "null"} }
+        ) {
+          success
+          issue {
+            id
+            cycle {
+              id
+              name
+              number
+            }
+          }
+        }
+      }
+    `;
+
+    try {
+      const response = await this.executeQuery(mutation);
+      return response.data.issueUpdate.success;
+    } catch (error) {
+      console.error(`[Linear Buddy] Failed to update issue cycle:`, error);
       return false;
     }
   }
@@ -1026,6 +1182,13 @@ export class LinearClient extends BaseTicketProvider<
                 name
                 key
               }
+              cycle {
+                id
+                name
+                number
+                startsAt
+                endsAt
+              }
               attachments {
                 nodes {
                   id
@@ -1130,6 +1293,13 @@ export class LinearClient extends BaseTicketProvider<
                 id
                 name
                 key
+              }
+              cycle {
+                id
+                name
+                number
+                startsAt
+                endsAt
               }
               attachments {
                 nodes {

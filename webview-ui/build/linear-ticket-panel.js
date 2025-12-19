@@ -1089,7 +1089,7 @@
             }
             return dispatcher.useContext(Context);
           }
-          function useState13(initialState) {
+          function useState15(initialState) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useState(initialState);
           }
@@ -1097,11 +1097,11 @@
             var dispatcher = resolveDispatcher();
             return dispatcher.useReducer(reducer, initialArg, init2);
           }
-          function useRef8(initialValue) {
+          function useRef10(initialValue) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useRef(initialValue);
           }
-          function useEffect13(create2, deps) {
+          function useEffect15(create2, deps) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useEffect(create2, deps);
           }
@@ -1884,15 +1884,15 @@
           exports.useContext = useContext3;
           exports.useDebugValue = useDebugValue3;
           exports.useDeferredValue = useDeferredValue;
-          exports.useEffect = useEffect13;
+          exports.useEffect = useEffect15;
           exports.useId = useId;
           exports.useImperativeHandle = useImperativeHandle2;
           exports.useInsertionEffect = useInsertionEffect;
           exports.useLayoutEffect = useLayoutEffect2;
           exports.useMemo = useMemo5;
           exports.useReducer = useReducer;
-          exports.useRef = useRef8;
-          exports.useState = useState13;
+          exports.useRef = useRef10;
+          exports.useState = useState15;
           exports.useSyncExternalStore = useSyncExternalStore3;
           exports.useTransition = useTransition;
           exports.version = ReactVersion;
@@ -2388,9 +2388,9 @@
           if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== "undefined" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart === "function") {
             __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(new Error());
           }
-          var React18 = require_react();
+          var React20 = require_react();
           var Scheduler = require_scheduler();
-          var ReactSharedInternals = React18.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+          var ReactSharedInternals = React20.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
           var suppressWarning = false;
           function setSuppressWarning(newSuppressWarning) {
             {
@@ -2439,7 +2439,7 @@
           var HostPortal = 4;
           var HostComponent = 5;
           var HostText = 6;
-          var Fragment9 = 7;
+          var Fragment8 = 7;
           var Mode = 8;
           var ContextConsumer = 9;
           var ContextProvider = 10;
@@ -3596,7 +3596,7 @@
                 return "DehydratedFragment";
               case ForwardRef:
                 return getWrappedName$1(type, type.render, "ForwardRef");
-              case Fragment9:
+              case Fragment8:
                 return "Fragment";
               case HostComponent:
                 return type;
@@ -3997,7 +3997,7 @@
             {
               if (props.value == null) {
                 if (typeof props.children === "object" && props.children !== null) {
-                  React18.Children.forEach(props.children, function(child) {
+                  React20.Children.forEach(props.children, function(child) {
                     if (child == null) {
                       return;
                     }
@@ -4513,7 +4513,7 @@
             }
           }
           function setValueForStyles(node, styles) {
-            var style26 = node.style;
+            var style27 = node.style;
             for (var styleName in styles) {
               if (!styles.hasOwnProperty(styleName)) {
                 continue;
@@ -4529,9 +4529,9 @@
                 styleName = "cssFloat";
               }
               if (isCustomProperty) {
-                style26.setProperty(styleName, styleValue);
+                style27.setProperty(styleName, styleValue);
               } else {
-                style26[styleName] = styleValue;
+                style27[styleName] = styleValue;
               }
             }
           }
@@ -8774,9 +8774,9 @@
             transitionend: makePrefixMap("Transition", "TransitionEnd")
           };
           var prefixedEventNames = {};
-          var style25 = {};
+          var style26 = {};
           if (canUseDOM) {
-            style25 = document.createElement("div").style;
+            style26 = document.createElement("div").style;
             if (!("AnimationEvent" in window)) {
               delete vendorPrefixes.animationend.animation;
               delete vendorPrefixes.animationiteration.animation;
@@ -8794,7 +8794,7 @@
             }
             var prefixMap = vendorPrefixes[eventName];
             for (var styleProp in prefixMap) {
-              if (prefixMap.hasOwnProperty(styleProp) && styleProp in style25) {
+              if (prefixMap.hasOwnProperty(styleProp) && styleProp in style26) {
                 return prefixedEventNames[eventName] = prefixMap[styleProp];
               }
             }
@@ -10454,11 +10454,11 @@
           }
           function hideInstance(instance) {
             instance = instance;
-            var style26 = instance.style;
-            if (typeof style26.setProperty === "function") {
-              style26.setProperty("display", "none", "important");
+            var style27 = instance.style;
+            if (typeof style27.setProperty === "function") {
+              style27.setProperty("display", "none", "important");
             } else {
-              style26.display = "none";
+              style27.display = "none";
             }
           }
           function hideTextInstance(textInstance) {
@@ -12025,7 +12025,7 @@
               }
             }
             function updateFragment2(returnFiber, current2, fragment, lanes, key2) {
-              if (current2 === null || current2.tag !== Fragment9) {
+              if (current2 === null || current2.tag !== Fragment8) {
                 var created = createFiberFromFragment(fragment, returnFiber.mode, lanes, key2);
                 created.return = returnFiber;
                 return created;
@@ -12428,7 +12428,7 @@
                 if (child.key === key2) {
                   var elementType = element2.type;
                   if (elementType === REACT_FRAGMENT_TYPE) {
-                    if (child.tag === Fragment9) {
+                    if (child.tag === Fragment8) {
                       deleteRemainingChildren(returnFiber, child.sibling);
                       var existing = useFiber(child, element2.props.children);
                       existing.return = returnFiber;
@@ -17904,7 +17904,7 @@
                 var _resolvedProps2 = workInProgress2.elementType === type ? _unresolvedProps2 : resolveDefaultProps(type, _unresolvedProps2);
                 return updateForwardRef(current2, workInProgress2, type, _resolvedProps2, renderLanes2);
               }
-              case Fragment9:
+              case Fragment8:
                 return updateFragment(current2, workInProgress2, renderLanes2);
               case Mode:
                 return updateMode(current2, workInProgress2, renderLanes2);
@@ -18176,7 +18176,7 @@
               case SimpleMemoComponent:
               case FunctionComponent:
               case ForwardRef:
-              case Fragment9:
+              case Fragment8:
               case Mode:
               case Profiler:
               case ContextConsumer:
@@ -22437,7 +22437,7 @@
             return fiber;
           }
           function createFiberFromFragment(elements, mode, lanes, key2) {
-            var fiber = createFiber(Fragment9, elements, key2, mode);
+            var fiber = createFiber(Fragment8, elements, key2, mode);
             fiber.lanes = lanes;
             return fiber;
           }
@@ -23593,7 +23593,7 @@
       if (true) {
         (function() {
           "use strict";
-          var React18 = require_react();
+          var React20 = require_react();
           var REACT_ELEMENT_TYPE = Symbol.for("react.element");
           var REACT_PORTAL_TYPE = Symbol.for("react.portal");
           var REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
@@ -23619,7 +23619,7 @@
             }
             return null;
           }
-          var ReactSharedInternals = React18.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+          var ReactSharedInternals = React20.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
           function error2(format2) {
             {
               {
@@ -24469,11 +24469,11 @@
               return jsxWithValidation(type, props, key2, false);
             }
           }
-          var jsx31 = jsxWithValidationDynamic;
-          var jsxs24 = jsxWithValidationStatic;
+          var jsx33 = jsxWithValidationDynamic;
+          var jsxs26 = jsxWithValidationStatic;
           exports.Fragment = REACT_FRAGMENT_TYPE;
-          exports.jsx = jsx31;
-          exports.jsxs = jsxs24;
+          exports.jsx = jsx33;
+          exports.jsxs = jsxs26;
         })();
       }
     }
@@ -24500,7 +24500,7 @@
           return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
         }
         function useSyncExternalStore$2(subscribe, getSnapshot) {
-          didWarnOld18Alpha || void 0 === React18.startTransition || (didWarnOld18Alpha = true, console.error(
+          didWarnOld18Alpha || void 0 === React20.startTransition || (didWarnOld18Alpha = true, console.error(
             "You are using an outdated, pre-release alpha of React 18 that does not support useSyncExternalStore. The use-sync-external-store shim will not work correctly. Upgrade to a newer pre-release."
           ));
           var value = getSnapshot();
@@ -24510,7 +24510,7 @@
               "The result of getSnapshot should be cached to avoid an infinite loop"
             ), didWarnUncachedGetSnapshot = true);
           }
-          cachedValue = useState13({
+          cachedValue = useState15({
             inst: { value, getSnapshot }
           });
           var inst = cachedValue[0].inst, forceUpdate = cachedValue[1];
@@ -24522,7 +24522,7 @@
             },
             [subscribe, value, getSnapshot]
           );
-          useEffect13(
+          useEffect15(
             function() {
               checkIfSnapshotChanged(inst) && forceUpdate({ inst });
               return subscribe(function() {
@@ -24548,8 +24548,8 @@
           return getSnapshot();
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var React18 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is, useState13 = React18.useState, useEffect13 = React18.useEffect, useLayoutEffect2 = React18.useLayoutEffect, useDebugValue3 = React18.useDebugValue, didWarnOld18Alpha = false, didWarnUncachedGetSnapshot = false, shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
-        exports.useSyncExternalStore = void 0 !== React18.useSyncExternalStore ? React18.useSyncExternalStore : shim;
+        var React20 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is, useState15 = React20.useState, useEffect15 = React20.useEffect, useLayoutEffect2 = React20.useLayoutEffect, useDebugValue3 = React20.useDebugValue, didWarnOld18Alpha = false, didWarnUncachedGetSnapshot = false, shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
+        exports.useSyncExternalStore = void 0 !== React20.useSyncExternalStore ? React20.useSyncExternalStore : shim;
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop(Error());
       })();
     }
@@ -24576,9 +24576,9 @@
           return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var React18 = require_react(), shim = require_shim(), objectIs = "function" === typeof Object.is ? Object.is : is, useSyncExternalStore3 = shim.useSyncExternalStore, useRef8 = React18.useRef, useEffect13 = React18.useEffect, useMemo5 = React18.useMemo, useDebugValue3 = React18.useDebugValue;
+        var React20 = require_react(), shim = require_shim(), objectIs = "function" === typeof Object.is ? Object.is : is, useSyncExternalStore3 = shim.useSyncExternalStore, useRef10 = React20.useRef, useEffect15 = React20.useEffect, useMemo5 = React20.useMemo, useDebugValue3 = React20.useDebugValue;
         exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
-          var instRef = useRef8(null);
+          var instRef = useRef10(null);
           if (null === instRef.current) {
             var inst = { hasValue: false, value: null };
             instRef.current = inst;
@@ -24619,7 +24619,7 @@
             [getSnapshot, getServerSnapshot, selector, isEqual]
           );
           var value = useSyncExternalStore3(subscribe, instRef[0], instRef[1]);
-          useEffect13(
+          useEffect15(
             function() {
               inst.hasValue = true;
               inst.value = value;
@@ -26289,7 +26289,7 @@
   var import_client = __toESM(require_client());
 
   // webview-ui/src/linear/ticket-panel/App.tsx
-  var import_react31 = __toESM(require_react());
+  var import_react33 = __toESM(require_react());
 
   // webview-ui/src/shared/hooks/useVSCode.ts
   var import_react = __toESM(require_react());
@@ -26404,9 +26404,9 @@
 
   // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/shared/components/Badge.module.css
   var style5 = document.createElement("style");
-  style5.textContent = ".badge_Badge {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  padding: 3px 8px;\n  border-radius: 4px;\n  font-size: 11px;\n  font-weight: 500;\n}\n\n.default_Badge {\n  background-color: var(--badge-background);\n  color: var(--badge-foreground);\n}\n\n.status_Badge {\n  padding: 4px 10px;\n  border-radius: 12px;\n  font-size: 12px;\n  border: 1px solid;\n}\n\n.priority_Badge {\n  font-size: 12px;\n}\n\n";
+  style5.textContent = ".badge_Badge {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  padding: 3px 8px;\n  border-radius: 4px;\n  font-size: 11px;\n  font-weight: 500;\n}\n\n.default_Badge {\n  background-color: var(--badge-background);\n  color: var(--badge-foreground);\n}\n\n.status_Badge {\n  padding: 4px 10px;\n  border-radius: 12px;\n  font-size: 12px;\n  border: 1px solid;\n}\n\n.priority_Badge {\n  font-size: 12px;\n}\n\n.removable_Badge {\n  padding-right: 4px;\n}\n\n.removeButton_Badge {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  width: 14px;\n  height: 14px;\n  padding: 0;\n  margin-left: 2px;\n  background: transparent;\n  border: none;\n  border-radius: 50%;\n  color: currentColor;\n  opacity: 0.6;\n  cursor: pointer;\n  transition: all 0.15s ease;\n}\n\n.removeButton_Badge:hover {\n  opacity: 1;\n  background-color: rgba(0, 0, 0, 0.15);\n}\n\n";
   document.head.appendChild(style5);
-  var Badge_default = { "badge": "badge_Badge", "default": "default_Badge", "status": "status_Badge", "priority": "priority_Badge" };
+  var Badge_default = { "badge": "badge_Badge", "default": "default_Badge", "status": "status_Badge", "priority": "priority_Badge", "removable": "removable_Badge", "removeButton": "removeButton_Badge" };
 
   // webview-ui/src/shared/components/Badge.tsx
   var import_jsx_runtime5 = __toESM(require_jsx_runtime());
@@ -26414,15 +26414,47 @@
     children,
     variant = "default",
     color,
-    className
+    className,
+    onRemove
   }) => {
     const variantClass = Badge_default[variant] || Badge_default.default;
-    const style25 = color ? {
+    const style26 = color ? {
       backgroundColor: `${color}20`,
       color,
       borderColor: `${color}40`
     } : {};
-    return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { className: `${Badge_default.badge} ${variantClass} ${className || ""}`, style: style25, children });
+    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("span", { className: `${Badge_default.badge} ${variantClass} ${onRemove ? Badge_default.removable : ""} ${className || ""}`, style: style26, children: [
+      children,
+      onRemove && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
+        "button",
+        {
+          type: "button",
+          className: Badge_default.removeButton,
+          onClick: (e) => {
+            e.stopPropagation();
+            onRemove();
+          },
+          title: "Remove",
+          children: /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(
+            "svg",
+            {
+              width: "10",
+              height: "10",
+              viewBox: "0 0 24 24",
+              fill: "none",
+              stroke: "currentColor",
+              strokeWidth: "2",
+              strokeLinecap: "round",
+              strokeLinejoin: "round",
+              children: [
+                /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("line", { x1: "18", y1: "6", x2: "6", y2: "18" }),
+                /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("line", { x1: "6", y1: "6", x2: "18", y2: "18" })
+              ]
+            }
+          )
+        }
+      )
+    ] });
   };
 
   // webview-ui/src/shared/components/MarkdownEditor/MarkdownEditor.tsx
@@ -28945,11 +28977,11 @@
     */
     matchStyle(prop, value, context, after) {
       for (let i = after ? this.styles.indexOf(after) + 1 : 0; i < this.styles.length; i++) {
-        let rule = this.styles[i], style25 = rule.style;
-        if (style25.indexOf(prop) != 0 || rule.context && !context.matchesContext(rule.context) || // Test that the style string either precisely matches the prop,
+        let rule = this.styles[i], style26 = rule.style;
+        if (style26.indexOf(prop) != 0 || rule.context && !context.matchesContext(rule.context) || // Test that the style string either precisely matches the prop,
         // or has an '=' sign after the prop, followed by the given
         // value.
-        style25.length > prop.length && (style25.charCodeAt(prop.length) != 61 || style25.slice(prop.length + 1) != value))
+        style26.length > prop.length && (style26.charCodeAt(prop.length) != 61 || style26.slice(prop.length + 1) != value))
           continue;
         if (rule.getAttrs) {
           let result = rule.getAttrs(value);
@@ -30517,17 +30549,17 @@
       if (toRemove && toRemove.length) {
         let end = Math.min(pos + node.nodeSize, to);
         for (let i = 0; i < toRemove.length; i++) {
-          let style25 = toRemove[i], found2;
+          let style26 = toRemove[i], found2;
           for (let j = 0; j < matched.length; j++) {
             let m = matched[j];
-            if (m.step == step - 1 && style25.eq(matched[j].style))
+            if (m.step == step - 1 && style26.eq(matched[j].style))
               found2 = m;
           }
           if (found2) {
             found2.to = end;
             found2.step = step;
           } else {
-            matched.push({ style: style25, from: Math.max(pos, from2), to: end, step });
+            matched.push({ style: style26, from: Math.max(pos, from2), to: end, step });
           }
         }
       }
@@ -39738,15 +39770,15 @@
           const insertClasses = valueClasses.filter((valueClass) => !existingClasses.includes(valueClass));
           mergedAttributes[key2] = [...existingClasses, ...insertClasses].join(" ");
         } else if (key2 === "style") {
-          const newStyles = value ? value.split(";").map((style25) => style25.trim()).filter(Boolean) : [];
-          const existingStyles = mergedAttributes[key2] ? mergedAttributes[key2].split(";").map((style25) => style25.trim()).filter(Boolean) : [];
+          const newStyles = value ? value.split(";").map((style26) => style26.trim()).filter(Boolean) : [];
+          const existingStyles = mergedAttributes[key2] ? mergedAttributes[key2].split(";").map((style26) => style26.trim()).filter(Boolean) : [];
           const styleMap = /* @__PURE__ */ new Map();
-          existingStyles.forEach((style25) => {
-            const [property, val] = style25.split(":").map((part) => part.trim());
+          existingStyles.forEach((style26) => {
+            const [property, val] = style26.split(":").map((part) => part.trim());
             styleMap.set(property, val);
           });
-          newStyles.forEach((style25) => {
-            const [property, val] = style25.split(":").map((part) => part.trim());
+          newStyles.forEach((style26) => {
+            const [property, val] = style26.split(":").map((part) => part.trim());
             styleMap.set(property, val);
           });
           mergedAttributes[key2] = Array.from(styleMap.entries()).map(([property, val]) => `${property}: ${val}`).join("; ");
@@ -42437,7 +42469,7 @@ img.ProseMirror-separator {
 .ProseMirror-focused .ProseMirror-gapcursor {
   display: block;
 }`;
-  function createStyleTag(style25, nonce, suffix) {
+  function createStyleTag(style26, nonce, suffix) {
     const tiptapStyleTag = document.querySelector(`style[data-tiptap-style${suffix ? `-${suffix}` : ""}]`);
     if (tiptapStyleTag !== null) {
       return tiptapStyleTag;
@@ -42447,7 +42479,7 @@ img.ProseMirror-separator {
       styleNode.setAttribute("nonce", nonce);
     }
     styleNode.setAttribute(`data-tiptap-style${suffix ? `-${suffix}` : ""}`, "");
-    styleNode.innerHTML = style25;
+    styleNode.innerHTML = style26;
     document.getElementsByTagName("head")[0].appendChild(styleNode);
     return styleNode;
   }
@@ -48738,7 +48770,7 @@ ${nextLine.slice(indentLevel + 2)}`;
         {
           style: "text-decoration",
           consuming: false,
-          getAttrs: (style25) => style25.includes("line-through") ? {} : false
+          getAttrs: (style26) => style26.includes("line-through") ? {} : false
         }
       ];
     },
@@ -48817,7 +48849,7 @@ ${nextLine.slice(indentLevel + 2)}`;
         {
           style: "text-decoration",
           consuming: false,
-          getAttrs: (style25) => style25.includes("underline") ? {} : false
+          getAttrs: (style26) => style26.includes("underline") ? {} : false
         }
       ];
     },
@@ -78906,7 +78938,7 @@ ${element2.innerHTML}
       ) }),
       /* @__PURE__ */ (0, import_jsx_runtime19.jsxs)("div", { className: CodeBlockComponent_default.codeBlockContainer, children: [
         /* @__PURE__ */ (0, import_jsx_runtime19.jsx)("pre", { className: CodeBlockComponent_default.codeBlockBackdrop, "aria-hidden": "true", children: /* @__PURE__ */ (0, import_jsx_runtime19.jsx)("code", { dangerouslySetInnerHTML: { __html: highlightedCode } }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime19.jsx)("pre", { className: CodeBlockComponent_default.codeBlockPre, children: /* @__PURE__ */ (0, import_jsx_runtime19.jsx)(NodeViewContent, { as: "code", className: CodeBlockComponent_default.codeBlockCode }) })
+        /* @__PURE__ */ (0, import_jsx_runtime19.jsx)("pre", { className: CodeBlockComponent_default.codeBlockPre, children: /* @__PURE__ */ (0, import_jsx_runtime19.jsx)("code", { className: CodeBlockComponent_default.codeBlockCode, children: /* @__PURE__ */ (0, import_jsx_runtime19.jsx)(NodeViewContent, {}) }) })
       ] })
     ] });
   };
@@ -79612,29 +79644,11 @@ ${element2.innerHTML}
     ] });
   };
 
-  // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/linear/ticket-panel/components/TicketLabels.module.css
-  var style14 = document.createElement("style");
-  style14.textContent = ".section_TicketLabels {\n  margin-bottom: 24px;\n}\n\n.sectionTitle_TicketLabels {\n  font-size: 14px;\n  font-weight: 600;\n  margin-bottom: 12px;\n  color: var(--color-foreground);\n}\n\n.labels_TicketLabels {\n  display: flex;\n  gap: 6px;\n  flex-wrap: wrap;\n}\n\n";
-  document.head.appendChild(style14);
-  var TicketLabels_default = { "section": "section_TicketLabels", "sectionTitle": "sectionTitle_TicketLabels", "labels": "labels_TicketLabels" };
-
-  // webview-ui/src/linear/ticket-panel/components/TicketLabels.tsx
-  var import_jsx_runtime24 = __toESM(require_jsx_runtime());
-  var TicketLabels = ({ labels }) => {
-    if (labels.length === 0) {
-      return null;
-    }
-    return /* @__PURE__ */ (0, import_jsx_runtime24.jsxs)("div", { className: TicketLabels_default.section, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime24.jsx)("div", { className: TicketLabels_default.sectionTitle, children: "Labels" }),
-      /* @__PURE__ */ (0, import_jsx_runtime24.jsx)("div", { className: TicketLabels_default.labels, children: labels.map((label) => /* @__PURE__ */ (0, import_jsx_runtime24.jsx)(Badge, { color: label.color, children: label.name }, label.id)) })
-    ] });
-  };
-
   // webview-ui/src/linear/ticket-panel/components/TicketDescription.tsx
   var import_react25 = __toESM(require_react());
 
   // webview-ui/src/shared/utils/markdownRenderer.tsx
-  var import_jsx_runtime25 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime24 = __toESM(require_jsx_runtime());
   var lowlight3 = createLowlight(grammars);
   var languageMap = {
     typescript: "typescript",
@@ -79697,7 +79711,7 @@ ${element2.innerHTML}
       if (match2[1]) {
         const code2 = match2[1].slice(1, -1);
         elements.push(
-          /* @__PURE__ */ (0, import_jsx_runtime25.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime24.jsx)(
             "code",
             {
               style: {
@@ -79715,33 +79729,33 @@ ${element2.innerHTML}
       } else if (match2[2]) {
         const content = match2[3];
         elements.push(
-          /* @__PURE__ */ (0, import_jsx_runtime25.jsx)("strong", { children: parseInlineMarkdown(content) }, `bold-${key2++}`)
+          /* @__PURE__ */ (0, import_jsx_runtime24.jsx)("strong", { children: parseInlineMarkdown(content) }, `bold-${key2++}`)
         );
       } else if (match2[4]) {
         const content = match2[5];
         elements.push(
-          /* @__PURE__ */ (0, import_jsx_runtime25.jsx)("strong", { children: parseInlineMarkdown(content) }, `bold-${key2++}`)
+          /* @__PURE__ */ (0, import_jsx_runtime24.jsx)("strong", { children: parseInlineMarkdown(content) }, `bold-${key2++}`)
         );
       } else if (match2[6]) {
         const content = match2[7];
         elements.push(
-          /* @__PURE__ */ (0, import_jsx_runtime25.jsx)("em", { children: parseInlineMarkdown(content) }, `italic-${key2++}`)
+          /* @__PURE__ */ (0, import_jsx_runtime24.jsx)("em", { children: parseInlineMarkdown(content) }, `italic-${key2++}`)
         );
       } else if (match2[8]) {
         const content = match2[9];
         elements.push(
-          /* @__PURE__ */ (0, import_jsx_runtime25.jsx)("em", { children: parseInlineMarkdown(content) }, `italic-${key2++}`)
+          /* @__PURE__ */ (0, import_jsx_runtime24.jsx)("em", { children: parseInlineMarkdown(content) }, `italic-${key2++}`)
         );
       } else if (match2[10]) {
         const content = match2[11];
         elements.push(
-          /* @__PURE__ */ (0, import_jsx_runtime25.jsx)("del", { children: parseInlineMarkdown(content) }, `strike-${key2++}`)
+          /* @__PURE__ */ (0, import_jsx_runtime24.jsx)("del", { children: parseInlineMarkdown(content) }, `strike-${key2++}`)
         );
       } else if (match2[12]) {
         const linkText = match2[13];
         const url = match2[14];
         elements.push(
-          /* @__PURE__ */ (0, import_jsx_runtime25.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime24.jsx)(
             "a",
             {
               href: url,
@@ -79772,7 +79786,7 @@ ${element2.innerHTML}
       }
       const tree = lowlight3.highlight(langName, code2);
       const highlighted = toHtml(tree);
-      return /* @__PURE__ */ (0, import_jsx_runtime25.jsx)(
+      return /* @__PURE__ */ (0, import_jsx_runtime24.jsx)(
         "pre",
         {
           style: {
@@ -79786,7 +79800,7 @@ ${element2.innerHTML}
             lineHeight: "1.6",
             fontFamily: "var(--vscode-editor-font-family, 'Menlo', 'Monaco', 'Courier New', monospace)"
           },
-          children: /* @__PURE__ */ (0, import_jsx_runtime25.jsx)(
+          children: /* @__PURE__ */ (0, import_jsx_runtime24.jsx)(
             "code",
             {
               style: {
@@ -79807,7 +79821,7 @@ ${element2.innerHTML}
     }
   }
   function renderPlainCodeBlock(code2, key2) {
-    return /* @__PURE__ */ (0, import_jsx_runtime25.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime24.jsx)(
       "pre",
       {
         style: {
@@ -79822,7 +79836,7 @@ ${element2.innerHTML}
           fontFamily: "var(--vscode-editor-font-family, 'Menlo', 'Monaco', 'Courier New', monospace)",
           color: "var(--vscode-editor-foreground)"
         },
-        children: /* @__PURE__ */ (0, import_jsx_runtime25.jsx)("code", { children: code2 })
+        children: /* @__PURE__ */ (0, import_jsx_runtime24.jsx)("code", { children: code2 })
       },
       key2
     );
@@ -79845,7 +79859,7 @@ ${element2.innerHTML}
         if (inList && listItems.length > 0) {
           const ListTag = listType === "ol" ? "ol" : "ul";
           elements.push(
-            /* @__PURE__ */ (0, import_jsx_runtime25.jsx)(ListTag, { style: { marginBottom: "12px", paddingLeft: "20px" }, children: listItems }, key2++)
+            /* @__PURE__ */ (0, import_jsx_runtime24.jsx)(ListTag, { style: { marginBottom: "12px", paddingLeft: "20px" }, children: listItems }, key2++)
           );
           listItems = [];
           inList = false;
@@ -79882,14 +79896,14 @@ ${element2.innerHTML}
           const content = headingMatch[2];
           const Tag = `h${level}`;
           elements.push(
-            /* @__PURE__ */ (0, import_jsx_runtime25.jsx)(Tag, { style: { marginBottom: "8px", marginTop: "16px" }, children: parseInlineMarkdown(content) }, key2++)
+            /* @__PURE__ */ (0, import_jsx_runtime24.jsx)(Tag, { style: { marginBottom: "8px", marginTop: "16px" }, children: parseInlineMarkdown(content) }, key2++)
           );
           continue;
         }
         if (line.match(/^(---|\*\*\*|___)$/)) {
           flushList();
           elements.push(
-            /* @__PURE__ */ (0, import_jsx_runtime25.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime24.jsx)(
               "hr",
               {
                 style: {
@@ -79911,7 +79925,7 @@ ${element2.innerHTML}
             listType = "ul";
           }
           listItems.push(
-            /* @__PURE__ */ (0, import_jsx_runtime25.jsx)("li", { style: { marginBottom: "4px" }, children: parseInlineMarkdown(ulMatch[1]) }, key2++)
+            /* @__PURE__ */ (0, import_jsx_runtime24.jsx)("li", { style: { marginBottom: "4px" }, children: parseInlineMarkdown(ulMatch[1]) }, key2++)
           );
           continue;
         }
@@ -79923,7 +79937,7 @@ ${element2.innerHTML}
             listType = "ol";
           }
           listItems.push(
-            /* @__PURE__ */ (0, import_jsx_runtime25.jsx)("li", { style: { marginBottom: "4px" }, children: parseInlineMarkdown(olMatch[1]) }, key2++)
+            /* @__PURE__ */ (0, import_jsx_runtime24.jsx)("li", { style: { marginBottom: "4px" }, children: parseInlineMarkdown(olMatch[1]) }, key2++)
           );
           continue;
         }
@@ -79931,7 +79945,7 @@ ${element2.innerHTML}
         if (quoteMatch) {
           flushList();
           elements.push(
-            /* @__PURE__ */ (0, import_jsx_runtime25.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime24.jsx)(
               "blockquote",
               {
                 style: {
@@ -79951,13 +79965,13 @@ ${element2.innerHTML}
         if (line.trim() === "") {
           flushList();
           if (elements.length > 0) {
-            elements.push(/* @__PURE__ */ (0, import_jsx_runtime25.jsx)("br", {}, key2++));
+            elements.push(/* @__PURE__ */ (0, import_jsx_runtime24.jsx)("br", {}, key2++));
           }
           continue;
         }
         flushList();
         elements.push(
-          /* @__PURE__ */ (0, import_jsx_runtime25.jsx)("p", { style: { marginBottom: "8px", lineHeight: "1.6" }, children: parseInlineMarkdown(line) }, key2++)
+          /* @__PURE__ */ (0, import_jsx_runtime24.jsx)("p", { style: { marginBottom: "8px", lineHeight: "1.6" }, children: parseInlineMarkdown(line) }, key2++)
         );
       }
       flushList();
@@ -79967,21 +79981,21 @@ ${element2.innerHTML}
           elements.push(renderCodeBlock(codeText, codeBlockLanguage, key2++));
         }
       }
-      return /* @__PURE__ */ (0, import_jsx_runtime25.jsx)("div", { style: { lineHeight: "1.6" }, children: elements });
+      return /* @__PURE__ */ (0, import_jsx_runtime24.jsx)("div", { style: { lineHeight: "1.6" }, children: elements });
     } catch (error2) {
       console.error("[Markdown Renderer] Failed to render markdown:", error2);
-      return /* @__PURE__ */ (0, import_jsx_runtime25.jsx)("div", { style: { whiteSpace: "pre-wrap" }, children: markdown2 });
+      return /* @__PURE__ */ (0, import_jsx_runtime24.jsx)("div", { style: { whiteSpace: "pre-wrap" }, children: markdown2 });
     }
   }
 
   // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/linear/ticket-panel/components/TicketDescription.module.css
-  var style15 = document.createElement("style");
-  style15.textContent = ".section_TicketDescription {\n  margin-bottom: 24px;\n}\n\n.sectionHeader_TicketDescription {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  margin-bottom: 12px;\n}\n\n.sectionTitle_TicketDescription {\n  font-size: 14px;\n  font-weight: 600;\n  color: var(--color-foreground);\n}\n\n.editButton_TicketDescription {\n  background: transparent;\n  border: none;\n  padding: 4px;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: var(--color-description);\n  transition: all 0.2s ease;\n  border-radius: 4px;\n  opacity: 0.7;\n}\n\n.editButton_TicketDescription:hover {\n  background-color: var(--vscode-button-secondaryHoverBackground);\n  color: var(--vscode-button-foreground);\n  opacity: 1;\n}\n\n.editButton_TicketDescription:active {\n  transform: scale(0.95);\n}\n\n.description_TicketDescription {\n  padding: 12px;\n  background-color: var(--color-background);\n  border: 1px solid var(--color-border);\n  border-radius: 6px;\n  white-space: pre-wrap;\n  line-height: 1.6;\n}\n\n.descriptionTextarea_TicketDescription {\n  width: 100%;\n  padding: 12px;\n  margin-bottom: 8px;\n  background-color: var(--vscode-input-background);\n  color: var(--vscode-input-foreground);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 6px;\n  font-family: inherit;\n  font-size: 14px;\n  line-height: 1.6;\n  resize: vertical;\n}\n\n.descriptionTextarea_TicketDescription:focus {\n  outline: none;\n  border-color: var(--vscode-focusBorder);\n}\n\n.editButtons_TicketDescription {\n  display: flex;\n  gap: 8px;\n}\n\n.saveButton_TicketDescription,\n.cancelButton_TicketDescription {\n  padding: 6px 12px;\n  border: none;\n  border-radius: 4px;\n  font-size: 12px;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n\n.saveButton_TicketDescription {\n  background-color: var(--vscode-button-background);\n  color: var(--vscode-button-foreground);\n}\n\n.saveButton_TicketDescription:hover {\n  background-color: var(--vscode-button-hoverBackground);\n}\n\n.cancelButton_TicketDescription {\n  background-color: var(--vscode-button-secondaryBackground);\n  color: var(--vscode-button-secondaryForeground);\n}\n\n.cancelButton_TicketDescription:hover {\n  background-color: var(--vscode-button-secondaryHoverBackground);\n}\n\n.emptyState_TicketDescription {\n  padding: 24px;\n  text-align: center;\n  color: var(--color-description);\n  font-style: italic;\n}\n\n";
-  document.head.appendChild(style15);
+  var style14 = document.createElement("style");
+  style14.textContent = ".section_TicketDescription {\n  margin-bottom: 24px;\n}\n\n.sectionHeader_TicketDescription {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  margin-bottom: 12px;\n}\n\n.sectionTitle_TicketDescription {\n  font-size: 14px;\n  font-weight: 600;\n  color: var(--color-foreground);\n}\n\n.editButton_TicketDescription {\n  background: transparent;\n  border: none;\n  padding: 4px;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: var(--color-description);\n  transition: all 0.2s ease;\n  border-radius: 4px;\n  opacity: 0.7;\n}\n\n.editButton_TicketDescription:hover {\n  background-color: var(--vscode-button-secondaryHoverBackground);\n  color: var(--vscode-button-foreground);\n  opacity: 1;\n}\n\n.editButton_TicketDescription:active {\n  transform: scale(0.95);\n}\n\n.description_TicketDescription {\n  padding: 12px;\n  background-color: var(--color-background);\n  border: 1px solid var(--color-border);\n  border-radius: 6px;\n  white-space: pre-wrap;\n  line-height: 1.6;\n}\n\n.descriptionTextarea_TicketDescription {\n  width: 100%;\n  padding: 12px;\n  margin-bottom: 8px;\n  background-color: var(--vscode-input-background);\n  color: var(--vscode-input-foreground);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 6px;\n  font-family: inherit;\n  font-size: 14px;\n  line-height: 1.6;\n  resize: vertical;\n}\n\n.descriptionTextarea_TicketDescription:focus {\n  outline: none;\n  border-color: var(--vscode-focusBorder);\n}\n\n.editButtons_TicketDescription {\n  display: flex;\n  gap: 8px;\n}\n\n.saveButton_TicketDescription,\n.cancelButton_TicketDescription {\n  padding: 6px 12px;\n  border: none;\n  border-radius: 4px;\n  font-size: 12px;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n\n.saveButton_TicketDescription {\n  background-color: var(--vscode-button-background);\n  color: var(--vscode-button-foreground);\n}\n\n.saveButton_TicketDescription:hover {\n  background-color: var(--vscode-button-hoverBackground);\n}\n\n.cancelButton_TicketDescription {\n  background-color: var(--vscode-button-secondaryBackground);\n  color: var(--vscode-button-secondaryForeground);\n}\n\n.cancelButton_TicketDescription:hover {\n  background-color: var(--vscode-button-secondaryHoverBackground);\n}\n\n.emptyState_TicketDescription {\n  padding: 24px;\n  text-align: center;\n  color: var(--color-description);\n  font-style: italic;\n}\n\n";
+  document.head.appendChild(style14);
   var TicketDescription_default = { "section": "section_TicketDescription", "sectionHeader": "sectionHeader_TicketDescription", "sectionTitle": "sectionTitle_TicketDescription", "editButton": "editButton_TicketDescription", "description": "description_TicketDescription", "descriptionTextarea": "descriptionTextarea_TicketDescription", "editButtons": "editButtons_TicketDescription", "saveButton": "saveButton_TicketDescription", "cancelButton": "cancelButton_TicketDescription", "emptyState": "emptyState_TicketDescription" };
 
   // webview-ui/src/linear/ticket-panel/components/TicketDescription.tsx
-  var import_jsx_runtime26 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime25 = __toESM(require_jsx_runtime());
   var TicketDescription = ({
     description,
     onUpdateDescription
@@ -80006,16 +80020,16 @@ ${element2.innerHTML}
     const renderedDescription = (0, import_react25.useMemo)(() => {
       return description ? renderMarkdown(description) : null;
     }, [description]);
-    return /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)("div", { className: TicketDescription_default.section, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)("div", { className: TicketDescription_default.sectionHeader, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("div", { className: TicketDescription_default.sectionTitle, children: "Description" }),
-        onUpdateDescription && !isEditing && /* @__PURE__ */ (0, import_jsx_runtime26.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime25.jsxs)("div", { className: TicketDescription_default.section, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime25.jsxs)("div", { className: TicketDescription_default.sectionHeader, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime25.jsx)("div", { className: TicketDescription_default.sectionTitle, children: "Description" }),
+        onUpdateDescription && !isEditing && /* @__PURE__ */ (0, import_jsx_runtime25.jsx)(
           "button",
           {
             onClick: () => setIsEditing(true),
             className: TicketDescription_default.editButton,
             title: "Edit description",
-            children: /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)(
+            children: /* @__PURE__ */ (0, import_jsx_runtime25.jsxs)(
               "svg",
               {
                 width: "14",
@@ -80027,16 +80041,16 @@ ${element2.innerHTML}
                 strokeLinecap: "round",
                 strokeLinejoin: "round",
                 children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("path", { d: "M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" }),
-                  /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("path", { d: "M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" })
+                  /* @__PURE__ */ (0, import_jsx_runtime25.jsx)("path", { d: "M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" }),
+                  /* @__PURE__ */ (0, import_jsx_runtime25.jsx)("path", { d: "M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" })
                 ]
               }
             )
           }
         )
       ] }),
-      isEditing ? /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)(import_jsx_runtime26.Fragment, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime26.jsx)(
+      isEditing ? /* @__PURE__ */ (0, import_jsx_runtime25.jsxs)(import_jsx_runtime25.Fragment, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime25.jsx)(
           MarkdownEditor,
           {
             value: editedDescription,
@@ -80046,11 +80060,11 @@ ${element2.innerHTML}
             autoFocus: true
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)("div", { className: TicketDescription_default.editButtons, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("button", { onClick: handleSave, className: TicketDescription_default.saveButton, children: "Save" }),
-          /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("button", { onClick: handleCancel, className: TicketDescription_default.cancelButton, children: "Cancel" })
+        /* @__PURE__ */ (0, import_jsx_runtime25.jsxs)("div", { className: TicketDescription_default.editButtons, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime25.jsx)("button", { onClick: handleSave, className: TicketDescription_default.saveButton, children: "Save" }),
+          /* @__PURE__ */ (0, import_jsx_runtime25.jsx)("button", { onClick: handleCancel, className: TicketDescription_default.cancelButton, children: "Cancel" })
         ] })
-      ] }) : /* @__PURE__ */ (0, import_jsx_runtime26.jsx)(import_jsx_runtime26.Fragment, { children: renderedDescription ? /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("div", { className: TicketDescription_default.description, children: renderedDescription }) : /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("div", { className: TicketDescription_default.emptyState, children: "No description provided" }) })
+      ] }) : /* @__PURE__ */ (0, import_jsx_runtime25.jsx)(import_jsx_runtime25.Fragment, { children: renderedDescription ? /* @__PURE__ */ (0, import_jsx_runtime25.jsx)("div", { className: TicketDescription_default.description, children: renderedDescription }) : /* @__PURE__ */ (0, import_jsx_runtime25.jsx)("div", { className: TicketDescription_default.emptyState, children: "No description provided" }) })
     ] });
   };
 
@@ -80058,13 +80072,13 @@ ${element2.innerHTML}
   var import_react26 = __toESM(require_react());
 
   // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/linear/ticket-panel/components/StatusSelector.module.css
-  var style16 = document.createElement("style");
-  style16.textContent = ".container_StatusSelector {\n  display: flex;\n  gap: 8px;\n  margin-bottom: 16px;\n  flex-wrap: wrap;\n}\n\n.select_StatusSelector {\n  flex: 0 0 auto;\n  min-width: 150px;\n  margin-bottom: 0;\n}\n\n";
-  document.head.appendChild(style16);
+  var style15 = document.createElement("style");
+  style15.textContent = ".container_StatusSelector {\n  display: flex;\n  gap: 8px;\n  margin-bottom: 16px;\n  flex-wrap: wrap;\n}\n\n.select_StatusSelector {\n  flex: 0 0 auto;\n  min-width: 150px;\n  margin-bottom: 0;\n}\n\n";
+  document.head.appendChild(style15);
   var StatusSelector_default = { "container": "container_StatusSelector", "select": "select_StatusSelector" };
 
   // webview-ui/src/linear/ticket-panel/components/StatusSelector.tsx
-  var import_jsx_runtime27 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime26 = __toESM(require_jsx_runtime());
   var StatusSelector = ({
     states,
     currentStateId,
@@ -80079,17 +80093,17 @@ ${element2.innerHTML}
         onUpdate(selectedState);
       }
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime27.jsxs)("div", { className: StatusSelector_default.container, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime27.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)("div", { className: StatusSelector_default.container, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime26.jsx)(
         Select,
         {
           value: selectedState,
           onChange: (e) => setSelectedState(e.target.value),
           className: StatusSelector_default.select,
-          children: states.map((state) => /* @__PURE__ */ (0, import_jsx_runtime27.jsx)("option", { value: state.id, children: state.name }, state.id))
+          children: states.map((state) => /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("option", { value: state.id, children: state.name }, state.id))
         }
       ),
-      /* @__PURE__ */ (0, import_jsx_runtime27.jsx)(Button, { onClick: handleUpdate, disabled: selectedState === currentStateId, children: "Update Status" })
+      /* @__PURE__ */ (0, import_jsx_runtime26.jsx)(Button, { onClick: handleUpdate, disabled: selectedState === currentStateId, children: "Update Status" })
     ] });
   };
 
@@ -80097,13 +80111,13 @@ ${element2.innerHTML}
   var import_react27 = __toESM(require_react());
 
   // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/linear/ticket-panel/components/AssigneeSelector.module.css
-  var style17 = document.createElement("style");
-  style17.textContent = ".container_AssigneeSelector {\n  position: relative;\n  width: 100%;\n}\n\n.trigger_AssigneeSelector {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  padding: 6px 8px;\n  background-color: var(--vscode-button-secondaryBackground);\n  color: var(--vscode-button-secondaryForeground);\n  border: 1px solid var(--color-border);\n  border-radius: 4px;\n  cursor: pointer;\n  font-size: 12px;\n  width: 100%;\n  transition: all 0.2s ease;\n}\n\n.trigger_AssigneeSelector:hover {\n  background-color: var(--vscode-button-secondaryHoverBackground);\n}\n\n.avatar_AssigneeSelector {\n  width: 20px;\n  height: 20px;\n  border-radius: 50%;\n  object-fit: cover;\n}\n\n.avatarPlaceholder_AssigneeSelector {\n  width: 20px;\n  height: 20px;\n  border-radius: 50%;\n  background-color: var(--vscode-button-background);\n  color: var(--vscode-button-foreground);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  font-size: 10px;\n  font-weight: 600;\n}\n\n.assigneeName_AssigneeSelector {\n  flex: 1;\n  text-align: left;\n}\n\n.chevron_AssigneeSelector {\n  opacity: 0.7;\n}\n\n.dropdown_AssigneeSelector {\n  position: absolute;\n  top: calc(100% + 4px);\n  left: 0;\n  right: 0;\n  background-color: var(--vscode-dropdown-background);\n  border: 1px solid var(--vscode-dropdown-border);\n  border-radius: 4px;\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n  z-index: 1000;\n  max-height: 300px;\n  display: flex;\n  flex-direction: column;\n}\n\n.searchContainer_AssigneeSelector {\n  padding: 8px;\n  border-bottom: 1px solid var(--color-border);\n}\n\n.searchInput_AssigneeSelector {\n  width: 100%;\n  padding: 6px 8px;\n  background-color: var(--vscode-input-background);\n  color: var(--vscode-input-foreground);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 4px;\n  font-size: 12px;\n  outline: none;\n}\n\n.searchInput_AssigneeSelector:focus {\n  border-color: var(--vscode-focusBorder);\n}\n\n.userList_AssigneeSelector {\n  overflow-y: auto;\n  max-height: 250px;\n}\n\n.userItem_AssigneeSelector {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  padding: 8px 12px;\n  background: transparent;\n  border: none;\n  color: var(--vscode-foreground);\n  cursor: pointer;\n  width: 100%;\n  text-align: left;\n  transition: background-color 0.15s ease;\n}\n\n.userItem_AssigneeSelector:hover {\n  background-color: var(--vscode-list-hoverBackground);\n}\n\n.userItem_AssigneeSelector.selected_AssigneeSelector {\n  background-color: var(--vscode-list-activeSelectionBackground);\n  color: var(--vscode-list-activeSelectionForeground);\n}\n\n.userInfo_AssigneeSelector {\n  flex: 1;\n  min-width: 0;\n}\n\n.userName_AssigneeSelector {\n  font-size: 13px;\n  font-weight: 500;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.userEmail_AssigneeSelector {\n  font-size: 11px;\n  opacity: 0.7;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.emptyState_AssigneeSelector {\n  padding: 24px;\n  text-align: center;\n  color: var(--color-description);\n  font-size: 12px;\n}\n\n\n";
-  document.head.appendChild(style17);
+  var style16 = document.createElement("style");
+  style16.textContent = ".container_AssigneeSelector {\n  position: relative;\n  width: 100%;\n}\n\n.trigger_AssigneeSelector {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  padding: 6px 8px;\n  background-color: var(--vscode-button-secondaryBackground);\n  color: var(--vscode-button-secondaryForeground);\n  border: 1px solid var(--color-border);\n  border-radius: 4px;\n  cursor: pointer;\n  font-size: 12px;\n  width: 100%;\n  transition: all 0.2s ease;\n}\n\n.trigger_AssigneeSelector:hover {\n  background-color: var(--vscode-button-secondaryHoverBackground);\n}\n\n.avatar_AssigneeSelector {\n  width: 20px;\n  height: 20px;\n  border-radius: 50%;\n  object-fit: cover;\n}\n\n.avatarPlaceholder_AssigneeSelector {\n  width: 20px;\n  height: 20px;\n  border-radius: 50%;\n  background-color: var(--vscode-button-background);\n  color: var(--vscode-button-foreground);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  font-size: 10px;\n  font-weight: 600;\n}\n\n.assigneeName_AssigneeSelector {\n  flex: 1;\n  text-align: left;\n}\n\n.chevron_AssigneeSelector {\n  opacity: 0.7;\n}\n\n.dropdown_AssigneeSelector {\n  position: absolute;\n  top: calc(100% + 4px);\n  left: 0;\n  right: 0;\n  background-color: var(--vscode-dropdown-background);\n  border: 1px solid var(--vscode-dropdown-border);\n  border-radius: 4px;\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n  z-index: 1000;\n  max-height: 300px;\n  display: flex;\n  flex-direction: column;\n}\n\n.searchContainer_AssigneeSelector {\n  padding: 8px;\n  border-bottom: 1px solid var(--color-border);\n}\n\n.searchInput_AssigneeSelector {\n  width: 100%;\n  padding: 6px 8px;\n  background-color: var(--vscode-input-background);\n  color: var(--vscode-input-foreground);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 4px;\n  font-size: 12px;\n  outline: none;\n}\n\n.searchInput_AssigneeSelector:focus {\n  border-color: var(--vscode-focusBorder);\n}\n\n.userList_AssigneeSelector {\n  overflow-y: auto;\n  max-height: 250px;\n}\n\n.userItem_AssigneeSelector {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  padding: 8px 12px;\n  background: transparent;\n  border: none;\n  color: var(--vscode-foreground);\n  cursor: pointer;\n  width: 100%;\n  text-align: left;\n  transition: background-color 0.15s ease;\n}\n\n.userItem_AssigneeSelector:hover {\n  background-color: var(--vscode-list-hoverBackground);\n}\n\n.userItem_AssigneeSelector.selected_AssigneeSelector {\n  background-color: var(--vscode-list-activeSelectionBackground);\n  color: var(--vscode-list-activeSelectionForeground);\n}\n\n.userInfo_AssigneeSelector {\n  flex: 1;\n  min-width: 0;\n}\n\n.userName_AssigneeSelector {\n  font-size: 13px;\n  font-weight: 500;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.userEmail_AssigneeSelector {\n  font-size: 11px;\n  opacity: 0.7;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.emptyState_AssigneeSelector {\n  padding: 24px;\n  text-align: center;\n  color: var(--color-description);\n  font-size: 12px;\n}\n\n\n";
+  document.head.appendChild(style16);
   var AssigneeSelector_default = { "container": "container_AssigneeSelector", "trigger": "trigger_AssigneeSelector", "avatar": "avatar_AssigneeSelector", "avatarPlaceholder": "avatarPlaceholder_AssigneeSelector", "assigneeName": "assigneeName_AssigneeSelector", "chevron": "chevron_AssigneeSelector", "dropdown": "dropdown_AssigneeSelector", "searchContainer": "searchContainer_AssigneeSelector", "searchInput": "searchInput_AssigneeSelector", "userList": "userList_AssigneeSelector", "userItem": "userItem_AssigneeSelector", "selected": "selected_AssigneeSelector", "userInfo": "userInfo_AssigneeSelector", "userName": "userName_AssigneeSelector", "userEmail": "userEmail_AssigneeSelector", "emptyState": "emptyState_AssigneeSelector" };
 
   // webview-ui/src/linear/ticket-panel/components/AssigneeSelector.tsx
-  var import_jsx_runtime28 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime27 = __toESM(require_jsx_runtime());
   var AssigneeSelector = ({
     currentAssignee,
     users,
@@ -80153,29 +80167,29 @@ ${element2.innerHTML}
       const search = searchTerm.toLowerCase();
       return user.name.toLowerCase().includes(search) || user.email.toLowerCase().includes(search);
     }) : users;
-    return /* @__PURE__ */ (0, import_jsx_runtime28.jsxs)("div", { className: AssigneeSelector_default.container, ref: dropdownRef, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime28.jsxs)(
+    return /* @__PURE__ */ (0, import_jsx_runtime27.jsxs)("div", { className: AssigneeSelector_default.container, ref: dropdownRef, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime27.jsxs)(
         "button",
         {
           className: AssigneeSelector_default.trigger,
           onClick: () => setIsOpen(!isOpen),
           title: "Change assignee",
           children: [
-            currentAssignee ? /* @__PURE__ */ (0, import_jsx_runtime28.jsxs)(import_jsx_runtime28.Fragment, { children: [
-              currentAssignee.avatarUrl ? /* @__PURE__ */ (0, import_jsx_runtime28.jsx)(
+            currentAssignee ? /* @__PURE__ */ (0, import_jsx_runtime27.jsxs)(import_jsx_runtime27.Fragment, { children: [
+              currentAssignee.avatarUrl ? /* @__PURE__ */ (0, import_jsx_runtime27.jsx)(
                 "img",
                 {
                   src: currentAssignee.avatarUrl,
                   alt: currentAssignee.name,
                   className: AssigneeSelector_default.avatar
                 }
-              ) : /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("div", { className: AssigneeSelector_default.avatarPlaceholder, children: currentAssignee.name.charAt(0).toUpperCase() }),
-              /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("span", { className: AssigneeSelector_default.assigneeName, children: currentAssignee.name })
-            ] }) : /* @__PURE__ */ (0, import_jsx_runtime28.jsxs)(import_jsx_runtime28.Fragment, { children: [
-              /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("div", { className: AssigneeSelector_default.avatarPlaceholder, children: "?" }),
-              /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("span", { className: AssigneeSelector_default.assigneeName, children: "Unassigned" })
+              ) : /* @__PURE__ */ (0, import_jsx_runtime27.jsx)("div", { className: AssigneeSelector_default.avatarPlaceholder, children: currentAssignee.name.charAt(0).toUpperCase() }),
+              /* @__PURE__ */ (0, import_jsx_runtime27.jsx)("span", { className: AssigneeSelector_default.assigneeName, children: currentAssignee.name })
+            ] }) : /* @__PURE__ */ (0, import_jsx_runtime27.jsxs)(import_jsx_runtime27.Fragment, { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime27.jsx)("div", { className: AssigneeSelector_default.avatarPlaceholder, children: "?" }),
+              /* @__PURE__ */ (0, import_jsx_runtime27.jsx)("span", { className: AssigneeSelector_default.assigneeName, children: "Unassigned" })
             ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime28.jsx)(
+            /* @__PURE__ */ (0, import_jsx_runtime27.jsx)(
               "svg",
               {
                 width: "12",
@@ -80187,14 +80201,14 @@ ${element2.innerHTML}
                 strokeLinecap: "round",
                 strokeLinejoin: "round",
                 className: AssigneeSelector_default.chevron,
-                children: /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("polyline", { points: "6 9 12 15 18 9" })
+                children: /* @__PURE__ */ (0, import_jsx_runtime27.jsx)("polyline", { points: "6 9 12 15 18 9" })
               }
             )
           ]
         }
       ),
-      isOpen && /* @__PURE__ */ (0, import_jsx_runtime28.jsxs)("div", { className: AssigneeSelector_default.dropdown, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("div", { className: AssigneeSelector_default.searchContainer, children: /* @__PURE__ */ (0, import_jsx_runtime28.jsx)(
+      isOpen && /* @__PURE__ */ (0, import_jsx_runtime27.jsxs)("div", { className: AssigneeSelector_default.dropdown, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime27.jsx)("div", { className: AssigneeSelector_default.searchContainer, children: /* @__PURE__ */ (0, import_jsx_runtime27.jsx)(
           "input",
           {
             type: "text",
@@ -80205,58 +80219,360 @@ ${element2.innerHTML}
             autoFocus: true
           }
         ) }),
-        /* @__PURE__ */ (0, import_jsx_runtime28.jsxs)("div", { className: AssigneeSelector_default.userList, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime28.jsxs)(
+        /* @__PURE__ */ (0, import_jsx_runtime27.jsxs)("div", { className: AssigneeSelector_default.userList, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime27.jsxs)(
             "button",
             {
               className: AssigneeSelector_default.userItem,
               onClick: () => handleSelectUser(null),
               children: [
-                /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("div", { className: AssigneeSelector_default.avatarPlaceholder, children: "?" }),
-                /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("div", { className: AssigneeSelector_default.userInfo, children: /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("div", { className: AssigneeSelector_default.userName, children: "Unassigned" }) })
+                /* @__PURE__ */ (0, import_jsx_runtime27.jsx)("div", { className: AssigneeSelector_default.avatarPlaceholder, children: "?" }),
+                /* @__PURE__ */ (0, import_jsx_runtime27.jsx)("div", { className: AssigneeSelector_default.userInfo, children: /* @__PURE__ */ (0, import_jsx_runtime27.jsx)("div", { className: AssigneeSelector_default.userName, children: "Unassigned" }) })
               ]
             }
           ),
-          filteredUsers.length > 0 ? filteredUsers.map((user) => /* @__PURE__ */ (0, import_jsx_runtime28.jsxs)(
+          filteredUsers.length > 0 ? filteredUsers.map((user) => /* @__PURE__ */ (0, import_jsx_runtime27.jsxs)(
             "button",
             {
               className: `${AssigneeSelector_default.userItem} ${currentAssignee?.id === user.id ? AssigneeSelector_default.selected : ""}`,
               onClick: () => handleSelectUser(user.id),
               children: [
-                user.avatarUrl ? /* @__PURE__ */ (0, import_jsx_runtime28.jsx)(
+                user.avatarUrl ? /* @__PURE__ */ (0, import_jsx_runtime27.jsx)(
                   "img",
                   {
                     src: user.avatarUrl,
                     alt: user.name,
                     className: AssigneeSelector_default.avatar
                   }
-                ) : /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("div", { className: AssigneeSelector_default.avatarPlaceholder, children: user.name.charAt(0).toUpperCase() }),
-                /* @__PURE__ */ (0, import_jsx_runtime28.jsxs)("div", { className: AssigneeSelector_default.userInfo, children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("div", { className: AssigneeSelector_default.userName, children: user.name }),
-                  /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("div", { className: AssigneeSelector_default.userEmail, children: user.email })
+                ) : /* @__PURE__ */ (0, import_jsx_runtime27.jsx)("div", { className: AssigneeSelector_default.avatarPlaceholder, children: user.name.charAt(0).toUpperCase() }),
+                /* @__PURE__ */ (0, import_jsx_runtime27.jsxs)("div", { className: AssigneeSelector_default.userInfo, children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime27.jsx)("div", { className: AssigneeSelector_default.userName, children: user.name }),
+                  /* @__PURE__ */ (0, import_jsx_runtime27.jsx)("div", { className: AssigneeSelector_default.userEmail, children: user.email })
                 ] })
               ]
             },
             user.id
-          )) : /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("div", { className: AssigneeSelector_default.emptyState, children: searchTerm.length >= 3 ? "No users found" : users.length === 0 ? "Loading users..." : "Type to search users" })
+          )) : /* @__PURE__ */ (0, import_jsx_runtime27.jsx)("div", { className: AssigneeSelector_default.emptyState, children: searchTerm.length >= 3 ? "No users found" : users.length === 0 ? "Loading users..." : "Type to search users" })
         ] })
       ] })
     ] });
   };
 
-  // webview-ui/src/linear/ticket-panel/components/CommentForm.tsx
+  // webview-ui/src/linear/ticket-panel/components/LabelSelector.tsx
   var import_react28 = __toESM(require_react());
 
-  // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/linear/ticket-panel/components/CommentForm.module.css
+  // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/linear/ticket-panel/components/LabelSelector.module.css
+  var style17 = document.createElement("style");
+  style17.textContent = ".section_LabelSelector {\n  position: relative;\n  margin-bottom: 24px;\n}\n\n.header_LabelSelector {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  margin-bottom: 12px;\n}\n\n.sectionTitle_LabelSelector {\n  font-size: 14px;\n  font-weight: 600;\n  color: var(--color-foreground);\n}\n\n.addButton_LabelSelector {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 24px;\n  height: 24px;\n  background: transparent;\n  border: 1px solid var(--color-border);\n  border-radius: 4px;\n  color: var(--color-description);\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n\n.addButton_LabelSelector:hover {\n  background-color: var(--vscode-button-secondaryBackground);\n  color: var(--color-foreground);\n  border-color: var(--vscode-button-secondaryHoverBackground);\n}\n\n.labels_LabelSelector {\n  display: flex;\n  gap: 6px;\n  flex-wrap: wrap;\n}\n\n.noLabels_LabelSelector {\n  font-size: 12px;\n  color: var(--color-description);\n  font-style: italic;\n}\n\n.dropdown_LabelSelector {\n  position: absolute;\n  top: 100%;\n  left: 0;\n  right: 0;\n  margin-top: 4px;\n  background-color: var(--vscode-dropdown-background);\n  border: 1px solid var(--vscode-dropdown-border);\n  border-radius: 4px;\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n  z-index: 1000;\n  max-height: 280px;\n  display: flex;\n  flex-direction: column;\n}\n\n.searchContainer_LabelSelector {\n  padding: 8px;\n  border-bottom: 1px solid var(--color-border);\n}\n\n.searchInput_LabelSelector {\n  width: 100%;\n  padding: 6px 8px;\n  background-color: var(--vscode-input-background);\n  color: var(--vscode-input-foreground);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 4px;\n  font-size: 12px;\n  outline: none;\n}\n\n.searchInput_LabelSelector:focus {\n  border-color: var(--vscode-focusBorder);\n}\n\n.labelList_LabelSelector {\n  overflow-y: auto;\n  max-height: 220px;\n}\n\n.labelItem_LabelSelector {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  padding: 8px 12px;\n  background: transparent;\n  border: none;\n  color: var(--vscode-foreground);\n  cursor: pointer;\n  width: 100%;\n  text-align: left;\n  transition: background-color 0.15s ease;\n}\n\n.labelItem_LabelSelector:hover {\n  background-color: var(--vscode-list-hoverBackground);\n}\n\n.labelColor_LabelSelector {\n  width: 12px;\n  height: 12px;\n  border-radius: 3px;\n  flex-shrink: 0;\n}\n\n.labelName_LabelSelector {\n  font-size: 13px;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.emptyState_LabelSelector {\n  padding: 24px;\n  text-align: center;\n  color: var(--color-description);\n  font-size: 12px;\n}\n\n";
+  document.head.appendChild(style17);
+  var LabelSelector_default = { "section": "section_LabelSelector", "header": "header_LabelSelector", "sectionTitle": "sectionTitle_LabelSelector", "addButton": "addButton_LabelSelector", "labels": "labels_LabelSelector", "noLabels": "noLabels_LabelSelector", "dropdown": "dropdown_LabelSelector", "searchContainer": "searchContainer_LabelSelector", "searchInput": "searchInput_LabelSelector", "labelList": "labelList_LabelSelector", "labelItem": "labelItem_LabelSelector", "labelColor": "labelColor_LabelSelector", "labelName": "labelName_LabelSelector", "emptyState": "emptyState_LabelSelector" };
+
+  // webview-ui/src/linear/ticket-panel/components/LabelSelector.tsx
+  var import_jsx_runtime28 = __toESM(require_jsx_runtime());
+  var LabelSelector = ({
+    currentLabels,
+    availableLabels,
+    onUpdateLabels,
+    onLoadLabels,
+    teamId
+  }) => {
+    const [isOpen, setIsOpen] = (0, import_react28.useState)(false);
+    const [searchTerm, setSearchTerm] = (0, import_react28.useState)("");
+    const [hasLoadedLabels, setHasLoadedLabels] = (0, import_react28.useState)(false);
+    const dropdownRef = (0, import_react28.useRef)(null);
+    (0, import_react28.useEffect)(() => {
+      if (hasLoadedLabels || !teamId) {
+        return;
+      }
+      onLoadLabels(teamId);
+      setHasLoadedLabels(true);
+    }, [teamId]);
+    (0, import_react28.useEffect)(() => {
+      const handleClickOutside = (event) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+          setIsOpen(false);
+          setSearchTerm("");
+        }
+      };
+      if (isOpen) {
+        document.addEventListener("mousedown", handleClickOutside);
+      }
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, [isOpen]);
+    const handleRemoveLabel = (labelId) => {
+      const newLabelIds = currentLabels.filter((label) => label.id !== labelId).map((label) => label.id);
+      onUpdateLabels(newLabelIds);
+    };
+    const handleAddLabel = (label) => {
+      if (currentLabels.some((l) => l.id === label.id)) {
+        return;
+      }
+      const newLabelIds = [...currentLabels.map((l) => l.id), label.id];
+      onUpdateLabels(newLabelIds);
+      setSearchTerm("");
+    };
+    const filteredLabels = availableLabels.filter((label) => {
+      const notSelected = !currentLabels.some((l) => l.id === label.id);
+      const matchesSearch = searchTerm.length === 0 || label.name.toLowerCase().includes(searchTerm.toLowerCase());
+      return notSelected && matchesSearch;
+    });
+    return /* @__PURE__ */ (0, import_jsx_runtime28.jsxs)("div", { className: LabelSelector_default.section, ref: dropdownRef, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime28.jsxs)("div", { className: LabelSelector_default.header, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("span", { className: LabelSelector_default.sectionTitle, children: "Labels" }),
+        /* @__PURE__ */ (0, import_jsx_runtime28.jsx)(
+          "button",
+          {
+            className: LabelSelector_default.addButton,
+            onClick: () => {
+              if (!hasLoadedLabels && teamId) {
+                onLoadLabels(teamId);
+                setHasLoadedLabels(true);
+              }
+              setIsOpen(!isOpen);
+            },
+            title: "Add label",
+            children: /* @__PURE__ */ (0, import_jsx_runtime28.jsxs)(
+              "svg",
+              {
+                width: "14",
+                height: "14",
+                viewBox: "0 0 24 24",
+                fill: "none",
+                stroke: "currentColor",
+                strokeWidth: "2",
+                strokeLinecap: "round",
+                strokeLinejoin: "round",
+                children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("line", { x1: "12", y1: "5", x2: "12", y2: "19" }),
+                  /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("line", { x1: "5", y1: "12", x2: "19", y2: "12" })
+                ]
+              }
+            )
+          }
+        )
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("div", { className: LabelSelector_default.labels, children: currentLabels.length > 0 ? currentLabels.map((label) => /* @__PURE__ */ (0, import_jsx_runtime28.jsx)(
+        Badge,
+        {
+          color: label.color,
+          onRemove: () => handleRemoveLabel(label.id),
+          children: label.name
+        },
+        label.id
+      )) : /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("span", { className: LabelSelector_default.noLabels, children: "No labels" }) }),
+      isOpen && /* @__PURE__ */ (0, import_jsx_runtime28.jsxs)("div", { className: LabelSelector_default.dropdown, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("div", { className: LabelSelector_default.searchContainer, children: /* @__PURE__ */ (0, import_jsx_runtime28.jsx)(
+          "input",
+          {
+            type: "text",
+            placeholder: "Search labels...",
+            value: searchTerm,
+            onChange: (e) => setSearchTerm(e.target.value),
+            className: LabelSelector_default.searchInput,
+            autoFocus: true
+          }
+        ) }),
+        /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("div", { className: LabelSelector_default.labelList, children: filteredLabels.length > 0 ? filteredLabels.map((label) => /* @__PURE__ */ (0, import_jsx_runtime28.jsxs)(
+          "button",
+          {
+            className: LabelSelector_default.labelItem,
+            onClick: () => handleAddLabel(label),
+            children: [
+              /* @__PURE__ */ (0, import_jsx_runtime28.jsx)(
+                "span",
+                {
+                  className: LabelSelector_default.labelColor,
+                  style: { backgroundColor: label.color }
+                }
+              ),
+              /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("span", { className: LabelSelector_default.labelName, children: label.name })
+            ]
+          },
+          label.id
+        )) : /* @__PURE__ */ (0, import_jsx_runtime28.jsx)("div", { className: LabelSelector_default.emptyState, children: searchTerm.length > 0 ? "No matching labels" : availableLabels.length === 0 ? "Loading labels..." : "All labels assigned" }) })
+      ] })
+    ] });
+  };
+
+  // webview-ui/src/linear/ticket-panel/components/CycleSelector.tsx
+  var import_react29 = __toESM(require_react());
+
+  // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/linear/ticket-panel/components/CycleSelector.module.css
   var style18 = document.createElement("style");
-  style18.textContent = ".section_CommentForm {\n  margin-bottom: 24px;\n}\n\n.sectionTitle_CommentForm {\n  font-size: 14px;\n  font-weight: 600;\n  margin-bottom: 12px;\n  color: var(--color-foreground);\n}\n\n";
+  style18.textContent = ".section_CycleSelector {\n  position: relative;\n  margin-bottom: 24px;\n}\n\n.header_CycleSelector {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  margin-bottom: 8px;\n}\n\n.sectionTitle_CycleSelector {\n  font-size: 14px;\n  font-weight: 600;\n  color: var(--color-foreground);\n}\n\n.trigger_CycleSelector {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  padding: 6px 10px;\n  background-color: var(--vscode-button-secondaryBackground);\n  color: var(--vscode-button-secondaryForeground);\n  border: 1px solid var(--color-border);\n  border-radius: 4px;\n  cursor: pointer;\n  font-size: 12px;\n  width: 100%;\n  transition: all 0.2s ease;\n}\n\n.trigger_CycleSelector:hover {\n  background-color: var(--vscode-button-secondaryHoverBackground);\n}\n\n.cycleName_CycleSelector {\n  flex: 1;\n  text-align: left;\n  font-weight: 500;\n}\n\n.noCycle_CycleSelector {\n  flex: 1;\n  text-align: left;\n  color: var(--color-description);\n  font-style: italic;\n}\n\n.chevron_CycleSelector {\n  opacity: 0.7;\n}\n\n.dropdown_CycleSelector {\n  position: absolute;\n  top: 100%;\n  left: 0;\n  right: 0;\n  margin-top: 4px;\n  background-color: var(--vscode-dropdown-background);\n  border: 1px solid var(--vscode-dropdown-border);\n  border-radius: 4px;\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n  z-index: 1000;\n  max-height: 280px;\n  display: flex;\n  flex-direction: column;\n}\n\n.cycleList_CycleSelector {\n  overflow-y: auto;\n  max-height: 280px;\n}\n\n.cycleItem_CycleSelector {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  padding: 10px 12px;\n  background: transparent;\n  border: none;\n  color: var(--vscode-foreground);\n  cursor: pointer;\n  width: 100%;\n  text-align: left;\n  transition: background-color 0.15s ease;\n}\n\n.cycleItem_CycleSelector:hover {\n  background-color: var(--vscode-list-hoverBackground);\n}\n\n.cycleItem_CycleSelector.selected_CycleSelector {\n  background-color: var(--vscode-list-activeSelectionBackground);\n  color: var(--vscode-list-activeSelectionForeground);\n}\n\n.cycleIcon_CycleSelector {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 20px;\n  height: 20px;\n  flex-shrink: 0;\n  opacity: 0.7;\n}\n\n.cycleInfo_CycleSelector {\n  flex: 1;\n  min-width: 0;\n  display: flex;\n  flex-direction: column;\n  gap: 2px;\n}\n\n.cycleItemName_CycleSelector {\n  font-size: 13px;\n  font-weight: 500;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.cycleDates_CycleSelector {\n  font-size: 11px;\n  opacity: 0.7;\n}\n\n.progressContainer_CycleSelector {\n  width: 40px;\n  height: 4px;\n  background-color: var(--color-border);\n  border-radius: 2px;\n  overflow: hidden;\n  flex-shrink: 0;\n}\n\n.progressBar_CycleSelector {\n  height: 100%;\n  background-color: var(--vscode-progressBar-background);\n  border-radius: 2px;\n  transition: width 0.2s ease;\n}\n\n.emptyState_CycleSelector {\n  padding: 24px;\n  text-align: center;\n  color: var(--color-description);\n  font-size: 12px;\n}\n\n";
   document.head.appendChild(style18);
+  var CycleSelector_default = { "section": "section_CycleSelector", "header": "header_CycleSelector", "sectionTitle": "sectionTitle_CycleSelector", "trigger": "trigger_CycleSelector", "cycleName": "cycleName_CycleSelector", "noCycle": "noCycle_CycleSelector", "chevron": "chevron_CycleSelector", "dropdown": "dropdown_CycleSelector", "cycleList": "cycleList_CycleSelector", "cycleItem": "cycleItem_CycleSelector", "selected": "selected_CycleSelector", "cycleIcon": "cycleIcon_CycleSelector", "cycleInfo": "cycleInfo_CycleSelector", "cycleItemName": "cycleItemName_CycleSelector", "cycleDates": "cycleDates_CycleSelector", "progressContainer": "progressContainer_CycleSelector", "progressBar": "progressBar_CycleSelector", "emptyState": "emptyState_CycleSelector" };
+
+  // webview-ui/src/linear/ticket-panel/components/CycleSelector.tsx
+  var import_jsx_runtime29 = __toESM(require_jsx_runtime());
+  var CycleSelector = ({
+    currentCycle,
+    availableCycles,
+    onUpdateCycle,
+    onLoadCycles,
+    teamId
+  }) => {
+    const [isOpen, setIsOpen] = (0, import_react29.useState)(false);
+    const [hasLoadedCycles, setHasLoadedCycles] = (0, import_react29.useState)(false);
+    const dropdownRef = (0, import_react29.useRef)(null);
+    (0, import_react29.useEffect)(() => {
+      if (hasLoadedCycles || !teamId) {
+        return;
+      }
+      onLoadCycles(teamId);
+      setHasLoadedCycles(true);
+    }, [teamId]);
+    (0, import_react29.useEffect)(() => {
+      const handleClickOutside = (event) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+          setIsOpen(false);
+        }
+      };
+      if (isOpen) {
+        document.addEventListener("mousedown", handleClickOutside);
+      }
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, [isOpen]);
+    const handleSelectCycle = (cycleId) => {
+      onUpdateCycle(cycleId);
+      setIsOpen(false);
+    };
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      return date.toLocaleDateString(void 0, { month: "short", day: "numeric" });
+    };
+    const getCycleLabel = (cycle) => {
+      const name = cycle.name || `Cycle ${cycle.number}`;
+      if (cycle.startsAt && cycle.endsAt) {
+        return `${name} (${formatDate(cycle.startsAt)} - ${formatDate(cycle.endsAt)})`;
+      }
+      return name;
+    };
+    return /* @__PURE__ */ (0, import_jsx_runtime29.jsxs)("div", { className: CycleSelector_default.section, ref: dropdownRef, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime29.jsx)("div", { className: CycleSelector_default.header, children: /* @__PURE__ */ (0, import_jsx_runtime29.jsx)("span", { className: CycleSelector_default.sectionTitle, children: "Cycle" }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime29.jsxs)(
+        "button",
+        {
+          className: CycleSelector_default.trigger,
+          onClick: () => {
+            if (!hasLoadedCycles && teamId) {
+              onLoadCycles(teamId);
+              setHasLoadedCycles(true);
+            }
+            setIsOpen(!isOpen);
+          },
+          title: "Change cycle",
+          children: [
+            currentCycle ? /* @__PURE__ */ (0, import_jsx_runtime29.jsx)("span", { className: CycleSelector_default.cycleName, children: getCycleLabel(currentCycle) }) : /* @__PURE__ */ (0, import_jsx_runtime29.jsx)("span", { className: CycleSelector_default.noCycle, children: "No cycle" }),
+            /* @__PURE__ */ (0, import_jsx_runtime29.jsx)(
+              "svg",
+              {
+                width: "12",
+                height: "12",
+                viewBox: "0 0 24 24",
+                fill: "none",
+                stroke: "currentColor",
+                strokeWidth: "2",
+                strokeLinecap: "round",
+                strokeLinejoin: "round",
+                className: CycleSelector_default.chevron,
+                children: /* @__PURE__ */ (0, import_jsx_runtime29.jsx)("polyline", { points: "6 9 12 15 18 9" })
+              }
+            )
+          ]
+        }
+      ),
+      isOpen && /* @__PURE__ */ (0, import_jsx_runtime29.jsx)("div", { className: CycleSelector_default.dropdown, children: /* @__PURE__ */ (0, import_jsx_runtime29.jsxs)("div", { className: CycleSelector_default.cycleList, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime29.jsxs)(
+          "button",
+          {
+            className: `${CycleSelector_default.cycleItem} ${!currentCycle ? CycleSelector_default.selected : ""}`,
+            onClick: () => handleSelectCycle(null),
+            children: [
+              /* @__PURE__ */ (0, import_jsx_runtime29.jsx)("div", { className: CycleSelector_default.cycleIcon, children: /* @__PURE__ */ (0, import_jsx_runtime29.jsxs)(
+                "svg",
+                {
+                  width: "14",
+                  height: "14",
+                  viewBox: "0 0 24 24",
+                  fill: "none",
+                  stroke: "currentColor",
+                  strokeWidth: "2",
+                  strokeLinecap: "round",
+                  strokeLinejoin: "round",
+                  children: [
+                    /* @__PURE__ */ (0, import_jsx_runtime29.jsx)("line", { x1: "18", y1: "6", x2: "6", y2: "18" }),
+                    /* @__PURE__ */ (0, import_jsx_runtime29.jsx)("line", { x1: "6", y1: "6", x2: "18", y2: "18" })
+                  ]
+                }
+              ) }),
+              /* @__PURE__ */ (0, import_jsx_runtime29.jsx)("span", { className: CycleSelector_default.cycleItemName, children: "No cycle" })
+            ]
+          }
+        ),
+        availableCycles.length > 0 ? availableCycles.map((cycle) => /* @__PURE__ */ (0, import_jsx_runtime29.jsxs)(
+          "button",
+          {
+            className: `${CycleSelector_default.cycleItem} ${currentCycle?.id === cycle.id ? CycleSelector_default.selected : ""}`,
+            onClick: () => handleSelectCycle(cycle.id),
+            children: [
+              /* @__PURE__ */ (0, import_jsx_runtime29.jsx)("div", { className: CycleSelector_default.cycleIcon, children: /* @__PURE__ */ (0, import_jsx_runtime29.jsxs)(
+                "svg",
+                {
+                  width: "14",
+                  height: "14",
+                  viewBox: "0 0 24 24",
+                  fill: "none",
+                  stroke: "currentColor",
+                  strokeWidth: "2",
+                  strokeLinecap: "round",
+                  strokeLinejoin: "round",
+                  children: [
+                    /* @__PURE__ */ (0, import_jsx_runtime29.jsx)("circle", { cx: "12", cy: "12", r: "10" }),
+                    /* @__PURE__ */ (0, import_jsx_runtime29.jsx)("polyline", { points: "12 6 12 12 16 14" })
+                  ]
+                }
+              ) }),
+              /* @__PURE__ */ (0, import_jsx_runtime29.jsxs)("div", { className: CycleSelector_default.cycleInfo, children: [
+                /* @__PURE__ */ (0, import_jsx_runtime29.jsx)("span", { className: CycleSelector_default.cycleItemName, children: cycle.name || `Cycle ${cycle.number}` }),
+                cycle.startsAt && cycle.endsAt && /* @__PURE__ */ (0, import_jsx_runtime29.jsxs)("span", { className: CycleSelector_default.cycleDates, children: [
+                  formatDate(cycle.startsAt),
+                  " - ",
+                  formatDate(cycle.endsAt)
+                ] })
+              ] }),
+              cycle.progress !== void 0 && /* @__PURE__ */ (0, import_jsx_runtime29.jsx)("div", { className: CycleSelector_default.progressContainer, children: /* @__PURE__ */ (0, import_jsx_runtime29.jsx)(
+                "div",
+                {
+                  className: CycleSelector_default.progressBar,
+                  style: { width: `${Math.round(cycle.progress * 100)}%` }
+                }
+              ) })
+            ]
+          },
+          cycle.id
+        )) : /* @__PURE__ */ (0, import_jsx_runtime29.jsx)("div", { className: CycleSelector_default.emptyState, children: hasLoadedCycles ? "No cycles available" : "Loading cycles..." })
+      ] }) })
+    ] });
+  };
+
+  // webview-ui/src/linear/ticket-panel/components/CommentForm.tsx
+  var import_react30 = __toESM(require_react());
+
+  // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/linear/ticket-panel/components/CommentForm.module.css
+  var style19 = document.createElement("style");
+  style19.textContent = ".section_CommentForm {\n  margin-bottom: 24px;\n}\n\n.sectionTitle_CommentForm {\n  font-size: 14px;\n  font-weight: 600;\n  margin-bottom: 12px;\n  color: var(--color-foreground);\n}\n\n";
+  document.head.appendChild(style19);
   var CommentForm_default = { "section": "section_CommentForm", "sectionTitle": "sectionTitle_CommentForm" };
 
   // webview-ui/src/linear/ticket-panel/components/CommentForm.tsx
-  var import_jsx_runtime29 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime30 = __toESM(require_jsx_runtime());
   var CommentForm = ({ onSubmit }) => {
-    const [comment3, setComment] = (0, import_react28.useState)("");
+    const [comment3, setComment] = (0, import_react30.useState)("");
     const handleSubmit = (e) => {
       e.preventDefault();
       if (comment3.trim()) {
@@ -80264,10 +80580,10 @@ ${element2.innerHTML}
         setComment("");
       }
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime29.jsxs)("div", { className: CommentForm_default.section, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime29.jsx)("div", { className: CommentForm_default.sectionTitle, children: "Add Comment" }),
-      /* @__PURE__ */ (0, import_jsx_runtime29.jsxs)("form", { onSubmit: handleSubmit, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime29.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime30.jsxs)("div", { className: CommentForm_default.section, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime30.jsx)("div", { className: CommentForm_default.sectionTitle, children: "Add Comment" }),
+      /* @__PURE__ */ (0, import_jsx_runtime30.jsxs)("form", { onSubmit: handleSubmit, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime30.jsx)(
           TextArea,
           {
             placeholder: "Write a comment...",
@@ -80275,37 +80591,37 @@ ${element2.innerHTML}
             onChange: (e) => setComment(e.target.value)
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime29.jsx)(Button, { type: "submit", disabled: !comment3.trim(), children: "Add Comment" })
+        /* @__PURE__ */ (0, import_jsx_runtime30.jsx)(Button, { type: "submit", disabled: !comment3.trim(), children: "Add Comment" })
       ] })
     ] });
   };
 
   // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/linear/ticket-panel/components/ActionButtons.module.css
-  var style19 = document.createElement("style");
-  style19.textContent = ".actions_ActionButtons {\n  display: flex;\n  gap: 8px;\n  margin-top: 16px;\n  flex-wrap: wrap;\n}\n\n";
-  document.head.appendChild(style19);
+  var style20 = document.createElement("style");
+  style20.textContent = ".actions_ActionButtons {\n  display: flex;\n  gap: 8px;\n  margin-top: 16px;\n  flex-wrap: wrap;\n}\n\n";
+  document.head.appendChild(style20);
   var ActionButtons_default = { "actions": "actions_ActionButtons" };
 
   // webview-ui/src/linear/ticket-panel/components/ActionButtons.tsx
-  var import_jsx_runtime30 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime31 = __toESM(require_jsx_runtime());
   var ActionButtons = ({
     onOpenInLinear,
     onRefresh
   }) => {
-    return /* @__PURE__ */ (0, import_jsx_runtime30.jsxs)("div", { className: ActionButtons_default.actions, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime30.jsx)(Button, { variant: "secondary", onClick: onOpenInLinear, children: "Open in Linear" }),
-      /* @__PURE__ */ (0, import_jsx_runtime30.jsx)(Button, { variant: "secondary", onClick: onRefresh, children: "Refresh" })
+    return /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)("div", { className: ActionButtons_default.actions, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime31.jsx)(Button, { variant: "secondary", onClick: onOpenInLinear, children: "Open in Linear" }),
+      /* @__PURE__ */ (0, import_jsx_runtime31.jsx)(Button, { variant: "secondary", onClick: onRefresh, children: "Refresh" })
     ] });
   };
 
   // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/linear/ticket-panel/components/AttachedPRs.module.css
-  var style20 = document.createElement("style");
-  style20.textContent = ".container_AttachedPRs {\n  margin: 24px 0;\n}\n\n.title_AttachedPRs {\n  font-size: 15px;\n  font-weight: 600;\n  margin-bottom: 4px;\n  color: var(--vscode-foreground);\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n\n.titleIcon_AttachedPRs {\n  font-size: 16px;\n}\n\n.subtitle_AttachedPRs {\n  font-size: 12px;\n  color: var(--vscode-descriptionForeground);\n  margin-bottom: 12px;\n  font-style: italic;\n}\n\n.prList_AttachedPRs {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n\n.prItem_AttachedPRs {\n  display: block;\n  padding: 16px 18px;\n  background: var(--vscode-editor-background);\n  border: 1.5px solid var(--vscode-panel-border);\n  border-radius: 8px;\n  text-decoration: none;\n  color: var(--vscode-foreground);\n  transition: all 0.2s ease;\n  cursor: pointer;\n  position: relative;\n}\n\n.prItem_AttachedPRs:hover {\n  background: var(--vscode-list-hoverBackground);\n  border-color: var(--vscode-focusBorder);\n  transform: translateY(-2px);\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);\n}\n\n.prItem_AttachedPRs:active {\n  transform: translateY(-1px);\n}\n\n.prHeader_AttachedPRs {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 10px;\n}\n\n.prInfo_AttachedPRs {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  flex: 1;\n}\n\n.platformIcon_AttachedPRs {\n  font-size: 16px;\n  display: flex;\n  align-items: center;\n  opacity: 0.8;\n}\n\n.platformIcon_AttachedPRs.github_AttachedPRs {\n  filter: grayscale(0.2);\n}\n\n.platformIcon_AttachedPRs.gitlab_AttachedPRs {\n  filter: hue-rotate(20deg);\n}\n\n.prNumber_AttachedPRs {\n  font-weight: 600;\n  font-size: 15px;\n  color: var(--vscode-textLink-foreground);\n  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;\n}\n\n.prRepo_AttachedPRs {\n  font-size: 12px;\n  color: var(--vscode-descriptionForeground);\n  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;\n}\n\n.openArrow_AttachedPRs {\n  font-size: 18px;\n  color: var(--vscode-textLink-foreground);\n  opacity: 0.6;\n  transition: all 0.2s ease;\n}\n\n.prItem_AttachedPRs:hover .openArrow_AttachedPRs {\n  opacity: 1;\n  transform: translateX(4px);\n}\n\n.prTitle_AttachedPRs {\n  font-size: 13px;\n  font-weight: 500;\n  line-height: 1.5;\n  margin-bottom: 6px;\n  color: var(--vscode-foreground);\n}\n\n.prSubtitle_AttachedPRs {\n  font-size: 12px;\n  color: var(--vscode-descriptionForeground);\n  line-height: 1.4;\n  opacity: 0.85;\n}\n\n";
-  document.head.appendChild(style20);
+  var style21 = document.createElement("style");
+  style21.textContent = ".container_AttachedPRs {\n  margin: 24px 0;\n}\n\n.title_AttachedPRs {\n  font-size: 15px;\n  font-weight: 600;\n  margin-bottom: 4px;\n  color: var(--vscode-foreground);\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n\n.titleIcon_AttachedPRs {\n  font-size: 16px;\n}\n\n.subtitle_AttachedPRs {\n  font-size: 12px;\n  color: var(--vscode-descriptionForeground);\n  margin-bottom: 12px;\n  font-style: italic;\n}\n\n.prList_AttachedPRs {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n\n.prItem_AttachedPRs {\n  display: block;\n  padding: 16px 18px;\n  background: var(--vscode-editor-background);\n  border: 1.5px solid var(--vscode-panel-border);\n  border-radius: 8px;\n  text-decoration: none;\n  color: var(--vscode-foreground);\n  transition: all 0.2s ease;\n  cursor: pointer;\n  position: relative;\n}\n\n.prItem_AttachedPRs:hover {\n  background: var(--vscode-list-hoverBackground);\n  border-color: var(--vscode-focusBorder);\n  transform: translateY(-2px);\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);\n}\n\n.prItem_AttachedPRs:active {\n  transform: translateY(-1px);\n}\n\n.prHeader_AttachedPRs {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 10px;\n}\n\n.prInfo_AttachedPRs {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  flex: 1;\n}\n\n.platformIcon_AttachedPRs {\n  font-size: 16px;\n  display: flex;\n  align-items: center;\n  opacity: 0.8;\n}\n\n.platformIcon_AttachedPRs.github_AttachedPRs {\n  filter: grayscale(0.2);\n}\n\n.platformIcon_AttachedPRs.gitlab_AttachedPRs {\n  filter: hue-rotate(20deg);\n}\n\n.prNumber_AttachedPRs {\n  font-weight: 600;\n  font-size: 15px;\n  color: var(--vscode-textLink-foreground);\n  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;\n}\n\n.prRepo_AttachedPRs {\n  font-size: 12px;\n  color: var(--vscode-descriptionForeground);\n  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;\n}\n\n.openArrow_AttachedPRs {\n  font-size: 18px;\n  color: var(--vscode-textLink-foreground);\n  opacity: 0.6;\n  transition: all 0.2s ease;\n}\n\n.prItem_AttachedPRs:hover .openArrow_AttachedPRs {\n  opacity: 1;\n  transform: translateX(4px);\n}\n\n.prTitle_AttachedPRs {\n  font-size: 13px;\n  font-weight: 500;\n  line-height: 1.5;\n  margin-bottom: 6px;\n  color: var(--vscode-foreground);\n}\n\n.prSubtitle_AttachedPRs {\n  font-size: 12px;\n  color: var(--vscode-descriptionForeground);\n  line-height: 1.4;\n  opacity: 0.85;\n}\n\n";
+  document.head.appendChild(style21);
   var AttachedPRs_default = { "container": "container_AttachedPRs", "title": "title_AttachedPRs", "titleIcon": "titleIcon_AttachedPRs", "subtitle": "subtitle_AttachedPRs", "prList": "prList_AttachedPRs", "prItem": "prItem_AttachedPRs", "prHeader": "prHeader_AttachedPRs", "prInfo": "prInfo_AttachedPRs", "platformIcon": "platformIcon_AttachedPRs", "github": "github_AttachedPRs", "gitlab": "gitlab_AttachedPRs", "prNumber": "prNumber_AttachedPRs", "prRepo": "prRepo_AttachedPRs", "openArrow": "openArrow_AttachedPRs", "prTitle": "prTitle_AttachedPRs", "prSubtitle": "prSubtitle_AttachedPRs" };
 
   // webview-ui/src/linear/ticket-panel/components/AttachedPRs.tsx
-  var import_jsx_runtime31 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime32 = __toESM(require_jsx_runtime());
   function extractPRNumber(url) {
     const match2 = url.match(/\/pull\/(\d+)|\/merge_requests\/(\d+)/);
     return match2 ? `#${match2[1] || match2[2]}` : null;
@@ -80341,19 +80657,19 @@ ${element2.innerHTML}
     if (prs.length === 0) {
       return null;
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)("div", { className: AttachedPRs_default.container, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)("h3", { className: AttachedPRs_default.title, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("span", { className: AttachedPRs_default.titleIcon, children: "\u{1F517}" }),
+    return /* @__PURE__ */ (0, import_jsx_runtime32.jsxs)("div", { className: AttachedPRs_default.container, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime32.jsxs)("h3", { className: AttachedPRs_default.title, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("span", { className: AttachedPRs_default.titleIcon, children: "\u{1F517}" }),
         "Pull Requests (",
         prs.length,
         ")"
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("p", { className: AttachedPRs_default.subtitle, children: "Click to view status on GitHub/GitLab" }),
-      /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("div", { className: AttachedPRs_default.prList, children: prs.map((pr) => {
+      /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("p", { className: AttachedPRs_default.subtitle, children: "Click to view status on GitHub/GitLab" }),
+      /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("div", { className: AttachedPRs_default.prList, children: prs.map((pr) => {
         const prNumber = extractPRNumber(pr.url);
         const repoName = extractRepoName(pr.url);
         const platform2 = getPlatformIcon(pr.url);
-        return /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)(
+        return /* @__PURE__ */ (0, import_jsx_runtime32.jsxs)(
           "a",
           {
             href: pr.url,
@@ -80361,20 +80677,20 @@ ${element2.innerHTML}
             target: "_blank",
             rel: "noopener noreferrer",
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)("div", { className: AttachedPRs_default.prHeader, children: [
-                /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)("div", { className: AttachedPRs_default.prInfo, children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)("span", { className: `${AttachedPRs_default.platformIcon} ${AttachedPRs_default[platform2]}`, children: [
+              /* @__PURE__ */ (0, import_jsx_runtime32.jsxs)("div", { className: AttachedPRs_default.prHeader, children: [
+                /* @__PURE__ */ (0, import_jsx_runtime32.jsxs)("div", { className: AttachedPRs_default.prInfo, children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime32.jsxs)("span", { className: `${AttachedPRs_default.platformIcon} ${AttachedPRs_default[platform2]}`, children: [
                     platform2 === "github" && "\u26A1",
                     platform2 === "gitlab" && "\u{1F98A}",
                     platform2 === "bitbucket" && "\u{1FAA3}"
                   ] }),
-                  /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("span", { className: AttachedPRs_default.prNumber, children: prNumber }),
-                  /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("span", { className: AttachedPRs_default.prRepo, children: repoName })
+                  /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("span", { className: AttachedPRs_default.prNumber, children: prNumber }),
+                  /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("span", { className: AttachedPRs_default.prRepo, children: repoName })
                 ] }),
-                /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("span", { className: AttachedPRs_default.openArrow, children: "\u2192" })
+                /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("span", { className: AttachedPRs_default.openArrow, children: "\u2192" })
               ] }),
-              pr.title && /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("div", { className: AttachedPRs_default.prTitle, children: pr.title }),
-              pr.subtitle && /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("div", { className: AttachedPRs_default.prSubtitle, children: pr.subtitle })
+              pr.title && /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("div", { className: AttachedPRs_default.prTitle, children: pr.title }),
+              pr.subtitle && /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("div", { className: AttachedPRs_default.prSubtitle, children: pr.subtitle })
             ]
           },
           pr.id
@@ -80384,13 +80700,13 @@ ${element2.innerHTML}
   };
 
   // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/linear/ticket-panel/components/SubIssues.module.css
-  var style21 = document.createElement("style");
-  style21.textContent = ".container_SubIssues {\n  margin: 24px 0;\n}\n\n.parentSection_SubIssues {\n  margin-bottom: 20px;\n}\n\n.childrenSection_SubIssues {\n  margin-top: 20px;\n}\n\n.title_SubIssues {\n  font-size: 15px;\n  font-weight: 600;\n  margin-bottom: 12px;\n  color: var(--vscode-foreground);\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n\n.titleIcon_SubIssues {\n  font-size: 16px;\n}\n\n.parentItem_SubIssues {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  padding: 14px 16px;\n  background: var(--vscode-editor-background);\n  border: 1.5px solid var(--vscode-panel-border);\n  border-radius: 8px;\n  text-decoration: none;\n  color: var(--vscode-foreground);\n  transition: all 0.2s ease;\n  cursor: pointer;\n}\n\n.parentItem_SubIssues:hover {\n  background: var(--vscode-list-hoverBackground);\n  border-color: var(--vscode-focusBorder);\n  transform: translateY(-1px);\n  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);\n}\n\n.subIssuesList_SubIssues {\n  display: flex;\n  flex-direction: column;\n  gap: 10px;\n}\n\n.subIssueItem_SubIssues {\n  display: block;\n  padding: 14px 16px;\n  background: var(--vscode-editor-background);\n  border: 1.5px solid var(--vscode-panel-border);\n  border-left: 3px solid var(--vscode-focusBorder);\n  border-radius: 6px;\n  text-decoration: none;\n  color: var(--vscode-foreground);\n  transition: all 0.2s ease;\n  cursor: pointer;\n}\n\n.subIssueItem_SubIssues:hover {\n  background: var(--vscode-list-hoverBackground);\n  border-color: var(--vscode-focusBorder);\n  transform: translateX(4px);\n  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);\n}\n\n.subIssueHeader_SubIssues {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 8px;\n}\n\n.subIssueInfo_SubIssues {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  flex-wrap: wrap;\n}\n\n.issueIdentifier_SubIssues {\n  font-weight: 600;\n  font-size: 13px;\n  color: var(--vscode-textLink-foreground);\n  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;\n}\n\n.issueTitle_SubIssues {\n  font-size: 13px;\n  line-height: 1.5;\n  color: var(--vscode-foreground);\n  flex: 1;\n}\n\n.subIssueTitle_SubIssues {\n  font-size: 13px;\n  line-height: 1.5;\n  margin-bottom: 8px;\n  color: var(--vscode-foreground);\n}\n\n.statusBadge_SubIssues {\n  padding: 2px 8px;\n  border-radius: 10px;\n  font-size: 11px;\n  font-weight: 500;\n  text-transform: capitalize;\n  white-space: nowrap;\n}\n\n.statusBadge_SubIssues.completed_SubIssues {\n  background: rgba(46, 160, 67, 0.15);\n  color: #2ea043;\n}\n\n.statusBadge_SubIssues.started_SubIssues {\n  background: rgba(251, 189, 8, 0.15);\n  color: #f0ad4e;\n}\n\n.statusBadge_SubIssues.unstarted_SubIssues {\n  background: rgba(127, 127, 127, 0.15);\n  color: #999;\n}\n\n.statusBadge_SubIssues.backlog_SubIssues {\n  background: rgba(127, 127, 127, 0.1);\n  color: #888;\n}\n\n.statusBadge_SubIssues.canceled_SubIssues {\n  background: rgba(218, 54, 51, 0.15);\n  color: #da3633;\n}\n\n.statusBadge_SubIssues.default_SubIssues {\n  background: rgba(100, 100, 100, 0.15);\n  color: #777;\n}\n\n.priorityBadge_SubIssues {\n  padding: 2px 8px;\n  border-radius: 10px;\n  font-size: 10px;\n  font-weight: 600;\n  text-transform: uppercase;\n  white-space: nowrap;\n  letter-spacing: 0.3px;\n}\n\n.priorityBadge_SubIssues.urgent_SubIssues {\n  background: rgba(248, 81, 73, 0.2);\n  color: #f85149;\n  border: 1px solid rgba(248, 81, 73, 0.3);\n}\n\n.priorityBadge_SubIssues.high_SubIssues {\n  background: rgba(251, 189, 8, 0.2);\n  color: #e5a310;\n  border: 1px solid rgba(251, 189, 8, 0.3);\n}\n\n.priorityBadge_SubIssues.medium_SubIssues {\n  background: rgba(79, 172, 254, 0.15);\n  color: #4facfe;\n  border: 1px solid rgba(79, 172, 254, 0.3);\n}\n\n.priorityBadge_SubIssues.low_SubIssues {\n  background: rgba(127, 127, 127, 0.15);\n  color: #999;\n  border: 1px solid rgba(127, 127, 127, 0.3);\n}\n\n.assignee_SubIssues {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n  margin-top: 4px;\n}\n\n.avatar_SubIssues {\n  width: 18px;\n  height: 18px;\n  border-radius: 50%;\n  border: 1px solid var(--vscode-panel-border);\n}\n\n.assigneeName_SubIssues {\n  font-size: 11px;\n  color: var(--vscode-descriptionForeground);\n}\n\n.openArrow_SubIssues {\n  font-size: 16px;\n  color: var(--vscode-textLink-foreground);\n  opacity: 0.5;\n  transition: all 0.2s ease;\n}\n\n.parentItem_SubIssues:hover .openArrow_SubIssues,\n.subIssueItem_SubIssues:hover .openArrow_SubIssues {\n  opacity: 1;\n  transform: translateX(4px);\n}\n\n/* Dark theme adjustments */\n.vscode-dark_SubIssues .statusBadge_SubIssues.completed_SubIssues {\n  background: rgba(46, 160, 67, 0.2);\n  color: #3fb950;\n}\n\n.vscode-dark_SubIssues .statusBadge_SubIssues.started_SubIssues {\n  background: rgba(251, 189, 8, 0.2);\n  color: #fbbd08;\n}\n\n.vscode-dark_SubIssues .priorityBadge_SubIssues.urgent_SubIssues {\n  background: rgba(248, 81, 73, 0.25);\n  color: #ff6b6b;\n}\n\n";
-  document.head.appendChild(style21);
+  var style22 = document.createElement("style");
+  style22.textContent = ".container_SubIssues {\n  margin: 24px 0;\n}\n\n.parentSection_SubIssues {\n  margin-bottom: 20px;\n}\n\n.childrenSection_SubIssues {\n  margin-top: 20px;\n}\n\n.title_SubIssues {\n  font-size: 15px;\n  font-weight: 600;\n  margin-bottom: 12px;\n  color: var(--vscode-foreground);\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n\n.titleIcon_SubIssues {\n  font-size: 16px;\n}\n\n.parentItem_SubIssues {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  padding: 14px 16px;\n  background: var(--vscode-editor-background);\n  border: 1.5px solid var(--vscode-panel-border);\n  border-radius: 8px;\n  text-decoration: none;\n  color: var(--vscode-foreground);\n  transition: all 0.2s ease;\n  cursor: pointer;\n}\n\n.parentItem_SubIssues:hover {\n  background: var(--vscode-list-hoverBackground);\n  border-color: var(--vscode-focusBorder);\n  transform: translateY(-1px);\n  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);\n}\n\n.subIssuesList_SubIssues {\n  display: flex;\n  flex-direction: column;\n  gap: 10px;\n}\n\n.subIssueItem_SubIssues {\n  display: block;\n  padding: 14px 16px;\n  background: var(--vscode-editor-background);\n  border: 1.5px solid var(--vscode-panel-border);\n  border-left: 3px solid var(--vscode-focusBorder);\n  border-radius: 6px;\n  text-decoration: none;\n  color: var(--vscode-foreground);\n  transition: all 0.2s ease;\n  cursor: pointer;\n}\n\n.subIssueItem_SubIssues:hover {\n  background: var(--vscode-list-hoverBackground);\n  border-color: var(--vscode-focusBorder);\n  transform: translateX(4px);\n  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);\n}\n\n.subIssueHeader_SubIssues {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 8px;\n}\n\n.subIssueInfo_SubIssues {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  flex-wrap: wrap;\n}\n\n.issueIdentifier_SubIssues {\n  font-weight: 600;\n  font-size: 13px;\n  color: var(--vscode-textLink-foreground);\n  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;\n}\n\n.issueTitle_SubIssues {\n  font-size: 13px;\n  line-height: 1.5;\n  color: var(--vscode-foreground);\n  flex: 1;\n}\n\n.subIssueTitle_SubIssues {\n  font-size: 13px;\n  line-height: 1.5;\n  margin-bottom: 8px;\n  color: var(--vscode-foreground);\n}\n\n.statusBadge_SubIssues {\n  padding: 2px 8px;\n  border-radius: 10px;\n  font-size: 11px;\n  font-weight: 500;\n  text-transform: capitalize;\n  white-space: nowrap;\n}\n\n.statusBadge_SubIssues.completed_SubIssues {\n  background: rgba(46, 160, 67, 0.15);\n  color: #2ea043;\n}\n\n.statusBadge_SubIssues.started_SubIssues {\n  background: rgba(251, 189, 8, 0.15);\n  color: #f0ad4e;\n}\n\n.statusBadge_SubIssues.unstarted_SubIssues {\n  background: rgba(127, 127, 127, 0.15);\n  color: #999;\n}\n\n.statusBadge_SubIssues.backlog_SubIssues {\n  background: rgba(127, 127, 127, 0.1);\n  color: #888;\n}\n\n.statusBadge_SubIssues.canceled_SubIssues {\n  background: rgba(218, 54, 51, 0.15);\n  color: #da3633;\n}\n\n.statusBadge_SubIssues.default_SubIssues {\n  background: rgba(100, 100, 100, 0.15);\n  color: #777;\n}\n\n.priorityBadge_SubIssues {\n  padding: 2px 8px;\n  border-radius: 10px;\n  font-size: 10px;\n  font-weight: 600;\n  text-transform: uppercase;\n  white-space: nowrap;\n  letter-spacing: 0.3px;\n}\n\n.priorityBadge_SubIssues.urgent_SubIssues {\n  background: rgba(248, 81, 73, 0.2);\n  color: #f85149;\n  border: 1px solid rgba(248, 81, 73, 0.3);\n}\n\n.priorityBadge_SubIssues.high_SubIssues {\n  background: rgba(251, 189, 8, 0.2);\n  color: #e5a310;\n  border: 1px solid rgba(251, 189, 8, 0.3);\n}\n\n.priorityBadge_SubIssues.medium_SubIssues {\n  background: rgba(79, 172, 254, 0.15);\n  color: #4facfe;\n  border: 1px solid rgba(79, 172, 254, 0.3);\n}\n\n.priorityBadge_SubIssues.low_SubIssues {\n  background: rgba(127, 127, 127, 0.15);\n  color: #999;\n  border: 1px solid rgba(127, 127, 127, 0.3);\n}\n\n.assignee_SubIssues {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n  margin-top: 4px;\n}\n\n.avatar_SubIssues {\n  width: 18px;\n  height: 18px;\n  border-radius: 50%;\n  border: 1px solid var(--vscode-panel-border);\n}\n\n.assigneeName_SubIssues {\n  font-size: 11px;\n  color: var(--vscode-descriptionForeground);\n}\n\n.openArrow_SubIssues {\n  font-size: 16px;\n  color: var(--vscode-textLink-foreground);\n  opacity: 0.5;\n  transition: all 0.2s ease;\n}\n\n.parentItem_SubIssues:hover .openArrow_SubIssues,\n.subIssueItem_SubIssues:hover .openArrow_SubIssues {\n  opacity: 1;\n  transform: translateX(4px);\n}\n\n/* Dark theme adjustments */\n.vscode-dark_SubIssues .statusBadge_SubIssues.completed_SubIssues {\n  background: rgba(46, 160, 67, 0.2);\n  color: #3fb950;\n}\n\n.vscode-dark_SubIssues .statusBadge_SubIssues.started_SubIssues {\n  background: rgba(251, 189, 8, 0.2);\n  color: #fbbd08;\n}\n\n.vscode-dark_SubIssues .priorityBadge_SubIssues.urgent_SubIssues {\n  background: rgba(248, 81, 73, 0.25);\n  color: #ff6b6b;\n}\n\n";
+  document.head.appendChild(style22);
   var SubIssues_default = { "container": "container_SubIssues", "parentSection": "parentSection_SubIssues", "childrenSection": "childrenSection_SubIssues", "title": "title_SubIssues", "titleIcon": "titleIcon_SubIssues", "parentItem": "parentItem_SubIssues", "subIssuesList": "subIssuesList_SubIssues", "subIssueItem": "subIssueItem_SubIssues", "subIssueHeader": "subIssueHeader_SubIssues", "subIssueInfo": "subIssueInfo_SubIssues", "issueIdentifier": "issueIdentifier_SubIssues", "issueTitle": "issueTitle_SubIssues", "subIssueTitle": "subIssueTitle_SubIssues", "statusBadge": "statusBadge_SubIssues", "completed": "completed_SubIssues", "started": "started_SubIssues", "unstarted": "unstarted_SubIssues", "backlog": "backlog_SubIssues", "canceled": "canceled_SubIssues", "default": "default_SubIssues", "priorityBadge": "priorityBadge_SubIssues", "urgent": "urgent_SubIssues", "high": "high_SubIssues", "medium": "medium_SubIssues", "low": "low_SubIssues", "assignee": "assignee_SubIssues", "avatar": "avatar_SubIssues", "assigneeName": "assigneeName_SubIssues", "openArrow": "openArrow_SubIssues", "vscode-dark": "vscode-dark_SubIssues" };
 
   // webview-ui/src/linear/ticket-panel/components/SubIssues.tsx
-  var import_jsx_runtime32 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime33 = __toESM(require_jsx_runtime());
   function getStatusColor2(stateType) {
     switch (stateType) {
       case "completed":
@@ -80431,54 +80747,54 @@ ${element2.innerHTML}
         onOpenIssue(issueId);
       }
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime32.jsxs)("div", { className: SubIssues_default.container, children: [
-      parent && /* @__PURE__ */ (0, import_jsx_runtime32.jsxs)("div", { className: SubIssues_default.parentSection, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime32.jsxs)("h3", { className: SubIssues_default.title, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("span", { className: SubIssues_default.titleIcon, children: "\u2B06\uFE0F" }),
+    return /* @__PURE__ */ (0, import_jsx_runtime33.jsxs)("div", { className: SubIssues_default.container, children: [
+      parent && /* @__PURE__ */ (0, import_jsx_runtime33.jsxs)("div", { className: SubIssues_default.parentSection, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime33.jsxs)("h3", { className: SubIssues_default.title, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("span", { className: SubIssues_default.titleIcon, children: "\u2B06\uFE0F" }),
           "Parent Issue"
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime32.jsxs)(
+        /* @__PURE__ */ (0, import_jsx_runtime33.jsxs)(
           "a",
           {
             href: "#",
             onClick: (e) => handleClick2(e, parent.id),
             className: SubIssues_default.parentItem,
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("span", { className: SubIssues_default.issueIdentifier, children: parent.identifier }),
-              /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("span", { className: SubIssues_default.issueTitle, children: parent.title }),
-              /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("span", { className: SubIssues_default.openArrow, children: "\u2192" })
+              /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("span", { className: SubIssues_default.issueIdentifier, children: parent.identifier }),
+              /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("span", { className: SubIssues_default.issueTitle, children: parent.title }),
+              /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("span", { className: SubIssues_default.openArrow, children: "\u2192" })
             ]
           }
         )
       ] }),
-      childrenIssues && childrenIssues.nodes.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime32.jsxs)("div", { className: SubIssues_default.childrenSection, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime32.jsxs)("h3", { className: SubIssues_default.title, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("span", { className: SubIssues_default.titleIcon, children: "\u2B07\uFE0F" }),
+      childrenIssues && childrenIssues.nodes.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime33.jsxs)("div", { className: SubIssues_default.childrenSection, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime33.jsxs)("h3", { className: SubIssues_default.title, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("span", { className: SubIssues_default.titleIcon, children: "\u2B07\uFE0F" }),
           "Sub-issues (",
           childrenIssues.nodes.length,
           ")"
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("div", { className: SubIssues_default.subIssuesList, children: childrenIssues.nodes.map((subIssue) => {
+        /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("div", { className: SubIssues_default.subIssuesList, children: childrenIssues.nodes.map((subIssue) => {
           const priorityInfo = getPriorityInfo(subIssue.priority);
           const statusColorClass = getStatusColor2(subIssue.state.type);
-          return /* @__PURE__ */ (0, import_jsx_runtime32.jsxs)(
+          return /* @__PURE__ */ (0, import_jsx_runtime33.jsxs)(
             "a",
             {
               href: "#",
               onClick: (e) => handleClick2(e, subIssue.id),
               className: SubIssues_default.subIssueItem,
               children: [
-                /* @__PURE__ */ (0, import_jsx_runtime32.jsxs)("div", { className: SubIssues_default.subIssueHeader, children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime32.jsxs)("div", { className: SubIssues_default.subIssueInfo, children: [
-                    /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("span", { className: SubIssues_default.issueIdentifier, children: subIssue.identifier }),
-                    /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("span", { className: `${SubIssues_default.statusBadge} ${statusColorClass}`, children: subIssue.state.name }),
-                    priorityInfo.label && /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("span", { className: `${SubIssues_default.priorityBadge} ${priorityInfo.className}`, children: priorityInfo.label })
+                /* @__PURE__ */ (0, import_jsx_runtime33.jsxs)("div", { className: SubIssues_default.subIssueHeader, children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime33.jsxs)("div", { className: SubIssues_default.subIssueInfo, children: [
+                    /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("span", { className: SubIssues_default.issueIdentifier, children: subIssue.identifier }),
+                    /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("span", { className: `${SubIssues_default.statusBadge} ${statusColorClass}`, children: subIssue.state.name }),
+                    priorityInfo.label && /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("span", { className: `${SubIssues_default.priorityBadge} ${priorityInfo.className}`, children: priorityInfo.label })
                   ] }),
-                  /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("span", { className: SubIssues_default.openArrow, children: "\u2192" })
+                  /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("span", { className: SubIssues_default.openArrow, children: "\u2192" })
                 ] }),
-                /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("div", { className: SubIssues_default.subIssueTitle, children: subIssue.title }),
-                subIssue.assignee && /* @__PURE__ */ (0, import_jsx_runtime32.jsxs)("div", { className: SubIssues_default.assignee, children: [
-                  subIssue.assignee.avatarUrl && /* @__PURE__ */ (0, import_jsx_runtime32.jsx)(
+                /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("div", { className: SubIssues_default.subIssueTitle, children: subIssue.title }),
+                subIssue.assignee && /* @__PURE__ */ (0, import_jsx_runtime33.jsxs)("div", { className: SubIssues_default.assignee, children: [
+                  subIssue.assignee.avatarUrl && /* @__PURE__ */ (0, import_jsx_runtime33.jsx)(
                     "img",
                     {
                       src: subIssue.assignee.avatarUrl,
@@ -80486,7 +80802,7 @@ ${element2.innerHTML}
                       className: SubIssues_default.avatar
                     }
                   ),
-                  /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("span", { className: SubIssues_default.assigneeName, children: subIssue.assignee.name })
+                  /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("span", { className: SubIssues_default.assigneeName, children: subIssue.assignee.name })
                 ] })
               ]
             },
@@ -80498,16 +80814,16 @@ ${element2.innerHTML}
   };
 
   // webview-ui/src/linear/ticket-panel/components/Comments.tsx
-  var import_react29 = __toESM(require_react());
+  var import_react31 = __toESM(require_react());
 
   // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/linear/ticket-panel/components/Comments.module.css
-  var style22 = document.createElement("style");
-  style22.textContent = ".container_Comments {\n  margin: 24px 0;\n}\n\n.title_Comments {\n  font-size: 15px;\n  font-weight: 600;\n  margin-bottom: 16px;\n  color: var(--vscode-foreground);\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n\n.titleIcon_Comments {\n  font-size: 16px;\n}\n\n.emptyState_Comments {\n  padding: 32px;\n  text-align: center;\n  background: var(--vscode-editor-background);\n  border: 1.5px dashed var(--vscode-panel-border);\n  border-radius: 8px;\n}\n\n.emptyText_Comments {\n  font-size: 14px;\n  color: var(--vscode-descriptionForeground);\n  margin-bottom: 8px;\n  font-weight: 500;\n}\n\n.emptySubtext_Comments {\n  font-size: 12px;\n  color: var(--vscode-descriptionForeground);\n  opacity: 0.7;\n}\n\n.commentsList_Comments {\n  display: flex;\n  flex-direction: column;\n  gap: 16px;\n}\n\n.commentItem_Comments {\n  padding: 16px;\n  background: var(--vscode-editor-background);\n  border: 1px solid var(--vscode-panel-border);\n  border-left: 3px solid var(--vscode-textLink-foreground);\n  border-radius: 6px;\n  transition: all 0.2s ease;\n  display: flex;\n  gap: 12px;\n}\n\n.commentItem_Comments:hover {\n  border-left-color: var(--vscode-focusBorder);\n  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);\n}\n\n.commentHeader_Comments {\n  display: flex;\n  justify-content: space-between;\n  align-items: flex-start;\n  margin-bottom: 12px;\n}\n\n.userInfo_Comments {\n  display: flex;\n  flex-direction: column;\n  gap: 4px;\n}\n\n.avatar_Comments {\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  border: 2px solid var(--vscode-panel-border);\n  flex-shrink: 0;\n  background: var(--vscode-editor-background);\n  object-fit: cover;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: var(--vscode-descriptionForeground);\n}\n\n.userName_Comments {\n  font-size: 13px;\n  font-weight: 600;\n  color: var(--vscode-foreground);\n}\n\n.timestamp_Comments {\n  font-size: 11px;\n  color: var(--vscode-descriptionForeground);\n  opacity: 0.75;\n}\n\n.commentContent_Comments {\n  flex: 1;\n  min-width: 0;\n}\n\n.commentBody_Comments {\n  font-size: 13px;\n  line-height: 1.6;\n  color: var(--vscode-foreground);\n  white-space: pre-wrap;\n  word-wrap: break-word;\n  margin-top: 8px;\n}\n\n/* Markdown-like formatting for comments */\n.commentBody_Comments a {\n  color: var(--vscode-textLink-foreground);\n  text-decoration: underline;\n}\n\n.commentBody_Comments a:hover {\n  color: var(--vscode-textLink-activeForeground);\n}\n\n.commentBody_Comments code {\n  background: var(--vscode-textCodeBlock-background);\n  padding: 2px 6px;\n  border-radius: 3px;\n  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;\n  font-size: 12px;\n}\n\n";
-  document.head.appendChild(style22);
+  var style23 = document.createElement("style");
+  style23.textContent = ".container_Comments {\n  margin: 24px 0;\n}\n\n.title_Comments {\n  font-size: 15px;\n  font-weight: 600;\n  margin-bottom: 16px;\n  color: var(--vscode-foreground);\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n\n.titleIcon_Comments {\n  font-size: 16px;\n}\n\n.emptyState_Comments {\n  padding: 32px;\n  text-align: center;\n  background: var(--vscode-editor-background);\n  border: 1.5px dashed var(--vscode-panel-border);\n  border-radius: 8px;\n}\n\n.emptyText_Comments {\n  font-size: 14px;\n  color: var(--vscode-descriptionForeground);\n  margin-bottom: 8px;\n  font-weight: 500;\n}\n\n.emptySubtext_Comments {\n  font-size: 12px;\n  color: var(--vscode-descriptionForeground);\n  opacity: 0.7;\n}\n\n.commentsList_Comments {\n  display: flex;\n  flex-direction: column;\n  gap: 16px;\n}\n\n.commentItem_Comments {\n  padding: 16px;\n  background: var(--vscode-editor-background);\n  border: 1px solid var(--vscode-panel-border);\n  border-left: 3px solid var(--vscode-textLink-foreground);\n  border-radius: 6px;\n  transition: all 0.2s ease;\n  display: flex;\n  gap: 12px;\n}\n\n.commentItem_Comments:hover {\n  border-left-color: var(--vscode-focusBorder);\n  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);\n}\n\n.commentHeader_Comments {\n  display: flex;\n  justify-content: space-between;\n  align-items: flex-start;\n  margin-bottom: 12px;\n}\n\n.userInfo_Comments {\n  display: flex;\n  flex-direction: column;\n  gap: 4px;\n}\n\n.avatar_Comments {\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  border: 2px solid var(--vscode-panel-border);\n  flex-shrink: 0;\n  background: var(--vscode-editor-background);\n  object-fit: cover;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: var(--vscode-descriptionForeground);\n}\n\n.userName_Comments {\n  font-size: 13px;\n  font-weight: 600;\n  color: var(--vscode-foreground);\n}\n\n.timestamp_Comments {\n  font-size: 11px;\n  color: var(--vscode-descriptionForeground);\n  opacity: 0.75;\n}\n\n.commentContent_Comments {\n  flex: 1;\n  min-width: 0;\n}\n\n.commentBody_Comments {\n  font-size: 13px;\n  line-height: 1.6;\n  color: var(--vscode-foreground);\n  white-space: pre-wrap;\n  word-wrap: break-word;\n  margin-top: 8px;\n}\n\n/* Markdown-like formatting for comments */\n.commentBody_Comments a {\n  color: var(--vscode-textLink-foreground);\n  text-decoration: underline;\n}\n\n.commentBody_Comments a:hover {\n  color: var(--vscode-textLink-activeForeground);\n}\n\n.commentBody_Comments code {\n  background: var(--vscode-textCodeBlock-background);\n  padding: 2px 6px;\n  border-radius: 3px;\n  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;\n  font-size: 12px;\n}\n\n";
+  document.head.appendChild(style23);
   var Comments_default = { "container": "container_Comments", "title": "title_Comments", "titleIcon": "titleIcon_Comments", "emptyState": "emptyState_Comments", "emptyText": "emptyText_Comments", "emptySubtext": "emptySubtext_Comments", "commentsList": "commentsList_Comments", "commentItem": "commentItem_Comments", "commentHeader": "commentHeader_Comments", "userInfo": "userInfo_Comments", "avatar": "avatar_Comments", "userName": "userName_Comments", "timestamp": "timestamp_Comments", "commentContent": "commentContent_Comments", "commentBody": "commentBody_Comments" };
 
   // webview-ui/src/linear/ticket-panel/components/Comments.tsx
-  var import_jsx_runtime33 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime34 = __toESM(require_jsx_runtime());
   function formatRelativeTime(dateString) {
     const date = new Date(dateString);
     const now = /* @__PURE__ */ new Date();
@@ -80519,32 +80835,32 @@ ${element2.innerHTML}
     if (seconds < 2592e3) return `${Math.floor(seconds / 604800)}w ago`;
     return date.toLocaleDateString();
   }
-  var CommentBody = import_react29.default.memo(({ body: body3 }) => {
-    const renderedBody = (0, import_react29.useMemo)(() => renderMarkdown(body3), [body3]);
-    return /* @__PURE__ */ (0, import_jsx_runtime33.jsx)(import_jsx_runtime33.Fragment, { children: renderedBody });
+  var CommentBody = import_react31.default.memo(({ body: body3 }) => {
+    const renderedBody = (0, import_react31.useMemo)(() => renderMarkdown(body3), [body3]);
+    return /* @__PURE__ */ (0, import_jsx_runtime34.jsx)(import_jsx_runtime34.Fragment, { children: renderedBody });
   });
   CommentBody.displayName = "CommentBody";
   var Comments = ({ comments }) => {
     const commentCount = comments?.nodes?.length || 0;
-    return /* @__PURE__ */ (0, import_jsx_runtime33.jsxs)("div", { className: Comments_default.container, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime33.jsxs)("h3", { className: Comments_default.title, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("span", { className: Comments_default.titleIcon, children: "\u{1F4AC}" }),
+    return /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)("div", { className: Comments_default.container, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)("h3", { className: Comments_default.title, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("span", { className: Comments_default.titleIcon, children: "\u{1F4AC}" }),
         "Comments (",
         commentCount,
         ")"
       ] }),
-      commentCount === 0 ? /* @__PURE__ */ (0, import_jsx_runtime33.jsxs)("div", { className: Comments_default.emptyState, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("p", { className: Comments_default.emptyText, children: "No comments yet" }),
-        /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("p", { className: Comments_default.emptySubtext, children: "Use the comment form below to add the first comment" })
-      ] }) : /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("div", { className: Comments_default.commentsList, children: comments.nodes.map((comment3) => /* @__PURE__ */ (0, import_jsx_runtime33.jsxs)("div", { className: Comments_default.commentItem, children: [
-        comment3.user?.avatarUrl ? /* @__PURE__ */ (0, import_jsx_runtime33.jsx)(
+      commentCount === 0 ? /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)("div", { className: Comments_default.emptyState, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("p", { className: Comments_default.emptyText, children: "No comments yet" }),
+        /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("p", { className: Comments_default.emptySubtext, children: "Use the comment form below to add the first comment" })
+      ] }) : /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("div", { className: Comments_default.commentsList, children: comments.nodes.map((comment3) => /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)("div", { className: Comments_default.commentItem, children: [
+        comment3.user?.avatarUrl ? /* @__PURE__ */ (0, import_jsx_runtime34.jsx)(
           "img",
           {
             src: comment3.user.avatarUrl,
             alt: comment3.user.name,
             className: Comments_default.avatar
           }
-        ) : /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("div", { className: Comments_default.avatar, title: comment3.user?.name || "Unknown User", children: /* @__PURE__ */ (0, import_jsx_runtime33.jsx)(
+        ) : /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("div", { className: Comments_default.avatar, title: comment3.user?.name || "Unknown User", children: /* @__PURE__ */ (0, import_jsx_runtime34.jsx)(
           "svg",
           {
             width: "20",
@@ -80552,31 +80868,31 @@ ${element2.innerHTML}
             viewBox: "0 0 24 24",
             fill: "currentColor",
             style: { margin: "6px" },
-            children: /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("path", { d: "M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" })
+            children: /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("path", { d: "M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" })
           }
         ) }),
-        /* @__PURE__ */ (0, import_jsx_runtime33.jsxs)("div", { className: Comments_default.commentContent, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("div", { className: Comments_default.commentHeader, children: /* @__PURE__ */ (0, import_jsx_runtime33.jsxs)("div", { className: Comments_default.userInfo, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("span", { className: Comments_default.userName, children: comment3.user?.name || "Unknown User" }),
-            /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("span", { className: Comments_default.timestamp, children: formatRelativeTime(comment3.createdAt) })
+        /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)("div", { className: Comments_default.commentContent, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("div", { className: Comments_default.commentHeader, children: /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)("div", { className: Comments_default.userInfo, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("span", { className: Comments_default.userName, children: comment3.user?.name || "Unknown User" }),
+            /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("span", { className: Comments_default.timestamp, children: formatRelativeTime(comment3.createdAt) })
           ] }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime33.jsx)("div", { className: Comments_default.commentBody, children: /* @__PURE__ */ (0, import_jsx_runtime33.jsx)(CommentBody, { body: comment3.body }) })
+          /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("div", { className: Comments_default.commentBody, children: /* @__PURE__ */ (0, import_jsx_runtime34.jsx)(CommentBody, { body: comment3.body }) })
         ] })
       ] }, comment3.id)) })
     ] });
   };
 
   // webview-ui/src/linear/ticket-panel/components/BranchManager.tsx
-  var import_react30 = __toESM(require_react());
+  var import_react32 = __toESM(require_react());
 
   // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/linear/ticket-panel/components/BranchManager.module.css
-  var style23 = document.createElement("style");
-  style23.textContent = ".container_BranchManager {\n  margin: 16px 0;\n  padding: 12px;\n  border-radius: 4px;\n  background: var(--vscode-editor-inactiveSelectionBackground);\n  border: 1px solid var(--vscode-panel-border);\n}\n\n.header_BranchManager {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  margin-bottom: 12px;\n}\n\n.title_BranchManager {\n  font-size: 13px;\n  font-weight: 600;\n  color: var(--vscode-foreground);\n  display: flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.icon_BranchManager {\n  width: 16px;\n  height: 16px;\n}\n\n.branchInfo_BranchManager {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n\n.branchName_BranchManager {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  padding: 8px;\n  background: var(--vscode-input-background);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 4px;\n  font-family: var(--vscode-editor-font-family);\n  font-size: 12px;\n  color: var(--vscode-foreground);\n}\n\n.branchIcon_BranchManager {\n  color: var(--vscode-charts-blue);\n}\n\n.actions_BranchManager {\n  display: flex;\n  gap: 8px;\n  flex-wrap: wrap;\n}\n\n.checkoutButton_BranchManager {\n  flex: 1;\n  min-width: 120px;\n  padding: 6px 12px;\n  background: var(--vscode-button-background);\n  color: var(--vscode-button-foreground);\n  border: none;\n  border-radius: 4px;\n  font-size: 12px;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: 6px;\n  transition: background 0.2s ease;\n}\n\n.checkoutButton_BranchManager:hover {\n  background: var(--vscode-button-hoverBackground);\n}\n\n.removeButton_BranchManager {\n  padding: 6px 12px;\n  background: transparent;\n  color: var(--vscode-foreground);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 4px;\n  font-size: 12px;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: 6px;\n  transition: all 0.2s ease;\n}\n\n.removeButton_BranchManager:hover {\n  background: var(--vscode-inputValidation-errorBackground);\n  border-color: var(--vscode-inputValidation-errorBorder);\n  color: var(--vscode-errorForeground);\n}\n\n.noBranch_BranchManager {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n\n.noBranchText_BranchManager {\n  font-size: 12px;\n  color: var(--vscode-descriptionForeground);\n}\n\n.associateForm_BranchManager {\n  display: flex;\n  gap: 8px;\n}\n\n.inputContainer_BranchManager {\n  position: relative;\n  flex: 1;\n}\n\n.branchInput_BranchManager {\n  width: 100%;\n  padding: 6px 8px;\n  background: var(--vscode-input-background);\n  color: var(--vscode-input-foreground);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 4px;\n  font-size: 12px;\n  font-family: var(--vscode-editor-font-family);\n}\n\n.branchInput_BranchManager:focus {\n  outline: none;\n  border-color: var(--vscode-focusBorder);\n}\n\n.branchInput_BranchManager::placeholder {\n  color: var(--vscode-input-placeholderForeground);\n}\n\n.dropdown_BranchManager {\n  position: absolute;\n  top: calc(100% + 4px);\n  left: 0;\n  right: 0;\n  max-height: 250px;\n  overflow-y: auto;\n  background: var(--vscode-dropdown-background);\n  border: 1px solid var(--vscode-dropdown-border);\n  border-radius: 4px;\n  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);\n  z-index: 1000;\n}\n\n.dropdownItem_BranchManager {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  padding: 6px 8px;\n  cursor: pointer;\n  font-size: 12px;\n  font-family: var(--vscode-editor-font-family);\n  transition: background 0.1s ease;\n}\n\n.dropdownItem_BranchManager:hover {\n  background: var(--vscode-list-hoverBackground);\n}\n\n.dropdownIcon_BranchManager {\n  flex-shrink: 0;\n  width: 16px;\n  text-align: center;\n}\n\n.dropdownBranch_BranchManager {\n  flex: 1;\n  color: var(--vscode-foreground);\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.dropdownLabel_BranchManager {\n  flex-shrink: 0;\n  font-size: 11px;\n  color: var(--vscode-descriptionForeground);\n  font-style: italic;\n}\n\n.dropdownMore_BranchManager {\n  padding: 6px 8px;\n  font-size: 11px;\n  color: var(--vscode-descriptionForeground);\n  font-style: italic;\n  text-align: center;\n  border-top: 1px solid var(--vscode-dropdown-border);\n}\n\n.associateButton_BranchManager {\n  padding: 6px 12px;\n  background: var(--vscode-button-background);\n  color: var(--vscode-button-foreground);\n  border: none;\n  border-radius: 4px;\n  font-size: 12px;\n  cursor: pointer;\n  white-space: nowrap;\n  transition: background 0.2s ease;\n}\n\n.associateButton_BranchManager:hover {\n  background: var(--vscode-button-hoverBackground);\n}\n\n.associateButton_BranchManager:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n}\n\n.notInProgress_BranchManager {\n  font-size: 12px;\n  color: var(--vscode-descriptionForeground);\n  font-style: italic;\n}\n\n.warning_BranchManager {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n  padding: 8px;\n  background: var(--vscode-inputValidation-warningBackground);\n  border: 1px solid var(--vscode-inputValidation-warningBorder);\n  border-radius: 4px;\n  font-size: 12px;\n  color: var(--vscode-inputValidation-warningForeground);\n}\n\n.warningIcon_BranchManager {\n  color: var(--vscode-editorWarning-foreground);\n}\n\n";
-  document.head.appendChild(style23);
+  var style24 = document.createElement("style");
+  style24.textContent = ".container_BranchManager {\n  margin: 16px 0;\n  padding: 12px;\n  border-radius: 4px;\n  background: var(--vscode-editor-inactiveSelectionBackground);\n  border: 1px solid var(--vscode-panel-border);\n}\n\n.header_BranchManager {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  margin-bottom: 12px;\n}\n\n.title_BranchManager {\n  font-size: 13px;\n  font-weight: 600;\n  color: var(--vscode-foreground);\n  display: flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.icon_BranchManager {\n  width: 16px;\n  height: 16px;\n}\n\n.branchInfo_BranchManager {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n\n.branchName_BranchManager {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  padding: 8px;\n  background: var(--vscode-input-background);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 4px;\n  font-family: var(--vscode-editor-font-family);\n  font-size: 12px;\n  color: var(--vscode-foreground);\n}\n\n.branchIcon_BranchManager {\n  color: var(--vscode-charts-blue);\n}\n\n.actions_BranchManager {\n  display: flex;\n  gap: 8px;\n  flex-wrap: wrap;\n}\n\n.checkoutButton_BranchManager {\n  flex: 1;\n  min-width: 120px;\n  padding: 6px 12px;\n  background: var(--vscode-button-background);\n  color: var(--vscode-button-foreground);\n  border: none;\n  border-radius: 4px;\n  font-size: 12px;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: 6px;\n  transition: background 0.2s ease;\n}\n\n.checkoutButton_BranchManager:hover {\n  background: var(--vscode-button-hoverBackground);\n}\n\n.removeButton_BranchManager {\n  padding: 6px 12px;\n  background: transparent;\n  color: var(--vscode-foreground);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 4px;\n  font-size: 12px;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: 6px;\n  transition: all 0.2s ease;\n}\n\n.removeButton_BranchManager:hover {\n  background: var(--vscode-inputValidation-errorBackground);\n  border-color: var(--vscode-inputValidation-errorBorder);\n  color: var(--vscode-errorForeground);\n}\n\n.noBranch_BranchManager {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n\n.noBranchText_BranchManager {\n  font-size: 12px;\n  color: var(--vscode-descriptionForeground);\n}\n\n.associateForm_BranchManager {\n  display: flex;\n  gap: 8px;\n}\n\n.inputContainer_BranchManager {\n  position: relative;\n  flex: 1;\n}\n\n.branchInput_BranchManager {\n  width: 100%;\n  padding: 6px 8px;\n  background: var(--vscode-input-background);\n  color: var(--vscode-input-foreground);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 4px;\n  font-size: 12px;\n  font-family: var(--vscode-editor-font-family);\n}\n\n.branchInput_BranchManager:focus {\n  outline: none;\n  border-color: var(--vscode-focusBorder);\n}\n\n.branchInput_BranchManager::placeholder {\n  color: var(--vscode-input-placeholderForeground);\n}\n\n.dropdown_BranchManager {\n  position: absolute;\n  top: calc(100% + 4px);\n  left: 0;\n  right: 0;\n  max-height: 250px;\n  overflow-y: auto;\n  background: var(--vscode-dropdown-background);\n  border: 1px solid var(--vscode-dropdown-border);\n  border-radius: 4px;\n  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);\n  z-index: 1000;\n}\n\n.dropdownItem_BranchManager {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  padding: 6px 8px;\n  cursor: pointer;\n  font-size: 12px;\n  font-family: var(--vscode-editor-font-family);\n  transition: background 0.1s ease;\n}\n\n.dropdownItem_BranchManager:hover {\n  background: var(--vscode-list-hoverBackground);\n}\n\n.dropdownIcon_BranchManager {\n  flex-shrink: 0;\n  width: 16px;\n  text-align: center;\n}\n\n.dropdownBranch_BranchManager {\n  flex: 1;\n  color: var(--vscode-foreground);\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.dropdownLabel_BranchManager {\n  flex-shrink: 0;\n  font-size: 11px;\n  color: var(--vscode-descriptionForeground);\n  font-style: italic;\n}\n\n.dropdownMore_BranchManager {\n  padding: 6px 8px;\n  font-size: 11px;\n  color: var(--vscode-descriptionForeground);\n  font-style: italic;\n  text-align: center;\n  border-top: 1px solid var(--vscode-dropdown-border);\n}\n\n.associateButton_BranchManager {\n  padding: 6px 12px;\n  background: var(--vscode-button-background);\n  color: var(--vscode-button-foreground);\n  border: none;\n  border-radius: 4px;\n  font-size: 12px;\n  cursor: pointer;\n  white-space: nowrap;\n  transition: background 0.2s ease;\n}\n\n.associateButton_BranchManager:hover {\n  background: var(--vscode-button-hoverBackground);\n}\n\n.associateButton_BranchManager:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n}\n\n.notInProgress_BranchManager {\n  font-size: 12px;\n  color: var(--vscode-descriptionForeground);\n  font-style: italic;\n}\n\n.warning_BranchManager {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n  padding: 8px;\n  background: var(--vscode-inputValidation-warningBackground);\n  border: 1px solid var(--vscode-inputValidation-warningBorder);\n  border-radius: 4px;\n  font-size: 12px;\n  color: var(--vscode-inputValidation-warningForeground);\n}\n\n.warningIcon_BranchManager {\n  color: var(--vscode-editorWarning-foreground);\n}\n\n";
+  document.head.appendChild(style24);
   var BranchManager_default = { "container": "container_BranchManager", "header": "header_BranchManager", "title": "title_BranchManager", "icon": "icon_BranchManager", "branchInfo": "branchInfo_BranchManager", "branchName": "branchName_BranchManager", "branchIcon": "branchIcon_BranchManager", "actions": "actions_BranchManager", "checkoutButton": "checkoutButton_BranchManager", "removeButton": "removeButton_BranchManager", "noBranch": "noBranch_BranchManager", "noBranchText": "noBranchText_BranchManager", "associateForm": "associateForm_BranchManager", "inputContainer": "inputContainer_BranchManager", "branchInput": "branchInput_BranchManager", "dropdown": "dropdown_BranchManager", "dropdownItem": "dropdownItem_BranchManager", "dropdownIcon": "dropdownIcon_BranchManager", "dropdownBranch": "dropdownBranch_BranchManager", "dropdownLabel": "dropdownLabel_BranchManager", "dropdownMore": "dropdownMore_BranchManager", "associateButton": "associateButton_BranchManager", "notInProgress": "notInProgress_BranchManager", "warning": "warning_BranchManager", "warningIcon": "warningIcon_BranchManager" };
 
   // webview-ui/src/linear/ticket-panel/components/BranchManager.tsx
-  var import_jsx_runtime34 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime35 = __toESM(require_jsx_runtime());
   var BranchManager = ({
     ticketId,
     statusType,
@@ -80588,14 +80904,14 @@ ${element2.innerHTML}
     branchInfo,
     allBranches
   }) => {
-    const [selectedBranch, setSelectedBranch] = (0, import_react30.useState)("");
-    const [filterText, setFilterText] = (0, import_react30.useState)("");
-    const [isEditing, setIsEditing] = (0, import_react30.useState)(false);
-    const [showDropdown, setShowDropdown] = (0, import_react30.useState)(false);
-    (0, import_react30.useEffect)(() => {
+    const [selectedBranch, setSelectedBranch] = (0, import_react32.useState)("");
+    const [filterText, setFilterText] = (0, import_react32.useState)("");
+    const [isEditing, setIsEditing] = (0, import_react32.useState)(false);
+    const [showDropdown, setShowDropdown] = (0, import_react32.useState)(false);
+    (0, import_react32.useEffect)(() => {
       onLoadBranchInfo(ticketId);
     }, [ticketId, onLoadBranchInfo]);
-    (0, import_react30.useEffect)(() => {
+    (0, import_react32.useEffect)(() => {
       if (isEditing && !allBranches) {
         onLoadAllBranches();
       }
@@ -80665,53 +80981,53 @@ ${element2.innerHTML}
       return null;
     }
     const filteredBranches = getFilteredBranches();
-    return /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)("div", { className: BranchManager_default.container, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("div", { className: BranchManager_default.header, children: /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)("div", { className: BranchManager_default.title, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("span", { className: BranchManager_default.icon, children: "\u{1F33F}" }),
+    return /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)("div", { className: BranchManager_default.container, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("div", { className: BranchManager_default.header, children: /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)("div", { className: BranchManager_default.title, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("span", { className: BranchManager_default.icon, children: "\u{1F33F}" }),
         "Branch"
       ] }) }),
-      branchInfo?.branchName ? /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)("div", { className: BranchManager_default.branchInfo, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)("div", { className: BranchManager_default.branchName, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("span", { className: BranchManager_default.branchIcon, children: "\u2387" }),
-          /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("span", { children: branchInfo.branchName })
+      branchInfo?.branchName ? /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)("div", { className: BranchManager_default.branchInfo, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)("div", { className: BranchManager_default.branchName, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("span", { className: BranchManager_default.branchIcon, children: "\u2387" }),
+          /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("span", { children: branchInfo.branchName })
         ] }),
-        !branchInfo.exists && /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)("div", { className: BranchManager_default.warning, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("span", { className: BranchManager_default.warningIcon, children: "\u26A0\uFE0F" }),
-          /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("span", { children: "Branch no longer exists in repository" })
+        !branchInfo.exists && /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)("div", { className: BranchManager_default.warning, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("span", { className: BranchManager_default.warningIcon, children: "\u26A0\uFE0F" }),
+          /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("span", { children: "Branch no longer exists in repository" })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)("div", { className: BranchManager_default.actions, children: [
-          branchInfo.exists && /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)(
+        /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)("div", { className: BranchManager_default.actions, children: [
+          branchInfo.exists && /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)(
             "button",
             {
               className: BranchManager_default.checkoutButton,
               onClick: handleCheckout,
               children: [
-                /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("span", { children: "\u2197\uFE0F" }),
+                /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("span", { children: "\u2197\uFE0F" }),
                 "Checkout Branch"
               ]
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)("button", { className: BranchManager_default.removeButton, onClick: handleRemove, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("span", { children: "\u{1F5D1}\uFE0F" }),
+          /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)("button", { className: BranchManager_default.removeButton, onClick: handleRemove, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("span", { children: "\u{1F5D1}\uFE0F" }),
             "Remove"
           ] })
         ] })
-      ] }) : /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("div", { className: BranchManager_default.noBranch, children: !isEditing ? /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)(import_jsx_runtime34.Fragment, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("div", { className: BranchManager_default.noBranchText, children: "No branch associated with this ticket" }),
-        /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)(
+      ] }) : /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("div", { className: BranchManager_default.noBranch, children: !isEditing ? /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)(import_jsx_runtime35.Fragment, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("div", { className: BranchManager_default.noBranchText, children: "No branch associated with this ticket" }),
+        /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)(
           "button",
           {
             className: BranchManager_default.checkoutButton,
             onClick: () => setIsEditing(true),
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("span", { children: "+" }),
+              /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("span", { children: "+" }),
               "Associate Branch"
             ]
           }
         )
-      ] }) : /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)("div", { className: BranchManager_default.associateForm, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)("div", { className: BranchManager_default.inputContainer, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime34.jsx)(
+      ] }) : /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)("div", { className: BranchManager_default.associateForm, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)("div", { className: BranchManager_default.inputContainer, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
             "input",
             {
               type: "text",
@@ -80733,28 +81049,28 @@ ${element2.innerHTML}
               autoFocus: true
             }
           ),
-          showDropdown && filteredBranches.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)("div", { className: BranchManager_default.dropdown, children: [
-            filteredBranches.slice(0, 10).map((branch) => /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)(
+          showDropdown && filteredBranches.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)("div", { className: BranchManager_default.dropdown, children: [
+            filteredBranches.slice(0, 10).map((branch) => /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)(
               "div",
               {
                 className: BranchManager_default.dropdownItem,
                 onClick: () => handleBranchSelect(branch),
                 children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("span", { className: BranchManager_default.dropdownIcon, children: getBranchIcon(branch) }),
-                  /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("span", { className: BranchManager_default.dropdownBranch, children: branch }),
-                  /* @__PURE__ */ (0, import_jsx_runtime34.jsx)("span", { className: BranchManager_default.dropdownLabel, children: getBranchLabel(branch) })
+                  /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("span", { className: BranchManager_default.dropdownIcon, children: getBranchIcon(branch) }),
+                  /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("span", { className: BranchManager_default.dropdownBranch, children: branch }),
+                  /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("span", { className: BranchManager_default.dropdownLabel, children: getBranchLabel(branch) })
                 ]
               },
               branch
             )),
-            filteredBranches.length > 10 && /* @__PURE__ */ (0, import_jsx_runtime34.jsxs)("div", { className: BranchManager_default.dropdownMore, children: [
+            filteredBranches.length > 10 && /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)("div", { className: BranchManager_default.dropdownMore, children: [
               "... and ",
               filteredBranches.length - 10,
               " more"
             ] })
           ] })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime34.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
           "button",
           {
             className: BranchManager_default.associateButton,
@@ -80763,7 +81079,7 @@ ${element2.innerHTML}
             children: "Associate"
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime34.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
           "button",
           {
             className: BranchManager_default.removeButton,
@@ -80781,27 +81097,41 @@ ${element2.innerHTML}
   };
 
   // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/linear/ticket-panel/App.module.css
-  var style24 = document.createElement("style");
-  style24.textContent = ".container_App {\n  max-width: 1200px;\n  margin: 0 auto;\n  padding: 0 20px;\n}\n\n.emptyState_App {\n  padding: 24px;\n  text-align: center;\n  color: var(--color-description);\n  font-style: italic;\n}\n\n.divider_App {\n  height: 1px;\n  background-color: var(--color-border);\n  margin: 24px 0;\n}\n\n";
-  document.head.appendChild(style24);
+  var style25 = document.createElement("style");
+  style25.textContent = ".container_App {\n  max-width: 1200px;\n  margin: 0 auto;\n  padding: 0 20px;\n}\n\n.emptyState_App {\n  padding: 24px;\n  text-align: center;\n  color: var(--color-description);\n  font-style: italic;\n}\n\n.divider_App {\n  height: 1px;\n  background-color: var(--color-border);\n  margin: 24px 0;\n}\n\n";
+  document.head.appendChild(style25);
   var App_default = { "container": "container_App", "emptyState": "emptyState_App", "divider": "divider_App" };
 
   // webview-ui/src/linear/ticket-panel/App.tsx
-  var import_jsx_runtime35 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime36 = __toESM(require_jsx_runtime());
+  function extractLabels(labels) {
+    if (!labels) {
+      return [];
+    }
+    if (Array.isArray(labels)) {
+      return labels;
+    }
+    if ("nodes" in labels) {
+      return labels.nodes;
+    }
+    return [];
+  }
   function App() {
     const { postMessage, onMessage } = useVSCode();
-    const [issue, setIssue] = (0, import_react31.useState)(
+    const [issue, setIssue] = (0, import_react33.useState)(
       window.__LINEAR_INITIAL_STATE__?.issue || null
     );
-    const [workflowStates, setWorkflowStates] = (0, import_react31.useState)(
+    const [workflowStates, setWorkflowStates] = (0, import_react33.useState)(
       window.__LINEAR_INITIAL_STATE__?.workflowStates || []
     );
-    const [users, setUsers] = (0, import_react31.useState)(
+    const [users, setUsers] = (0, import_react33.useState)(
       window.__LINEAR_INITIAL_STATE__?.users || []
     );
-    const [branchInfo, setBranchInfo] = (0, import_react31.useState)(null);
-    const [allBranches, setAllBranches] = (0, import_react31.useState)(null);
-    (0, import_react31.useEffect)(() => {
+    const [availableLabels, setAvailableLabels] = (0, import_react33.useState)([]);
+    const [availableCycles, setAvailableCycles] = (0, import_react33.useState)([]);
+    const [branchInfo, setBranchInfo] = (0, import_react33.useState)(null);
+    const [allBranches, setAllBranches] = (0, import_react33.useState)(null);
+    (0, import_react33.useEffect)(() => {
       return onMessage((message) => {
         switch (message.command) {
           case "updateIssue":
@@ -80825,6 +81155,12 @@ ${element2.innerHTML}
               currentBranch: message.currentBranch,
               suggestions: message.suggestions
             });
+            break;
+          case "labelsLoaded":
+            setAvailableLabels(message.labels);
+            break;
+          case "cyclesLoaded":
+            setAvailableCycles(message.cycles);
             break;
         }
       });
@@ -80880,11 +81216,23 @@ ${element2.innerHTML}
     const handleLoadAllBranches = () => {
       postMessage({ command: "loadAllBranches" });
     };
+    const handleLoadLabels = (teamId) => {
+      postMessage({ command: "loadLabels", teamId });
+    };
+    const handleUpdateLabels = (labelIds) => {
+      postMessage({ command: "updateLabels", labelIds });
+    };
+    const handleLoadCycles = (teamId) => {
+      postMessage({ command: "loadCycles", teamId });
+    };
+    const handleUpdateCycle = (cycleId) => {
+      postMessage({ command: "updateCycle", cycleId });
+    };
     if (!issue) {
-      return /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("div", { className: App_default.container, children: /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("p", { className: App_default.emptyState, children: "No ticket selected" }) });
+      return /* @__PURE__ */ (0, import_jsx_runtime36.jsx)("div", { className: App_default.container, children: /* @__PURE__ */ (0, import_jsx_runtime36.jsx)("p", { className: App_default.emptyState, children: "No ticket selected" }) });
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)("div", { className: App_default.container, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime36.jsxs)("div", { className: App_default.container, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(
         TicketHeader,
         {
           identifier: issue.identifier,
@@ -80898,7 +81246,7 @@ ${element2.innerHTML}
           onUpdateTitle: handleUpdateTitle
         }
       ),
-      /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(
         StatusSelector,
         {
           states: workflowStates,
@@ -80906,7 +81254,7 @@ ${element2.innerHTML}
           onUpdate: handleUpdateStatus
         }
       ),
-      /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(
         AssigneeSelector,
         {
           currentAssignee: issue.assignee,
@@ -80916,14 +81264,14 @@ ${element2.innerHTML}
           onSearchUsers: handleSearchUsers
         }
       ),
-      /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(
         ActionButtons,
         {
           onOpenInLinear: handleOpenInLinear,
           onRefresh: handleRefresh
         }
       ),
-      /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(
         BranchManager,
         {
           ticketId: issue.identifier,
@@ -80937,7 +81285,7 @@ ${element2.innerHTML}
           allBranches: allBranches || void 0
         }
       ),
-      /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(
         TicketMetadata,
         {
           createdAt: issue.createdAt,
@@ -80945,13 +81293,30 @@ ${element2.innerHTML}
           projectName: issue.project?.name
         }
       ),
-      issue.labels && issue.labels.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)(import_jsx_runtime35.Fragment, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(TicketLabels, { labels: issue.labels }),
-        /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("div", { className: App_default.divider })
-      ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(AttachedPRs, { attachments: issue.attachments }),
-      issue.attachments && issue.attachments.nodes.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("div", { className: App_default.divider }),
-      /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(
+        LabelSelector,
+        {
+          currentLabels: extractLabels(issue.labels),
+          availableLabels,
+          onUpdateLabels: handleUpdateLabels,
+          onLoadLabels: handleLoadLabels,
+          teamId: issue.team?.id
+        }
+      ),
+      /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(
+        CycleSelector,
+        {
+          currentCycle: issue.cycle,
+          availableCycles,
+          onUpdateCycle: handleUpdateCycle,
+          onLoadCycles: handleLoadCycles,
+          teamId: issue.team?.id
+        }
+      ),
+      /* @__PURE__ */ (0, import_jsx_runtime36.jsx)("div", { className: App_default.divider }),
+      /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(AttachedPRs, { attachments: issue.attachments }),
+      issue.attachments && issue.attachments.nodes.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime36.jsx)("div", { className: App_default.divider }),
+      /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(
         SubIssues,
         {
           childrenIssues: issue.children,
@@ -80959,22 +81324,22 @@ ${element2.innerHTML}
           onOpenIssue: handleOpenIssue
         }
       ),
-      (issue.children && issue.children.nodes.length > 0 || issue.parent) && /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("div", { className: App_default.divider }),
-      /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(TicketDescription, { description: issue.description, onUpdateDescription: handleUpdateDescription }),
-      /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("div", { className: App_default.divider }),
-      /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(Comments, { comments: issue.comments }),
-      /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("div", { className: App_default.divider }),
-      /* @__PURE__ */ (0, import_jsx_runtime35.jsx)(CommentForm, { onSubmit: handleAddComment })
+      (issue.children && issue.children.nodes.length > 0 || issue.parent) && /* @__PURE__ */ (0, import_jsx_runtime36.jsx)("div", { className: App_default.divider }),
+      /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(TicketDescription, { description: issue.description, onUpdateDescription: handleUpdateDescription }),
+      /* @__PURE__ */ (0, import_jsx_runtime36.jsx)("div", { className: App_default.divider }),
+      /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(Comments, { comments: issue.comments }),
+      /* @__PURE__ */ (0, import_jsx_runtime36.jsx)("div", { className: App_default.divider }),
+      /* @__PURE__ */ (0, import_jsx_runtime36.jsx)(CommentForm, { onSubmit: handleAddComment })
     ] });
   }
   var App_default2 = App;
 
   // webview-ui/src/linear/ticket-panel/index.tsx
-  var import_jsx_runtime36 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime37 = __toESM(require_jsx_runtime());
   var container = document.getElementById("root");
   if (container) {
     const root2 = (0, import_client.createRoot)(container);
-    root2.render(/* @__PURE__ */ (0, import_jsx_runtime36.jsx)(App_default2, {}));
+    root2.render(/* @__PURE__ */ (0, import_jsx_runtime37.jsx)(App_default2, {}));
   }
 })();
 /*! Bundled license information:

@@ -24470,10 +24470,10 @@
             }
           }
           var jsx26 = jsxWithValidationDynamic;
-          var jsxs19 = jsxWithValidationStatic;
+          var jsxs20 = jsxWithValidationStatic;
           exports.Fragment = REACT_FRAGMENT_TYPE;
           exports.jsx = jsx26;
-          exports.jsxs = jsxs19;
+          exports.jsxs = jsxs20;
         })();
       }
     }
@@ -26429,9 +26429,9 @@
 
   // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/shared/components/Badge.module.css
   var style2 = document.createElement("style");
-  style2.textContent = ".badge_Badge {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  padding: 3px 8px;\n  border-radius: 4px;\n  font-size: 11px;\n  font-weight: 500;\n}\n\n.default_Badge {\n  background-color: var(--badge-background);\n  color: var(--badge-foreground);\n}\n\n.status_Badge {\n  padding: 4px 10px;\n  border-radius: 12px;\n  font-size: 12px;\n  border: 1px solid;\n}\n\n.priority_Badge {\n  font-size: 12px;\n}\n\n";
+  style2.textContent = ".badge_Badge {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  padding: 3px 8px;\n  border-radius: 4px;\n  font-size: 11px;\n  font-weight: 500;\n}\n\n.default_Badge {\n  background-color: var(--badge-background);\n  color: var(--badge-foreground);\n}\n\n.status_Badge {\n  padding: 4px 10px;\n  border-radius: 12px;\n  font-size: 12px;\n  border: 1px solid;\n}\n\n.priority_Badge {\n  font-size: 12px;\n}\n\n.removable_Badge {\n  padding-right: 4px;\n}\n\n.removeButton_Badge {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  width: 14px;\n  height: 14px;\n  padding: 0;\n  margin-left: 2px;\n  background: transparent;\n  border: none;\n  border-radius: 50%;\n  color: currentColor;\n  opacity: 0.6;\n  cursor: pointer;\n  transition: all 0.15s ease;\n}\n\n.removeButton_Badge:hover {\n  opacity: 1;\n  background-color: rgba(0, 0, 0, 0.15);\n}\n\n";
   document.head.appendChild(style2);
-  var Badge_default = { "badge": "badge_Badge", "default": "default_Badge", "status": "status_Badge", "priority": "priority_Badge" };
+  var Badge_default = { "badge": "badge_Badge", "default": "default_Badge", "status": "status_Badge", "priority": "priority_Badge", "removable": "removable_Badge", "removeButton": "removeButton_Badge" };
 
   // webview-ui/src/shared/components/Badge.tsx
   var import_jsx_runtime2 = __toESM(require_jsx_runtime());
@@ -26439,7 +26439,8 @@
     children,
     variant = "default",
     color,
-    className
+    className,
+    onRemove
   }) => {
     const variantClass = Badge_default[variant] || Badge_default.default;
     const style21 = color ? {
@@ -26447,7 +26448,38 @@
       color,
       borderColor: `${color}40`
     } : {};
-    return /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: `${Badge_default.badge} ${variantClass} ${className || ""}`, style: style21, children });
+    return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: `${Badge_default.badge} ${variantClass} ${onRemove ? Badge_default.removable : ""} ${className || ""}`, style: style21, children: [
+      children,
+      onRemove && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+        "button",
+        {
+          type: "button",
+          className: Badge_default.removeButton,
+          onClick: (e) => {
+            e.stopPropagation();
+            onRemove();
+          },
+          title: "Remove",
+          children: /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)(
+            "svg",
+            {
+              width: "10",
+              height: "10",
+              viewBox: "0 0 24 24",
+              fill: "none",
+              stroke: "currentColor",
+              strokeWidth: "2",
+              strokeLinecap: "round",
+              strokeLinejoin: "round",
+              children: [
+                /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("line", { x1: "18", y1: "6", x2: "6", y2: "18" }),
+                /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("line", { x1: "6", y1: "6", x2: "18", y2: "18" })
+              ]
+            }
+          )
+        }
+      )
+    ] });
   };
 
   // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/jira/ticket-panel/components/TicketMetadata.module.css
@@ -79018,7 +79050,7 @@ ${element2.innerHTML}
       ) }),
       /* @__PURE__ */ (0, import_jsx_runtime21.jsxs)("div", { className: CodeBlockComponent_default.codeBlockContainer, children: [
         /* @__PURE__ */ (0, import_jsx_runtime21.jsx)("pre", { className: CodeBlockComponent_default.codeBlockBackdrop, "aria-hidden": "true", children: /* @__PURE__ */ (0, import_jsx_runtime21.jsx)("code", { dangerouslySetInnerHTML: { __html: highlightedCode } }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime21.jsx)("pre", { className: CodeBlockComponent_default.codeBlockPre, children: /* @__PURE__ */ (0, import_jsx_runtime21.jsx)(NodeViewContent, { as: "code", className: CodeBlockComponent_default.codeBlockCode }) })
+        /* @__PURE__ */ (0, import_jsx_runtime21.jsx)("pre", { className: CodeBlockComponent_default.codeBlockPre, children: /* @__PURE__ */ (0, import_jsx_runtime21.jsx)("code", { className: CodeBlockComponent_default.codeBlockCode, children: /* @__PURE__ */ (0, import_jsx_runtime21.jsx)(NodeViewContent, {}) }) })
       ] })
     ] });
   };
@@ -79789,10 +79821,11 @@ ${code2}
         case "strike":
           text3 = `~~${text3}~~`;
           break;
-        case "link":
+        case "link": {
           const href = mark2.attrs?.href || "";
           text3 = `[${text3}](${href})`;
           break;
+        }
       }
     }
     return text3;
