@@ -1097,7 +1097,7 @@
             var dispatcher = resolveDispatcher();
             return dispatcher.useReducer(reducer, initialArg, init2);
           }
-          function useRef7(initialValue) {
+          function useRef8(initialValue) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useRef(initialValue);
           }
@@ -1891,7 +1891,7 @@
           exports.useLayoutEffect = useLayoutEffect2;
           exports.useMemo = useMemo4;
           exports.useReducer = useReducer;
-          exports.useRef = useRef7;
+          exports.useRef = useRef8;
           exports.useState = useState10;
           exports.useSyncExternalStore = useSyncExternalStore3;
           exports.useTransition = useTransition;
@@ -2439,7 +2439,7 @@
           var HostPortal = 4;
           var HostComponent = 5;
           var HostText = 6;
-          var Fragment5 = 7;
+          var Fragment6 = 7;
           var Mode = 8;
           var ContextConsumer = 9;
           var ContextProvider = 10;
@@ -3596,7 +3596,7 @@
                 return "DehydratedFragment";
               case ForwardRef:
                 return getWrappedName$1(type, type.render, "ForwardRef");
-              case Fragment5:
+              case Fragment6:
                 return "Fragment";
               case HostComponent:
                 return type;
@@ -12025,7 +12025,7 @@
               }
             }
             function updateFragment2(returnFiber, current2, fragment, lanes, key2) {
-              if (current2 === null || current2.tag !== Fragment5) {
+              if (current2 === null || current2.tag !== Fragment6) {
                 var created = createFiberFromFragment(fragment, returnFiber.mode, lanes, key2);
                 created.return = returnFiber;
                 return created;
@@ -12428,7 +12428,7 @@
                 if (child.key === key2) {
                   var elementType = element2.type;
                   if (elementType === REACT_FRAGMENT_TYPE) {
-                    if (child.tag === Fragment5) {
+                    if (child.tag === Fragment6) {
                       deleteRemainingChildren(returnFiber, child.sibling);
                       var existing = useFiber(child, element2.props.children);
                       existing.return = returnFiber;
@@ -17904,7 +17904,7 @@
                 var _resolvedProps2 = workInProgress2.elementType === type ? _unresolvedProps2 : resolveDefaultProps(type, _unresolvedProps2);
                 return updateForwardRef(current2, workInProgress2, type, _resolvedProps2, renderLanes2);
               }
-              case Fragment5:
+              case Fragment6:
                 return updateFragment(current2, workInProgress2, renderLanes2);
               case Mode:
                 return updateMode(current2, workInProgress2, renderLanes2);
@@ -18176,7 +18176,7 @@
               case SimpleMemoComponent:
               case FunctionComponent:
               case ForwardRef:
-              case Fragment5:
+              case Fragment6:
               case Mode:
               case Profiler:
               case ContextConsumer:
@@ -22437,7 +22437,7 @@
             return fiber;
           }
           function createFiberFromFragment(elements, mode, lanes, key2) {
-            var fiber = createFiber(Fragment5, elements, key2, mode);
+            var fiber = createFiber(Fragment6, elements, key2, mode);
             fiber.lanes = lanes;
             return fiber;
           }
@@ -24576,9 +24576,9 @@
           return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var React14 = require_react(), shim = require_shim(), objectIs = "function" === typeof Object.is ? Object.is : is, useSyncExternalStore3 = shim.useSyncExternalStore, useRef7 = React14.useRef, useEffect11 = React14.useEffect, useMemo4 = React14.useMemo, useDebugValue3 = React14.useDebugValue;
+        var React14 = require_react(), shim = require_shim(), objectIs = "function" === typeof Object.is ? Object.is : is, useSyncExternalStore3 = shim.useSyncExternalStore, useRef8 = React14.useRef, useEffect11 = React14.useEffect, useMemo4 = React14.useMemo, useDebugValue3 = React14.useDebugValue;
         exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
-          var instRef = useRef7(null);
+          var instRef = useRef8(null);
           if (null === instRef.current) {
             var inst = { hasValue: false, value: null };
             instRef.current = inst;
@@ -80097,9 +80097,9 @@ ${code2}
 
   // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/jira/ticket-panel/components/AssigneeSelector.module.css
   var style15 = document.createElement("style");
-  style15.textContent = ".container_AssigneeSelector {\n  padding: 16px 20px;\n  border-bottom: 1px solid var(--vscode-panel-border);\n}\n\n.label_AssigneeSelector {\n  display: block;\n  font-size: 12px;\n  font-weight: 600;\n  color: var(--vscode-descriptionForeground);\n  text-transform: uppercase;\n  letter-spacing: 0.5px;\n  margin-bottom: 8px;\n}\n\n.select_AssigneeSelector {\n  width: 100%;\n  padding: 8px 12px;\n  background-color: var(--vscode-input-background);\n  color: var(--vscode-input-foreground);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 4px;\n  font-size: 14px;\n  cursor: pointer;\n  outline: none;\n}\n\n.select_AssigneeSelector:focus {\n  border-color: var(--vscode-focusBorder);\n}\n\n.select_AssigneeSelector:hover {\n  background-color: var(--vscode-list-hoverBackground);\n}\n\n";
+  style15.textContent = ".container_AssigneeSelector {\n  position: relative;\n  padding: 16px 20px;\n  border-bottom: 1px solid var(--vscode-panel-border);\n}\n\n.label_AssigneeSelector {\n  display: block;\n  font-size: 12px;\n  font-weight: 600;\n  color: var(--vscode-descriptionForeground);\n  text-transform: uppercase;\n  letter-spacing: 0.5px;\n  margin-bottom: 8px;\n}\n\n.trigger_AssigneeSelector {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  padding: 6px 8px;\n  background-color: var(--vscode-button-secondaryBackground);\n  color: var(--vscode-button-secondaryForeground);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 4px;\n  cursor: pointer;\n  font-size: 12px;\n  width: 100%;\n  transition: all 0.2s ease;\n}\n\n.trigger_AssigneeSelector:hover {\n  background-color: var(--vscode-button-secondaryHoverBackground);\n}\n\n.avatar_AssigneeSelector {\n  width: 20px;\n  height: 20px;\n  border-radius: 50%;\n  object-fit: cover;\n}\n\n.avatarPlaceholder_AssigneeSelector {\n  width: 20px;\n  height: 20px;\n  border-radius: 50%;\n  background-color: var(--vscode-button-background);\n  color: var(--vscode-button-foreground);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  font-size: 10px;\n  font-weight: 600;\n}\n\n.assigneeName_AssigneeSelector {\n  flex: 1;\n  text-align: left;\n}\n\n.chevron_AssigneeSelector {\n  opacity: 0.7;\n}\n\n.dropdown_AssigneeSelector {\n  position: absolute;\n  top: calc(100% - 8px);\n  left: 20px;\n  right: 20px;\n  background-color: var(--vscode-dropdown-background);\n  border: 1px solid var(--vscode-dropdown-border);\n  border-radius: 4px;\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n  z-index: 1000;\n  max-height: 300px;\n  display: flex;\n  flex-direction: column;\n}\n\n.searchContainer_AssigneeSelector {\n  padding: 8px;\n  border-bottom: 1px solid var(--vscode-panel-border);\n}\n\n.searchInput_AssigneeSelector {\n  width: 100%;\n  padding: 6px 8px;\n  background-color: var(--vscode-input-background);\n  color: var(--vscode-input-foreground);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 4px;\n  font-size: 12px;\n  outline: none;\n}\n\n.searchInput_AssigneeSelector:focus {\n  border-color: var(--vscode-focusBorder);\n}\n\n.userList_AssigneeSelector {\n  overflow-y: auto;\n  max-height: 250px;\n}\n\n.userItem_AssigneeSelector {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  padding: 8px 12px;\n  background: transparent;\n  border: none;\n  color: var(--vscode-foreground);\n  cursor: pointer;\n  width: 100%;\n  text-align: left;\n  transition: background-color 0.15s ease;\n}\n\n.userItem_AssigneeSelector:hover {\n  background-color: var(--vscode-list-hoverBackground);\n}\n\n.userItem_AssigneeSelector.selected_AssigneeSelector {\n  background-color: var(--vscode-list-activeSelectionBackground);\n  color: var(--vscode-list-activeSelectionForeground);\n}\n\n.userInfo_AssigneeSelector {\n  flex: 1;\n  min-width: 0;\n}\n\n.userName_AssigneeSelector {\n  font-size: 13px;\n  font-weight: 500;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.userEmail_AssigneeSelector {\n  font-size: 11px;\n  opacity: 0.7;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.emptyState_AssigneeSelector {\n  padding: 24px;\n  text-align: center;\n  color: var(--vscode-descriptionForeground);\n  font-size: 12px;\n}\n";
   document.head.appendChild(style15);
-  var AssigneeSelector_default = { "container": "container_AssigneeSelector", "label": "label_AssigneeSelector", "select": "select_AssigneeSelector" };
+  var AssigneeSelector_default = { "container": "container_AssigneeSelector", "label": "label_AssigneeSelector", "trigger": "trigger_AssigneeSelector", "avatar": "avatar_AssigneeSelector", "avatarPlaceholder": "avatarPlaceholder_AssigneeSelector", "assigneeName": "assigneeName_AssigneeSelector", "chevron": "chevron_AssigneeSelector", "dropdown": "dropdown_AssigneeSelector", "searchContainer": "searchContainer_AssigneeSelector", "searchInput": "searchInput_AssigneeSelector", "userList": "userList_AssigneeSelector", "userItem": "userItem_AssigneeSelector", "selected": "selected_AssigneeSelector", "userInfo": "userInfo_AssigneeSelector", "userName": "userName_AssigneeSelector", "userEmail": "userEmail_AssigneeSelector", "emptyState": "emptyState_AssigneeSelector" };
 
   // webview-ui/src/jira/ticket-panel/components/AssigneeSelector.tsx
   var import_jsx_runtime26 = __toESM(require_jsx_runtime());
@@ -80110,35 +80110,140 @@ ${code2}
     onLoadUsers,
     onSearchUsers
   }) => {
+    const [isOpen, setIsOpen] = (0, import_react25.useState)(false);
     const [searchTerm, setSearchTerm] = (0, import_react25.useState)("");
-    const [isSearching, setIsSearching] = (0, import_react25.useState)(false);
+    const [hasLoadedUsers, setHasLoadedUsers] = (0, import_react25.useState)(false);
+    const dropdownRef = (0, import_react25.useRef)(null);
     (0, import_react25.useEffect)(() => {
-      if (users.length === 0) {
+      if (!hasLoadedUsers) {
         onLoadUsers();
+        setHasLoadedUsers(true);
       }
     }, []);
     (0, import_react25.useEffect)(() => {
-      if (isSearching && searchTerm) {
-        const timer = setTimeout(() => {
-          onSearchUsers(searchTerm);
-        }, 300);
-        return () => clearTimeout(timer);
+      if (searchTerm.length < 3) {
+        return;
       }
-    }, [searchTerm, isSearching]);
-    return /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)("div", { className: AssigneeSelector_default.container, children: [
+      const timeoutId = setTimeout(() => {
+        onSearchUsers(searchTerm);
+      }, 300);
+      return () => clearTimeout(timeoutId);
+    }, [searchTerm]);
+    (0, import_react25.useEffect)(() => {
+      const handleClickOutside = (event) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+          setIsOpen(false);
+          setSearchTerm("");
+        }
+      };
+      if (isOpen) {
+        document.addEventListener("mousedown", handleClickOutside);
+      }
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, [isOpen]);
+    const handleSelectUser = (userId) => {
+      onUpdateAssignee(userId);
+      setIsOpen(false);
+      setSearchTerm("");
+    };
+    const getAvatarUrl = (user) => {
+      return user.avatarUrls?.["32x32"] || user.avatarUrls?.["48x48"] || user.avatarUrls?.["24x24"] || user.avatarUrls?.["16x16"];
+    };
+    const filteredUsers = searchTerm.length >= 2 ? users.filter((user) => {
+      const search = searchTerm.toLowerCase();
+      return user.displayName.toLowerCase().includes(search) || user.emailAddress && user.emailAddress.toLowerCase().includes(search);
+    }) : users;
+    return /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)("div", { className: AssigneeSelector_default.container, ref: dropdownRef, children: [
       /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("label", { className: AssigneeSelector_default.label, children: "Assignee" }),
       /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)(
-        "select",
+        "button",
         {
-          value: currentAssignee?.accountId || "",
-          onChange: (e) => onUpdateAssignee(e.target.value || null),
-          className: AssigneeSelector_default.select,
+          className: AssigneeSelector_default.trigger,
+          onClick: () => setIsOpen(!isOpen),
+          title: "Change assignee",
           children: [
-            /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("option", { value: "", children: "Unassigned" }),
-            users.map((user) => /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("option", { value: user.accountId, children: user.displayName }, user.accountId))
+            currentAssignee ? /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)(import_jsx_runtime26.Fragment, { children: [
+              getAvatarUrl(currentAssignee) ? /* @__PURE__ */ (0, import_jsx_runtime26.jsx)(
+                "img",
+                {
+                  src: getAvatarUrl(currentAssignee),
+                  alt: currentAssignee.displayName,
+                  className: AssigneeSelector_default.avatar
+                }
+              ) : /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("div", { className: AssigneeSelector_default.avatarPlaceholder, children: currentAssignee.displayName.charAt(0).toUpperCase() }),
+              /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("span", { className: AssigneeSelector_default.assigneeName, children: currentAssignee.displayName })
+            ] }) : /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)(import_jsx_runtime26.Fragment, { children: [
+              /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("div", { className: AssigneeSelector_default.avatarPlaceholder, children: "?" }),
+              /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("span", { className: AssigneeSelector_default.assigneeName, children: "Unassigned" })
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime26.jsx)(
+              "svg",
+              {
+                width: "12",
+                height: "12",
+                viewBox: "0 0 24 24",
+                fill: "none",
+                stroke: "currentColor",
+                strokeWidth: "2",
+                strokeLinecap: "round",
+                strokeLinejoin: "round",
+                className: AssigneeSelector_default.chevron,
+                children: /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("polyline", { points: "6 9 12 15 18 9" })
+              }
+            )
           ]
         }
-      )
+      ),
+      isOpen && /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)("div", { className: AssigneeSelector_default.dropdown, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("div", { className: AssigneeSelector_default.searchContainer, children: /* @__PURE__ */ (0, import_jsx_runtime26.jsx)(
+          "input",
+          {
+            type: "text",
+            placeholder: "Search users...",
+            value: searchTerm,
+            onChange: (e) => setSearchTerm(e.target.value),
+            className: AssigneeSelector_default.searchInput,
+            autoFocus: true
+          }
+        ) }),
+        /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)("div", { className: AssigneeSelector_default.userList, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)(
+            "button",
+            {
+              className: AssigneeSelector_default.userItem,
+              onClick: () => handleSelectUser(null),
+              children: [
+                /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("div", { className: AssigneeSelector_default.avatarPlaceholder, children: "?" }),
+                /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("div", { className: AssigneeSelector_default.userInfo, children: /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("div", { className: AssigneeSelector_default.userName, children: "Unassigned" }) })
+              ]
+            }
+          ),
+          filteredUsers.length > 0 ? filteredUsers.map((user) => /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)(
+            "button",
+            {
+              className: `${AssigneeSelector_default.userItem} ${currentAssignee?.accountId === user.accountId ? AssigneeSelector_default.selected : ""}`,
+              onClick: () => handleSelectUser(user.accountId),
+              children: [
+                getAvatarUrl(user) ? /* @__PURE__ */ (0, import_jsx_runtime26.jsx)(
+                  "img",
+                  {
+                    src: getAvatarUrl(user),
+                    alt: user.displayName,
+                    className: AssigneeSelector_default.avatar
+                  }
+                ) : /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("div", { className: AssigneeSelector_default.avatarPlaceholder, children: user.displayName.charAt(0).toUpperCase() }),
+                /* @__PURE__ */ (0, import_jsx_runtime26.jsxs)("div", { className: AssigneeSelector_default.userInfo, children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("div", { className: AssigneeSelector_default.userName, children: user.displayName }),
+                  user.emailAddress && /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("div", { className: AssigneeSelector_default.userEmail, children: user.emailAddress })
+                ] })
+              ]
+            },
+            user.accountId
+          )) : /* @__PURE__ */ (0, import_jsx_runtime26.jsx)("div", { className: AssigneeSelector_default.emptyState, children: searchTerm.length >= 2 ? "No users found" : users.length === 0 ? "Loading users..." : "Type to search users" })
+        ] })
+      ] })
     ] });
   };
 

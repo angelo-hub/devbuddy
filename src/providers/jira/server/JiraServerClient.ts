@@ -479,6 +479,43 @@ export class JiraServerClient extends BaseJiraClient {
     });
   }
 
+  /**
+   * Get recently completed issues assigned to current user
+   * Returns issues resolved in the last 14 days, sorted by resolution date
+   */
+  async getRecentlyCompletedIssues(daysAgo: number = 14): Promise<JiraIssue[]> {
+    try {
+      const user = await this.getCurrentUser();
+      if (!user) {
+        return [];
+      }
+
+      return this.searchIssues({
+        jql: `assignee = currentUser() AND resolution IS NOT EMPTY AND resolved >= -${daysAgo}d ORDER BY resolved DESC`,
+        maxResults: 20,
+      });
+    } catch (error) {
+      logger.error("Failed to get recently completed issues:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Get unassigned issues for a project
+   * Returns issues that have no assignee, limited to recent unresolved ones
+   */
+  async getProjectUnassignedIssues(projectKey: string, maxResults: number = 20): Promise<JiraIssue[]> {
+    try {
+      return this.searchIssues({
+        jql: `project = "${projectKey}" AND assignee IS EMPTY AND resolution = Unresolved ORDER BY priority DESC, created DESC`,
+        maxResults,
+      });
+    } catch (error) {
+      logger.error(`Failed to get unassigned issues for project ${projectKey}:`, error);
+      return [];
+    }
+  }
+
   async createIssue(input: CreateJiraIssueInput): Promise<JiraIssue | null> {
     try {
       const fields: any = {
@@ -760,21 +797,42 @@ export class JiraServerClient extends BaseJiraClient {
     }
 
     try {
-      let endpoint = "/rest/agile/1.0/board";
-      if (projectKey) {
-        endpoint += `?projectKeyOrId=${projectKey}`;
+      const allBoards: JiraBoard[] = [];
+      let startAt = 0;
+      const maxResults = 100;
+      let isLast = false;
+
+      while (!isLast) {
+        let endpoint = `/rest/agile/1.0/board?startAt=${startAt}&maxResults=${maxResults}`;
+        if (projectKey) {
+          endpoint += `&projectKeyOrId=${projectKey}`;
+        }
+
+        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+          headers: this.getAuthHeaders(),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch boards: ${response.statusText}`);
+        }
+
+        const data = await response.json() as { values?: any[]; isLast?: boolean };
+        const boards = data.values?.map((b: any) => this.normalizeBoard(b)) || [];
+        allBoards.push(...boards);
+
+        // Check if we've fetched all boards
+        isLast = data.isLast ?? (boards.length < maxResults);
+        startAt += maxResults;
+
+        // Safety limit
+        if (allBoards.length > 500) {
+          logger.warn("Reached safety limit of 500 boards");
+          break;
+        }
       }
 
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        headers: this.getAuthHeaders(),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch boards: ${response.statusText}`);
-      }
-
-      const data = await response.json() as { values?: any[] };
-      return data.values?.map((b: any) => this.normalizeBoard(b)) || [];
+      logger.debug(`Fetched ${allBoards.length} boards`);
+      return allBoards;
     } catch (error) {
       logger.error("Failed to fetch boards", error);
       return [];
@@ -796,6 +854,12 @@ export class JiraServerClient extends BaseJiraClient {
       );
 
       if (!response.ok) {
+        // 400 Bad Request is expected for Kanban boards (they don't have sprints)
+        // 404 Not Found can also occur for boards without sprint support
+        if (response.status === 400 || response.status === 404) {
+          logger.debug(`Board ${boardId} does not support sprints (${response.status})`);
+          return [];
+        }
         throw new Error(`Failed to fetch sprints: ${response.statusText}`);
       }
 
@@ -810,6 +874,62 @@ export class JiraServerClient extends BaseJiraClient {
   async getActiveSprint(boardId: number): Promise<JiraSprint | null> {
     const sprints = await this.getSprints(boardId);
     return sprints.find((s) => s.state === "active") || null;
+  }
+
+  /**
+   * Get issues in a specific sprint
+   */
+  async getSprintIssues(sprintId: number): Promise<JiraIssue[]> {
+    if (!this.capabilities?.sprint) {
+      logger.warn("Sprint feature not supported on this Jira Server version");
+      return [];
+    }
+
+    try {
+      const response = await fetch(
+        `${this.baseUrl}/rest/agile/1.0/sprint/${sprintId}/issue?maxResults=100`,
+        {
+          headers: {
+            "Accept": "application/json",
+            ...this.getAuthHeaders(),
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch sprint issues: ${response.statusText}`);
+      }
+
+      const data = await response.json() as { issues?: any[] };
+      return data.issues?.map((issue: any) => this.normalizeIssue(issue)) || [];
+    } catch (error) {
+      logger.error(`Failed to fetch issues for sprint ${sprintId}`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Get my issues in the current sprint
+   */
+  async getMySprintIssues(sprintId: number): Promise<JiraIssue[]> {
+    const allIssues = await this.getSprintIssues(sprintId);
+    const currentUser = await this.getCurrentUser();
+    
+    if (!currentUser) {
+      return [];
+    }
+
+    return allIssues.filter(
+      (issue) => issue.assignee?.accountId === currentUser.accountId
+    );
+  }
+
+  /**
+   * Get unassigned issues in the current sprint
+   */
+  async getSprintUnassignedIssues(sprintId: number): Promise<JiraIssue[]> {
+    const allIssues = await this.getSprintIssues(sprintId);
+    return allIssues.filter((issue) => !issue.assignee);
   }
 
   // ==================== Helper Methods ====================

@@ -315,6 +315,27 @@ export class JiraCloudClient extends BaseJiraClient {
   }
 
   /**
+   * Get recently completed issues assigned to current user
+   * Returns issues resolved in the last 14 days, sorted by resolution date
+   */
+  async getRecentlyCompletedIssues(daysAgo: number = 14): Promise<JiraIssue[]> {
+    try {
+      const user = await this.getCurrentUser();
+      if (!user) {
+        return [];
+      }
+
+      return this.searchIssues({
+        jql: `assignee = currentUser() AND resolution IS NOT EMPTY AND resolved >= -${daysAgo}d ORDER BY resolved DESC`,
+        maxResults: 20,
+      });
+    } catch (error) {
+      logger.error("Failed to get recently completed issues:", error);
+      return [];
+    }
+  }
+
+  /**
    * Create a new issue
    */
   async createIssue(input: CreateJiraIssueInput): Promise<JiraIssue | null> {
@@ -631,30 +652,70 @@ export class JiraCloudClient extends BaseJiraClient {
   // ==================== Project Operations ====================
 
   /**
-   * Get all accessible projects
+   * Get all accessible projects (handles pagination automatically)
    */
   async getProjects(): Promise<JiraProject[]> {
     try {
-      const response = await this.request<unknown>("/project/search");
+      const allProjects: JiraProject[] = [];
+      let startAt = 0;
+      const maxResults = 100; // Fetch more per page for efficiency
+      let isLast = false;
 
-      // Validate response with Zod
-      const validated = JiraProjectsResponseSchema.parse(response);
+      while (!isLast) {
+        const response = await this.request<unknown>(
+          `/project/search?startAt=${startAt}&maxResults=${maxResults}`
+        );
 
-      return validated.values.map((p) => ({
-        id: p.id,
-        key: p.key,
-        name: p.name,
-        description: p.description,
-        avatarUrl: p.avatarUrls?.["48x48"],
-        projectTypeKey: p.projectTypeKey,
-        lead: p.lead ? this.normalizeUser(p.lead) : undefined,
-      }));
+        // Validate response with Zod
+        const validated = JiraProjectsResponseSchema.parse(response);
+
+        const projects = validated.values.map((p) => ({
+          id: p.id,
+          key: p.key,
+          name: p.name,
+          description: p.description,
+          avatarUrl: p.avatarUrls?.["48x48"],
+          projectTypeKey: p.projectTypeKey,
+          lead: p.lead ? this.normalizeUser(p.lead) : undefined,
+        }));
+
+        allProjects.push(...projects);
+
+        // Check if we've fetched all projects
+        isLast = validated.isLast ?? (projects.length < maxResults);
+        startAt += maxResults;
+
+        // Safety limit to prevent infinite loops
+        if (allProjects.length > 1000) {
+          logger.warn("Reached safety limit of 1000 projects");
+          break;
+        }
+      }
+
+      logger.debug(`Fetched ${allProjects.length} projects`);
+      return allProjects;
     } catch (error) {
       if (error instanceof Error && error.name === "ZodError") {
         logger.error("Invalid projects response:", error);
       } else {
         logger.error("Failed to get projects:", error);
       }
+      return [];
+    }
+  }
+
+  /**
+   * Get unassigned issues for a project
+   * Returns issues that have no assignee, limited to recent unresolved ones
+   */
+  async getProjectUnassignedIssues(projectKey: string, maxResults: number = 20): Promise<JiraIssue[]> {
+    try {
+      return this.searchIssues({
+        jql: `project = "${projectKey}" AND assignee IS EMPTY AND resolution = Unresolved ORDER BY priority DESC, created DESC`,
+        maxResults,
+      });
+    } catch (error) {
+      logger.error(`Failed to get unassigned issues for project ${projectKey}:`, error);
       return [];
     }
   }
@@ -832,52 +893,125 @@ export class JiraCloudClient extends BaseJiraClient {
   }
 
   // ==================== Agile Operations ====================
+  
+  // Track if Agile API is available (Jira Software vs Jira Core)
+  private agileApiAvailable: boolean | null = null;
 
   /**
-   * Get boards accessible to the user
+   * Check if Agile API is available (Jira Software feature)
+   * Returns false if instance is Jira Core only
    */
-  async getBoards(projectKey?: string): Promise<JiraBoard[]> {
-    try {
-      let endpoint = "/board";
-      if (projectKey) {
-        endpoint += `?projectKeyOrId=${projectKey}`;
-      }
+  async isAgileAvailable(): Promise<boolean> {
+    if (this.agileApiAvailable !== null) {
+      return this.agileApiAvailable;
+    }
 
-      // Note: Agile API is not in /rest/api/3, it's in /rest/agile/1.0
-      const agilBaseUrl = this.getApiBaseUrl().replace(
+    try {
+      const agileBaseUrl = this.getApiBaseUrl().replace(
         "/rest/api/3",
         "/rest/agile/1.0"
       );
-      const url = `${agilBaseUrl}${endpoint}`;
-
-      const response = await fetch(url, {
+      const response = await fetch(`${agileBaseUrl}/board?maxResults=1`, {
         headers: {
           "Content-Type": "application/json",
           ...this.getAuthHeaders(),
         },
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to get boards: ${response.statusText}`);
+      // 403 or 404 means Agile API not available (Jira Core)
+      this.agileApiAvailable = response.ok || response.status === 400;
+      
+      if (!this.agileApiAvailable) {
+        logger.info("Jira Agile API not available - this may be Jira Core (no Software features)");
+      }
+      
+      return this.agileApiAvailable;
+    } catch {
+      this.agileApiAvailable = false;
+      return false;
+    }
+  }
+
+  /**
+   * Get boards accessible to the user (handles pagination automatically)
+   * Returns empty array if Agile features not available
+   */
+  async getBoards(projectKey?: string): Promise<JiraBoard[]> {
+    // Check if Agile API is available first
+    if (!(await this.isAgileAvailable())) {
+      logger.debug("Skipping getBoards - Agile API not available");
+      return [];
+    }
+
+    try {
+      const allBoards: JiraBoard[] = [];
+      let startAt = 0;
+      const maxResults = 100; // Fetch more per page for efficiency
+      let isLast = false;
+
+      // Note: Agile API is not in /rest/api/3, it's in /rest/agile/1.0
+      const agileBaseUrl = this.getApiBaseUrl().replace(
+        "/rest/api/3",
+        "/rest/agile/1.0"
+      );
+
+      while (!isLast) {
+        let endpoint = `/board?startAt=${startAt}&maxResults=${maxResults}`;
+        if (projectKey) {
+          endpoint += `&projectKeyOrId=${projectKey}`;
+        }
+
+        const url = `${agileBaseUrl}${endpoint}`;
+
+        const response = await fetch(url, {
+          headers: {
+            "Content-Type": "application/json",
+            ...this.getAuthHeaders(),
+          },
+        });
+
+        if (!response.ok) {
+          // Don't log error for expected "no boards" cases
+          if (response.status === 404) {
+            logger.debug("No boards found");
+            return allBoards;
+          }
+          throw new Error(`Failed to get boards: ${response.statusText}`);
+        }
+
+        const data = (await response.json()) as unknown;
+
+        // Validate response with Zod
+        const validated = JiraBoardsResponseSchema.parse(data);
+
+        const boards = validated.values.map((b): JiraBoard => ({
+          id: b.id,
+          name: b.name,
+          type: b.type as "scrum" | "kanban",
+          location: b.location
+            ? {
+                projectId: b.location.projectId,
+                projectKey: b.location.projectKey,
+                projectName: b.location.projectName,
+              }
+            : undefined,
+        }));
+
+        allBoards.push(...boards);
+
+        // Check if we've fetched all boards
+        isLast = validated.isLast ?? (boards.length < maxResults);
+        startAt += maxResults;
+
+        // Safety limit to prevent infinite loops
+        if (allBoards.length > 500) {
+          logger.warn("Reached safety limit of 500 boards");
+          break;
+        }
       }
 
-      const data = (await response.json()) as unknown;
-
-      // Validate response with Zod
-      const validated = JiraBoardsResponseSchema.parse(data);
-
-      return validated.values.map((b): JiraBoard => ({
-        id: b.id,
-        name: b.name,
-        type: b.type as "scrum" | "kanban",
-        location: b.location
-          ? {
-              projectId: b.location.projectId,
-              projectKey: b.location.projectKey,
-              projectName: b.location.projectName,
-            }
-          : undefined,
-      }));
+      logger.debug(`Fetched ${allBoards.length} boards`);
+      return allBoards;
     } catch (error) {
       if (error instanceof Error && error.name === "ZodError") {
         logger.error("Invalid boards response:", error);
@@ -890,6 +1024,7 @@ export class JiraCloudClient extends BaseJiraClient {
 
   /**
    * Get sprints for a board
+   * Note: Kanban boards don't support sprints and return 400 Bad Request
    */
   async getSprints(boardId: number): Promise<JiraSprint[]> {
     try {
@@ -907,6 +1042,12 @@ export class JiraCloudClient extends BaseJiraClient {
       });
 
       if (!response.ok) {
+        // 400 Bad Request is expected for Kanban boards (they don't have sprints)
+        // 404 Not Found can also occur for boards without sprint support
+        if (response.status === 400 || response.status === 404) {
+          logger.debug(`Board ${boardId} does not support sprints (${response.status})`);
+          return [];
+        }
         throw new Error(`Failed to get sprints: ${response.statusText}`);
       }
 
@@ -945,6 +1086,61 @@ export class JiraCloudClient extends BaseJiraClient {
       logger.error(`Failed to get active sprint for board ${boardId}:`, error);
       return null;
     }
+  }
+
+  /**
+   * Get issues in a specific sprint
+   */
+  async getSprintIssues(sprintId: number): Promise<JiraIssue[]> {
+    try {
+      const agileBaseUrl = this.getApiBaseUrl().replace(
+        "/rest/api/3",
+        "/rest/agile/1.0"
+      );
+      const url = `${agileBaseUrl}/sprint/${sprintId}/issue?maxResults=100`;
+
+      const response = await fetch(url, {
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          ...this.getAuthHeaders(),
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch sprint issues: ${response.statusText}`);
+      }
+
+      const data = await response.json() as { issues?: any[] };
+      return data.issues?.map((issue: any) => this.normalizeIssue(issue)) || [];
+    } catch (error) {
+      logger.error(`Failed to fetch issues for sprint ${sprintId}`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Get my issues in the current sprint
+   */
+  async getMySprintIssues(sprintId: number): Promise<JiraIssue[]> {
+    const allIssues = await this.getSprintIssues(sprintId);
+    const currentUser = await this.getCurrentUser();
+    
+    if (!currentUser) {
+      return [];
+    }
+
+    return allIssues.filter(
+      (issue) => issue.assignee?.accountId === currentUser.accountId
+    );
+  }
+
+  /**
+   * Get unassigned issues in the current sprint
+   */
+  async getSprintUnassignedIssues(sprintId: number): Promise<JiraIssue[]> {
+    const allIssues = await this.getSprintIssues(sprintId);
+    return allIssues.filter((issue) => !issue.assignee);
   }
 
   // ==================== Helper Methods ====================

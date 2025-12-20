@@ -228,6 +228,10 @@ export const JiraApiBoardSchema = z.object({
 
 export const JiraBoardsResponseSchema = z.object({
   values: z.array(JiraApiBoardSchema),
+  maxResults: z.number().optional(),
+  startAt: z.number().optional(),
+  total: z.number().optional(),
+  isLast: z.boolean().optional(),
 });
 
 export const JiraApiSprintSchema = z.object({
