@@ -170,7 +170,19 @@ export function registerJiraCommands(
       ticketsProvider?.refresh();
     }),
 
-    vscode.commands.registerCommand("devBuddy.jira.openIssue", async (issue?: JiraIssue) => {
+    vscode.commands.registerCommand("devBuddy.jira.openIssue", async (itemOrIssue?: { ticket?: JiraIssue; issue?: JiraIssue } | JiraIssue) => {
+      // Handle both direct JiraIssue and tree item with ticket/issue property
+      let issue: JiraIssue | undefined;
+      if (itemOrIssue) {
+        if ('ticket' in itemOrIssue && itemOrIssue.ticket) {
+          issue = itemOrIssue.ticket;
+        } else if ('issue' in itemOrIssue && itemOrIssue.issue) {
+          issue = itemOrIssue.issue;
+        } else if ('key' in itemOrIssue && 'summary' in itemOrIssue) {
+          // Direct JiraIssue
+          issue = itemOrIssue as JiraIssue;
+        }
+      }
       await openJiraIssue(issue);
     }),
 
