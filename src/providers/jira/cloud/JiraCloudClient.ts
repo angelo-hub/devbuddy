@@ -652,24 +652,48 @@ export class JiraCloudClient extends BaseJiraClient {
   // ==================== Project Operations ====================
 
   /**
-   * Get all accessible projects
+   * Get all accessible projects (handles pagination automatically)
    */
   async getProjects(): Promise<JiraProject[]> {
     try {
-      const response = await this.request<unknown>("/project/search");
+      const allProjects: JiraProject[] = [];
+      let startAt = 0;
+      const maxResults = 100; // Fetch more per page for efficiency
+      let isLast = false;
 
-      // Validate response with Zod
-      const validated = JiraProjectsResponseSchema.parse(response);
+      while (!isLast) {
+        const response = await this.request<unknown>(
+          `/project/search?startAt=${startAt}&maxResults=${maxResults}`
+        );
 
-      return validated.values.map((p) => ({
-        id: p.id,
-        key: p.key,
-        name: p.name,
-        description: p.description,
-        avatarUrl: p.avatarUrls?.["48x48"],
-        projectTypeKey: p.projectTypeKey,
-        lead: p.lead ? this.normalizeUser(p.lead) : undefined,
-      }));
+        // Validate response with Zod
+        const validated = JiraProjectsResponseSchema.parse(response);
+
+        const projects = validated.values.map((p) => ({
+          id: p.id,
+          key: p.key,
+          name: p.name,
+          description: p.description,
+          avatarUrl: p.avatarUrls?.["48x48"],
+          projectTypeKey: p.projectTypeKey,
+          lead: p.lead ? this.normalizeUser(p.lead) : undefined,
+        }));
+
+        allProjects.push(...projects);
+
+        // Check if we've fetched all projects
+        isLast = validated.isLast ?? (projects.length < maxResults);
+        startAt += maxResults;
+
+        // Safety limit to prevent infinite loops
+        if (allProjects.length > 1000) {
+          logger.warn("Reached safety limit of 1000 projects");
+          break;
+        }
+      }
+
+      logger.debug(`Fetched ${allProjects.length} projects`);
+      return allProjects;
     } catch (error) {
       if (error instanceof Error && error.name === "ZodError") {
         logger.error("Invalid projects response:", error);
@@ -909,7 +933,7 @@ export class JiraCloudClient extends BaseJiraClient {
   }
 
   /**
-   * Get boards accessible to the user
+   * Get boards accessible to the user (handles pagination automatically)
    * Returns empty array if Agile features not available
    */
   async getBoards(projectKey?: string): Promise<JiraBoard[]> {
@@ -920,51 +944,74 @@ export class JiraCloudClient extends BaseJiraClient {
     }
 
     try {
-      let endpoint = "/board";
-      if (projectKey) {
-        endpoint += `?projectKeyOrId=${projectKey}`;
-      }
+      const allBoards: JiraBoard[] = [];
+      let startAt = 0;
+      const maxResults = 100; // Fetch more per page for efficiency
+      let isLast = false;
 
       // Note: Agile API is not in /rest/api/3, it's in /rest/agile/1.0
       const agileBaseUrl = this.getApiBaseUrl().replace(
         "/rest/api/3",
         "/rest/agile/1.0"
       );
-      const url = `${agileBaseUrl}${endpoint}`;
 
-      const response = await fetch(url, {
-        headers: {
-          "Content-Type": "application/json",
-          ...this.getAuthHeaders(),
-        },
-      });
-
-      if (!response.ok) {
-        // Don't log error for expected "no boards" cases
-        if (response.status === 404) {
-          logger.debug("No boards found");
-          return [];
+      while (!isLast) {
+        let endpoint = `/board?startAt=${startAt}&maxResults=${maxResults}`;
+        if (projectKey) {
+          endpoint += `&projectKeyOrId=${projectKey}`;
         }
-        throw new Error(`Failed to get boards: ${response.statusText}`);
+
+        const url = `${agileBaseUrl}${endpoint}`;
+
+        const response = await fetch(url, {
+          headers: {
+            "Content-Type": "application/json",
+            ...this.getAuthHeaders(),
+          },
+        });
+
+        if (!response.ok) {
+          // Don't log error for expected "no boards" cases
+          if (response.status === 404) {
+            logger.debug("No boards found");
+            return allBoards;
+          }
+          throw new Error(`Failed to get boards: ${response.statusText}`);
+        }
+
+        const data = (await response.json()) as unknown;
+
+        // Validate response with Zod
+        const validated = JiraBoardsResponseSchema.parse(data);
+
+        const boards = validated.values.map((b): JiraBoard => ({
+          id: b.id,
+          name: b.name,
+          type: b.type as "scrum" | "kanban",
+          location: b.location
+            ? {
+                projectId: b.location.projectId,
+                projectKey: b.location.projectKey,
+                projectName: b.location.projectName,
+              }
+            : undefined,
+        }));
+
+        allBoards.push(...boards);
+
+        // Check if we've fetched all boards
+        isLast = validated.isLast ?? (boards.length < maxResults);
+        startAt += maxResults;
+
+        // Safety limit to prevent infinite loops
+        if (allBoards.length > 500) {
+          logger.warn("Reached safety limit of 500 boards");
+          break;
+        }
       }
 
-      const data = (await response.json()) as unknown;
-
-      // Validate response with Zod
-      const validated = JiraBoardsResponseSchema.parse(data);
-
-      return validated.values.map((b): JiraBoard => ({
-        id: b.id,
-        name: b.name,
-        type: b.type as "scrum" | "kanban",
-        location: b.location
-          ? {
-              projectId: b.location.projectId,
-              projectKey: b.location.projectKey,
-              projectName: b.location.projectName,
-            }
-          : undefined,
-      }));
+      logger.debug(`Fetched ${allBoards.length} boards`);
+      return allBoards;
     } catch (error) {
       if (error instanceof Error && error.name === "ZodError") {
         logger.error("Invalid boards response:", error);
@@ -977,6 +1024,7 @@ export class JiraCloudClient extends BaseJiraClient {
 
   /**
    * Get sprints for a board
+   * Note: Kanban boards don't support sprints and return 400 Bad Request
    */
   async getSprints(boardId: number): Promise<JiraSprint[]> {
     try {
@@ -994,6 +1042,12 @@ export class JiraCloudClient extends BaseJiraClient {
       });
 
       if (!response.ok) {
+        // 400 Bad Request is expected for Kanban boards (they don't have sprints)
+        // 404 Not Found can also occur for boards without sprint support
+        if (response.status === 400 || response.status === 404) {
+          logger.debug(`Board ${boardId} does not support sprints (${response.status})`);
+          return [];
+        }
         throw new Error(`Failed to get sprints: ${response.statusText}`);
       }
 

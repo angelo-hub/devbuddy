@@ -797,21 +797,42 @@ export class JiraServerClient extends BaseJiraClient {
     }
 
     try {
-      let endpoint = "/rest/agile/1.0/board";
-      if (projectKey) {
-        endpoint += `?projectKeyOrId=${projectKey}`;
+      const allBoards: JiraBoard[] = [];
+      let startAt = 0;
+      const maxResults = 100;
+      let isLast = false;
+
+      while (!isLast) {
+        let endpoint = `/rest/agile/1.0/board?startAt=${startAt}&maxResults=${maxResults}`;
+        if (projectKey) {
+          endpoint += `&projectKeyOrId=${projectKey}`;
+        }
+
+        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+          headers: this.getAuthHeaders(),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch boards: ${response.statusText}`);
+        }
+
+        const data = await response.json() as { values?: any[]; isLast?: boolean };
+        const boards = data.values?.map((b: any) => this.normalizeBoard(b)) || [];
+        allBoards.push(...boards);
+
+        // Check if we've fetched all boards
+        isLast = data.isLast ?? (boards.length < maxResults);
+        startAt += maxResults;
+
+        // Safety limit
+        if (allBoards.length > 500) {
+          logger.warn("Reached safety limit of 500 boards");
+          break;
+        }
       }
 
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        headers: this.getAuthHeaders(),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch boards: ${response.statusText}`);
-      }
-
-      const data = await response.json() as { values?: any[] };
-      return data.values?.map((b: any) => this.normalizeBoard(b)) || [];
+      logger.debug(`Fetched ${allBoards.length} boards`);
+      return allBoards;
     } catch (error) {
       logger.error("Failed to fetch boards", error);
       return [];
@@ -833,6 +854,12 @@ export class JiraServerClient extends BaseJiraClient {
       );
 
       if (!response.ok) {
+        // 400 Bad Request is expected for Kanban boards (they don't have sprints)
+        // 404 Not Found can also occur for boards without sprint support
+        if (response.status === 400 || response.status === 404) {
+          logger.debug(`Board ${boardId} does not support sprints (${response.status})`);
+          return [];
+        }
         throw new Error(`Failed to fetch sprints: ${response.statusText}`);
       }
 
