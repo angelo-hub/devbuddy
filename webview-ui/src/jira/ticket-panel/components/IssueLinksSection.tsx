@@ -182,8 +182,7 @@ export const IssueLinksSection: React.FC<IssueLinksSectionProps> = ({
 
   const groupedLinks = groupLinksByType(issueLinks || []);
   
-  const handleClick = (e: React.MouseEvent, issueKey: string) => {
-    e.preventDefault();
+  const handleClick = (_e: React.MouseEvent, issueKey: string) => {
     if (onOpenLinkedIssue) {
       onOpenLinkedIssue(issueKey);
     }
@@ -229,8 +228,8 @@ export const IssueLinksSection: React.FC<IssueLinksSectionProps> = ({
               <div className={styles.linksList}>
                 {links.map((link) => (
                   <div key={link.id} className={styles.linkItemWrapper}>
-                    <a
-                      href="#"
+                    <button
+                      type="button"
                       onClick={(e) => handleClick(e, link.linkedIssue.key)}
                       className={styles.linkItem}
                     >
@@ -251,7 +250,7 @@ export const IssueLinksSection: React.FC<IssueLinksSectionProps> = ({
                         <ArrowRight size={14} className={styles.openArrow} />
                       </div>
                       <div className={styles.issueSummary}>{link.linkedIssue.summary}</div>
-                    </a>
+                    </button>
                     {onDeleteLink && (
                       <button
                         className={styles.deleteButton}

@@ -54,6 +54,7 @@
 
 .linkItem {
   display: block;
+  width: 100%;
   padding: 10px;
   background-color: var(--vscode-editor-background);
   border: 1px solid var(--vscode-panel-border);
@@ -62,6 +63,9 @@
   text-decoration: none;
   color: inherit;
   transition: background-color 0.2s, border-color 0.2s;
+  font-family: inherit;
+  font-size: inherit;
+  text-align: left;
 }
 
 .linkItem:hover {
