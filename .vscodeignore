@@ -60,8 +60,8 @@ media/walkthrough/videos/**
 *.vsix
 out/**/*.map
 
-# Dependencies
-node_modules/**
+# Dependencies - DO NOT exclude node_modules, extension needs runtime deps
+# node_modules is included but devDependencies are pruned during vsce package
 
 # Scripts (dev only)
 scripts/**
