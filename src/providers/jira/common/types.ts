@@ -275,3 +275,47 @@ export interface JiraAuth {
   username?: string; // Optional for Server Basic Auth
 }
 
+/**
+ * Jira Issue Activity types
+ */
+export type JiraActivityType =
+  | "status_change"
+  | "description_update"
+  | "comment_added"
+  | "title_change"
+  | "assignee_change"
+  | "priority_change"
+  | "label_change"
+  | "estimate_change"
+  | "attachment_added"
+  | "other";
+
+/**
+ * Jira Issue Activity entry
+ * Represents a single change/update to an issue
+ */
+export interface JiraIssueActivity {
+  id: string;
+  issueId: string;
+  issueKey: string;
+  issueSummary: string;
+  issueUrl: string;
+  activityType: JiraActivityType;
+  description: string;
+  timestamp: string; // ISO date string
+  actor?: {
+    name: string;
+    email?: string;
+    avatarUrl?: string;
+  };
+  // For status changes
+  fromStatus?: string;
+  toStatus?: string;
+  // For field changes
+  fieldName?: string;
+  oldValue?: string;
+  newValue?: string;
+  // For comments
+  commentBody?: string;
+}
+

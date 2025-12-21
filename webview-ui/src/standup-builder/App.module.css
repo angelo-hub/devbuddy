@@ -34,3 +34,186 @@
   margin: 16px 0;
 }
 
+/* Auto-Context Styles */
+.autoContextLoading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background-color: var(--vscode-editor-background);
+  border: 1px solid var(--vscode-widget-border);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  color: var(--vscode-foreground);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.autoContextError,
+.autoContextWarning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.autoContextError {
+  background-color: var(--vscode-inputValidation-errorBackground);
+  border: 1px solid var(--vscode-inputValidation-errorBorder);
+  color: var(--vscode-inputValidation-errorForeground);
+}
+
+.autoContextWarning {
+  background-color: var(--vscode-inputValidation-warningBackground);
+  border: 1px solid var(--vscode-inputValidation-warningBorder);
+  color: var(--vscode-inputValidation-warningForeground);
+}
+
+.autoContextSummary {
+  background: linear-gradient(135deg, 
+    var(--vscode-editor-background) 0%, 
+    var(--vscode-sideBar-background) 100%
+  );
+  border: 1px solid var(--vscode-widget-border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.autoContextHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.autoContextIcon {
+  font-size: 18px;
+}
+
+.autoContextTitle {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--vscode-foreground);
+}
+
+.autoContextDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.autoContextItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.autoContextItem .label {
+  color: var(--vscode-descriptionForeground);
+  min-width: 100px;
+}
+
+.autoContextItem code {
+  background-color: var(--vscode-textCodeBlock-background);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: var(--vscode-editor-font-family);
+  font-size: 12px;
+}
+
+/* Quick Generate Section */
+.quickGenerateSection {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.quickGenerateButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, 
+    var(--vscode-button-background) 0%, 
+    var(--vscode-button-hoverBackground) 100%
+  );
+  color: var(--vscode-button-foreground);
+  border: none;
+  border-radius: 8px;
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.quickGenerateButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.quickGenerateButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.quickGenerateButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.quickGenerateHint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--vscode-descriptionForeground);
+}
+
+/* Divider */
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 24px 0;
+  color: var(--vscode-descriptionForeground);
+  font-size: 12px;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid var(--vscode-widget-border);
+}
+
+.divider span {
+  padding: 0 16px;
+}
+
+/* Use Detected Button */
+.useDetectedButton {
+  margin-top: 8px;
+  padding: 6px 12px;
+  background-color: transparent;
+  border: 1px dashed var(--vscode-button-background);
+  border-radius: 4px;
+  color: var(--vscode-button-background);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.useDetectedButton:hover {
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border-style: solid;
+}
+

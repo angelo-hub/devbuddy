@@ -22,6 +22,7 @@ import {
   UpdateJiraIssueInput,
   JiraSearchOptions,
   JiraComment,
+  JiraIssueActivity,
 } from "./types";
 
 export abstract class BaseJiraClient {
@@ -136,6 +137,16 @@ export abstract class BaseJiraClient {
    * Delete an issue
    */
   abstract deleteIssue(key: string): Promise<boolean>;
+
+  /**
+   * Get recent activity/history for the current user's issues
+   * This captures non-code work like:
+   * - Status changes
+   * - Description updates (useful for spikes/investigations)
+   * - Comments added
+   * - Field changes
+   */
+  abstract getMyRecentIssueActivity(timeWindow: string): Promise<JiraIssueActivity[]>;
 
   // ==================== Project Operations ====================
 

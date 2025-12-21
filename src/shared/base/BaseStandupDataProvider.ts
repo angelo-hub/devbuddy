@@ -12,6 +12,50 @@ export interface StandupTicket {
 }
 
 /**
+ * Types of ticket activities that can be tracked
+ */
+export type TicketActivityType = 
+  | "status_change"
+  | "description_update"
+  | "comment_added"
+  | "title_change"
+  | "assignee_change"
+  | "priority_change"
+  | "label_change"
+  | "estimate_change"
+  | "attachment_added"
+  | "other";
+
+/**
+ * Represents a single activity/update on a ticket
+ * Captures non-code work like updating descriptions, completing spikes, etc.
+ */
+export interface TicketActivity {
+  id: string;
+  ticketId: string;
+  ticketIdentifier: string;
+  ticketTitle: string;
+  ticketUrl?: string;
+  activityType: TicketActivityType;
+  description: string;
+  timestamp: string; // ISO date string
+  actor?: {
+    name: string;
+    email?: string;
+    avatarUrl?: string;
+  };
+  // For status changes
+  fromStatus?: string;
+  toStatus?: string;
+  // For field changes
+  fieldName?: string;
+  oldValue?: string;
+  newValue?: string;
+  // For comments
+  commentBody?: string;
+}
+
+/**
  * Options for standup generation
  */
 export interface StandupGenerationOptions {
@@ -52,6 +96,16 @@ export abstract class BaseStandupDataProvider {
    * Get tickets updated within a time window
    */
   abstract getRecentlyUpdatedTickets(timeWindow: string): Promise<StandupTicket[]>;
+
+  /**
+   * Get recent activity/updates for tickets the user is working on
+   * This captures non-code work like:
+   * - Updating spike/investigation descriptions
+   * - Adding comments with findings
+   * - Status transitions
+   * - Completing research tasks
+   */
+  abstract getRecentTicketActivity(timeWindow: string): Promise<TicketActivity[]>;
 
   /**
    * Check if the provider is properly configured

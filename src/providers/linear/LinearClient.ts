@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { BaseTicketProvider, CreateTicketInput, TicketFilter } from "@shared/base/BaseTicketProvider";
 import { getLogger } from "@shared/utils/logger";
-import { LinearIssue, LinearUser, LinearProject, LinearTeam, LinearTemplate } from "./types";
+import { LinearIssue, LinearUser, LinearProject, LinearTeam, LinearTemplate, LinearIssueActivity } from "./types";
 
 export class LinearClient extends BaseTicketProvider<
   LinearIssue,
@@ -1389,6 +1389,235 @@ export class LinearClient extends BaseTicketProvider<
       console.error("[Linear Buddy] Failed to fetch team projects:", error);
       return [];
     }
+  }
+
+  /**
+   * Get recent issue history/activity for the current user
+   * This captures non-code work like:
+   * - Status changes
+   * - Description updates (useful for spikes/investigations)
+   * - Comments added
+   * - Field changes
+   */
+  async getMyRecentIssueActivity(
+    timeWindow: string = "24 hours ago"
+  ): Promise<LinearIssueActivity[]> {
+    if (!this.isConfigured()) {
+      return [];
+    }
+
+    // Parse time window to ISO date
+    const sinceDate = this.parseTimeWindow(timeWindow);
+
+    // First get my issues
+    const query = `
+      query {
+        viewer {
+          id
+          assignedIssues(
+            filter: { 
+              updatedAt: { gte: "${sinceDate.toISOString()}" }
+            }
+            orderBy: updatedAt
+            first: 50
+          ) {
+            nodes {
+              id
+              identifier
+              title
+              url
+              history(first: 50) {
+                nodes {
+                  id
+                  createdAt
+                  actorId
+                  fromState { id name }
+                  toState { id name }
+                  fromAssignee { id name }
+                  toAssignee { id name }
+                  fromPriority
+                  toPriority
+                  fromEstimate
+                  toEstimate
+                  addedLabelIds
+                  removedLabelIds
+                  updatedDescription
+                  actor {
+                    id
+                    name
+                    email
+                    avatarUrl
+                  }
+                }
+              }
+              comments(first: 20, orderBy: createdAt) {
+                nodes {
+                  id
+                  body
+                  createdAt
+                  user {
+                    id
+                    name
+                    email
+                    avatarUrl
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    try {
+      const response = await this.executeQuery(query);
+      const currentUser = response.data.viewer;
+      const issues = response.data.viewer.assignedIssues.nodes;
+      const activities: LinearIssueActivity[] = [];
+
+      for (const issue of issues) {
+        // Process history entries
+        for (const historyEntry of issue.history?.nodes || []) {
+          const entryDate = new Date(historyEntry.createdAt);
+          if (entryDate < sinceDate) continue;
+          
+          // Only include activities by the current user
+          if (historyEntry.actorId !== currentUser.id) continue;
+
+          const baseActivity = {
+            issueId: issue.id,
+            issueIdentifier: issue.identifier,
+            issueTitle: issue.title,
+            issueUrl: issue.url,
+            timestamp: historyEntry.createdAt,
+            actor: historyEntry.actor
+              ? {
+                  name: historyEntry.actor.name,
+                  email: historyEntry.actor.email,
+                  avatarUrl: historyEntry.actor.avatarUrl,
+                }
+              : undefined,
+          };
+
+          // Focus on meaningful activities that represent actual work done
+          // (AI will have better context with less noise)
+
+          // Status change - meaningful workflow progress
+          if (historyEntry.fromState || historyEntry.toState) {
+            activities.push({
+              ...baseActivity,
+              id: `${historyEntry.id}-status`,
+              activityType: "status_change" as const,
+              description: `Changed status from "${historyEntry.fromState?.name || 'None'}" to "${historyEntry.toState?.name || 'None'}"`,
+              fromStatus: historyEntry.fromState?.name,
+              toStatus: historyEntry.toState?.name,
+            });
+          }
+
+          // Description update - key for spikes/investigations
+          if (historyEntry.updatedDescription) {
+            activities.push({
+              ...baseActivity,
+              id: `${historyEntry.id}-description`,
+              activityType: "description_update" as const,
+              description: `Updated description of ${issue.identifier}`,
+            });
+          }
+
+          // Estimate change - often reflects investigation completion
+          if (historyEntry.fromEstimate !== undefined || historyEntry.toEstimate !== undefined) {
+            activities.push({
+              ...baseActivity,
+              id: `${historyEntry.id}-estimate`,
+              activityType: "estimate_change" as const,
+              description: `Changed estimate from ${historyEntry.fromEstimate ?? 'None'} to ${historyEntry.toEstimate ?? 'None'}`,
+              oldValue: String(historyEntry.fromEstimate ?? ""),
+              newValue: String(historyEntry.toEstimate ?? ""),
+            });
+          }
+
+          // Skip noise: assignee changes, priority changes, label changes
+          // These don't represent meaningful standup work
+        }
+
+        // Process comments by current user
+        for (const comment of issue.comments?.nodes || []) {
+          const commentDate = new Date(comment.createdAt);
+          if (commentDate < sinceDate) continue;
+          
+          // Only include comments by the current user
+          if (comment.user?.id !== currentUser.id) continue;
+
+          activities.push({
+            id: comment.id,
+            issueId: issue.id,
+            issueIdentifier: issue.identifier,
+            issueTitle: issue.title,
+            issueUrl: issue.url,
+            activityType: "comment_added",
+            description: `Added comment on ${issue.identifier}`,
+            timestamp: comment.createdAt,
+            actor: comment.user
+              ? {
+                  name: comment.user.name,
+                  email: comment.user.email,
+                  avatarUrl: comment.user.avatarUrl,
+                }
+              : undefined,
+            commentBody: comment.body,
+          });
+        }
+      }
+
+      // Sort by timestamp descending (most recent first)
+      activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+      return activities;
+    } catch (error) {
+      console.error("[Linear Buddy] Failed to fetch issue activity:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Parse human-readable time window to Date
+   * Supports flexible formats for dev/testing:
+   * - "24 hours ago", "48 hours ago"
+   * - "1 day", "2 days", "3 days", "5 days", "7 days"
+   * - "1 week", "2 weeks"
+   * - "1 month" (for extensive testing)
+   */
+  private parseTimeWindow(timeWindow: string): Date {
+    const now = new Date();
+    const normalized = timeWindow.toLowerCase().trim();
+
+    // Try to extract number from string (e.g., "5 days ago" -> 5)
+    const numMatch = normalized.match(/(\d+)/);
+    const num = numMatch ? parseInt(numMatch[1], 10) : 1;
+
+    // Hours
+    if (normalized.includes("hour")) {
+      return new Date(now.getTime() - num * 60 * 60 * 1000);
+    }
+
+    // Days
+    if (normalized.includes("day") || normalized.includes("yesterday")) {
+      const days = normalized.includes("yesterday") ? 1 : num;
+      return new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    }
+
+    // Weeks
+    if (normalized.includes("week")) {
+      return new Date(now.getTime() - num * 7 * 24 * 60 * 60 * 1000);
+    }
+
+    // Months (for testing)
+    if (normalized.includes("month")) {
+      return new Date(now.getTime() - num * 30 * 24 * 60 * 60 * 1000);
+    }
+
+    // Default to 24 hours
+    return new Date(now.getTime() - 24 * 60 * 60 * 1000);
   }
 
   /**

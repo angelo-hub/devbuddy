@@ -15,9 +15,32 @@ export interface LinearUser {
   avatarUrl?: string;
 }
 
+// Ticket activity for non-code work (spikes, investigations, description updates)
+export interface TicketActivityItem {
+  ticketId: string;
+  type: "status_change" | "description_update" | "comment_added" | "title_change" | "assignee_change" | "priority_change" | "label_change" | "estimate_change" | "attachment_added" | "other";
+  description: string;
+  timestamp: string;
+  commentPreview?: string;
+}
+
+// Auto-detected context for smart standup generation
+export interface AutoDetectedContext {
+  currentBranch: string;
+  currentTicketId: string | null;
+  recentCommits: Array<{ hash: string; message: string; ticketId?: string }>;
+  detectedTicketIds: string[];
+  associatedTickets: Array<{ ticketId: string; branchName: string; source: string }>;
+  recentTicketActivity?: TicketActivityItem[];
+  timeWindow: string;
+  isGitRepo: boolean;
+}
+
 // Standup Builder Messages
 export type StandupBuilderMessageFromWebview =
   | { command: "loadTickets" }
+  | { command: "loadAutoContext" }
+  | { command: "quickGenerate" }
   | {
       command: "generate";
       data: {
@@ -37,7 +60,16 @@ export type StandupBuilderMessageFromExtension =
       command: "ticketsLoaded";
       tickets: LinearTicket[];
       error?: string;
+      platform?: string;
     }
+  | {
+      command: "autoContextLoaded";
+      context: AutoDetectedContext | null;
+      error?: string;
+    }
+  | { command: "generationStarted" }
+  | { command: "generationFailed"; error: string }
+  | { command: "dataLoaded"; commits: any[]; fileChanges: string[]; ticketActivity?: TicketActivityItem[] }
   | { command: "progress"; message: string }
   | { command: "error"; message: string }
   | {
@@ -56,6 +88,7 @@ export type StandupBuilderMessageFromExtension =
           branch?: string;
         }>;
         changedFiles: string[];
+        ticketActivity?: TicketActivityItem[];
       };
     };
 

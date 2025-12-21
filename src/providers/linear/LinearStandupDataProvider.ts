@@ -1,6 +1,5 @@
-import { BaseStandupDataProvider, StandupTicket } from "@shared/base/BaseStandupDataProvider";
+import { BaseStandupDataProvider, StandupTicket, TicketActivity } from "@shared/base/BaseStandupDataProvider";
 import { LinearClient } from "./LinearClient";
-import { formatTicketReferencesInText } from "@shared/utils/linkFormatter";
 
 /**
  * Linear-specific implementation of standup data provider
@@ -94,6 +93,33 @@ export class LinearStandupDataProvider extends BaseStandupDataProvider {
     const tickets = await this.getActiveTickets();
     // TODO: Add time-based filtering if needed
     return tickets;
+  }
+
+  /**
+   * Get recent ticket activity from Linear
+   * This captures non-code work like updating descriptions, adding comments, status changes
+   */
+  async getRecentTicketActivity(timeWindow: string): Promise<TicketActivity[]> {
+    const client = await this.getClient();
+    const linearActivities = await client.getMyRecentIssueActivity(timeWindow);
+
+    // Map Linear activities to generic TicketActivity format
+    return linearActivities.map((activity) => ({
+      id: activity.id,
+      ticketId: activity.issueId,
+      ticketIdentifier: activity.issueIdentifier,
+      ticketTitle: activity.issueTitle,
+      ticketUrl: activity.issueUrl,
+      activityType: activity.activityType,
+      description: activity.description,
+      timestamp: activity.timestamp,
+      actor: activity.actor,
+      fromStatus: activity.fromStatus,
+      toStatus: activity.toStatus,
+      oldValue: activity.oldValue,
+      newValue: activity.newValue,
+      commentBody: activity.commentBody,
+    }));
   }
 
   isConfigured(): boolean {

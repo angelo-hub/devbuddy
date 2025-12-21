@@ -501,6 +501,223 @@ export class JiraServerClient extends BaseJiraClient {
   }
 
   /**
+   * Get recent issue activity for the current user
+   * Fetches changelog entries and comments from recently updated issues
+   */
+  async getMyRecentIssueActivity(
+    timeWindow: string = "24 hours ago"
+  ): Promise<import("../common/types").JiraIssueActivity[]> {
+    try {
+      const user = await this.getCurrentUser();
+      if (!user) {
+        return [];
+      }
+
+      // Parse time window to JQL format
+      const jqlTimeWindow = this.convertTimeWindowToJQL(timeWindow);
+
+      // Fetch recently updated issues with changelog
+      const issues = await this.searchIssues({
+        jql: `assignee = currentUser() AND updated >= ${jqlTimeWindow}`,
+        maxResults: 50,
+      });
+
+      const activities: import("../common/types").JiraIssueActivity[] = [];
+      const sinceDate = this.parseTimeWindow(timeWindow);
+
+      for (const issue of issues) {
+        // Fetch detailed issue data with changelog
+        try {
+          const detailedResponse = await this.request<any>(
+            `/issue/${issue.key}?expand=changelog&fields=summary,description,status,priority,assignee`
+          );
+
+          // Process changelog entries
+          const changelog = detailedResponse?.changelog?.histories || [];
+          for (const history of changelog) {
+            const historyDate = new Date(history.created);
+            if (historyDate < sinceDate) continue;
+
+            // Only include changes by the current user (Jira Server uses 'name' for username)
+            const authorName = history.author?.name || history.author?.key;
+            if (authorName !== user.accountId) continue;
+
+            for (const item of history.items || []) {
+              const baseActivity = {
+                issueId: issue.id,
+                issueKey: issue.key,
+                issueSummary: issue.summary,
+                issueUrl: issue.url,
+                timestamp: history.created,
+                actor: history.author
+                  ? {
+                      name: history.author.displayName || history.author.name,
+                      email: history.author.emailAddress,
+                      avatarUrl: history.author.avatarUrls?.["48x48"],
+                    }
+                  : undefined,
+              };
+
+              const fieldName = item.field?.toLowerCase();
+
+              // Focus on meaningful activities that represent actual work done
+              // (AI will have better context with less noise)
+
+              if (fieldName === "status") {
+                // Status change - meaningful workflow progress
+                activities.push({
+                  ...baseActivity,
+                  id: `${history.id}-status`,
+                  activityType: "status_change" as const,
+                  description: `Changed status from "${item.fromString || 'None'}" to "${item.toString || 'None'}"`,
+                  fromStatus: item.fromString,
+                  toStatus: item.toString,
+                });
+              } else if (fieldName === "description") {
+                // Description update - key for spikes/investigations
+                activities.push({
+                  ...baseActivity,
+                  id: `${history.id}-description`,
+                  activityType: "description_update" as const,
+                  description: `Updated description of ${issue.key}`,
+                });
+              } else if (fieldName === "story points" || fieldName === "storypoints" || fieldName === "story point estimate") {
+                // Estimate change - often reflects investigation completion
+                activities.push({
+                  ...baseActivity,
+                  id: `${history.id}-estimate`,
+                  activityType: "estimate_change" as const,
+                  description: `Changed estimate from ${item.fromString || 'None'} to ${item.toString || 'None'}`,
+                  oldValue: item.fromString,
+                  newValue: item.toString,
+                });
+              }
+              // Skip noise: summary, priority, assignee, labels, attachments
+              // These don't represent meaningful standup work
+            }
+          }
+        } catch (error) {
+          logger.warn(`Failed to fetch changelog for ${issue.key}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+
+        // Process comments
+        if (issue.comments) {
+          for (const comment of issue.comments) {
+            const commentDate = new Date(comment.created);
+            if (commentDate < sinceDate) continue;
+
+            // Only include comments by current user
+            if (comment.author.accountId !== user.accountId) continue;
+
+            activities.push({
+              id: comment.id,
+              issueId: issue.id,
+              issueKey: issue.key,
+              issueSummary: issue.summary,
+              issueUrl: issue.url,
+              activityType: "comment_added",
+              description: `Added comment on ${issue.key}`,
+              timestamp: comment.created,
+              actor: {
+                name: comment.author.displayName,
+                email: comment.author.emailAddress,
+                avatarUrl: comment.author.avatarUrl,
+              },
+              commentBody: comment.body,
+            });
+          }
+        }
+      }
+
+      // Sort by timestamp descending
+      activities.sort((a, b) => 
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+
+      return activities;
+    } catch (error) {
+      logger.error("Failed to get issue activity:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Parse human-readable time window to Date
+   * Supports flexible formats for dev/testing:
+   * - "24 hours ago", "48 hours ago"
+   * - "1 day", "2 days", "5 days", "7 days"
+   * - "1 week", "2 weeks"
+   * - "1 month" (for extensive testing)
+   */
+  private parseTimeWindow(timeWindow: string): Date {
+    const now = new Date();
+    const normalized = timeWindow.toLowerCase().trim();
+
+    // Try to extract number from string (e.g., "5 days ago" -> 5)
+    const numMatch = normalized.match(/(\d+)/);
+    const num = numMatch ? parseInt(numMatch[1], 10) : 1;
+
+    // Hours
+    if (normalized.includes("hour")) {
+      return new Date(now.getTime() - num * 60 * 60 * 1000);
+    }
+
+    // Days
+    if (normalized.includes("day") || normalized.includes("yesterday")) {
+      const days = normalized.includes("yesterday") ? 1 : num;
+      return new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    }
+
+    // Weeks
+    if (normalized.includes("week")) {
+      return new Date(now.getTime() - num * 7 * 24 * 60 * 60 * 1000);
+    }
+
+    // Months (for testing)
+    if (normalized.includes("month")) {
+      return new Date(now.getTime() - num * 30 * 24 * 60 * 60 * 1000);
+    }
+
+    // Default to 24 hours
+    return new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  }
+
+  /**
+   * Convert time window to JQL format
+   * Supports flexible formats for dev/testing
+   */
+  private convertTimeWindowToJQL(timeWindow: string): string {
+    const normalized = timeWindow.toLowerCase().trim();
+    
+    // Try to extract number from string
+    const numMatch = normalized.match(/(\d+)/);
+    const num = numMatch ? parseInt(numMatch[1], 10) : 1;
+
+    // Hours
+    if (normalized.includes("hour")) {
+      return `-${num}h`;
+    }
+
+    // Days
+    if (normalized.includes("day") || normalized.includes("yesterday")) {
+      const days = normalized.includes("yesterday") ? 1 : num;
+      return `-${days}d`;
+    }
+
+    // Weeks
+    if (normalized.includes("week")) {
+      return `-${num * 7}d`;
+    }
+
+    // Months
+    if (normalized.includes("month")) {
+      return `-${num * 30}d`;
+    }
+    
+    return "-24h";
+  }
+
+  /**
    * Get unassigned issues for a project
    * Returns issues that have no assignee, limited to recent unresolved ones
    */

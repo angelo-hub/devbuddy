@@ -133,3 +133,43 @@ export interface LinearTemplate {
   };
 }
 
+/**
+ * Represents an activity/history entry for a Linear issue
+ * Used for tracking non-code work in standups
+ */
+export type LinearActivityType =
+  | "status_change"
+  | "description_update"
+  | "comment_added"
+  | "title_change"
+  | "assignee_change"
+  | "priority_change"
+  | "label_change"
+  | "estimate_change"
+  | "attachment_added"
+  | "other";
+
+export interface LinearIssueActivity {
+  id: string;
+  issueId: string;
+  issueIdentifier: string;
+  issueTitle: string;
+  issueUrl: string;
+  activityType: LinearActivityType;
+  description: string;
+  timestamp: string; // ISO date string
+  actor?: {
+    name: string;
+    email?: string;
+    avatarUrl?: string;
+  };
+  // For status changes
+  fromStatus?: string;
+  toStatus?: string;
+  // For field changes
+  oldValue?: string;
+  newValue?: string;
+  // For comments
+  commentBody?: string;
+}
+
