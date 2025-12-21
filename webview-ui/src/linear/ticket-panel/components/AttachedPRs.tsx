@@ -1,4 +1,5 @@
 import React from "react";
+import { GitPullRequest, ArrowRight } from "lucide-react";
 import styles from "./AttachedPRs.module.css";
 
 interface Attachment {
@@ -44,8 +45,8 @@ function extractRepoName(url: string): string {
   return "Repository";
 }
 
-// Helper function to get platform icon
-function getPlatformIcon(url: string): string {
+// Helper function to get platform name
+function getPlatformName(url: string): string {
   if (url.includes("github.com")) return "github";
   if (url.includes("gitlab.com")) return "gitlab";
   if (url.includes("bitbucket.org")) return "bitbucket";
@@ -72,7 +73,7 @@ export const AttachedPRs: React.FC<AttachedPRsProps> = ({ attachments }) => {
   return (
     <div className={styles.container}>
       <h3 className={styles.title}>
-        <span className={styles.titleIcon}>🔗</span>
+        <GitPullRequest size={16} className={styles.titleIcon} />
         Pull Requests ({prs.length})
       </h3>
       <p className={styles.subtitle}>Click to view status on GitHub/GitLab</p>
@@ -80,7 +81,7 @@ export const AttachedPRs: React.FC<AttachedPRsProps> = ({ attachments }) => {
         {prs.map((pr) => {
           const prNumber = extractPRNumber(pr.url);
           const repoName = extractRepoName(pr.url);
-          const platform = getPlatformIcon(pr.url);
+          const platform = getPlatformName(pr.url);
           
           return (
             <a
@@ -92,15 +93,11 @@ export const AttachedPRs: React.FC<AttachedPRsProps> = ({ attachments }) => {
             >
               <div className={styles.prHeader}>
                 <div className={styles.prInfo}>
-                  <span className={`${styles.platformIcon} ${styles[platform]}`}>
-                    {platform === "github" && "⚡"}
-                    {platform === "gitlab" && "🦊"}
-                    {platform === "bitbucket" && "🪣"}
-                  </span>
+                  <GitPullRequest size={14} className={`${styles.platformIcon} ${styles[platform]}`} />
                   <span className={styles.prNumber}>{prNumber}</span>
                   <span className={styles.prRepo}>{repoName}</span>
                 </div>
-                <span className={styles.openArrow}>→</span>
+                <ArrowRight size={14} className={styles.openArrow} />
               </div>
               {pr.title && (
                 <div className={styles.prTitle}>{pr.title}</div>

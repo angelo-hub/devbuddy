@@ -156,17 +156,17 @@ function convertBlockquote(node: ADFNode): string {
 function convertPanel(node: ADFNode): string {
   if (!node.content) return "";
   const content = node.content.map(convertNode).join("\n");
-  // Convert panels to blockquotes with emoji indicators
+  // Convert panels to blockquotes with text indicators
   const panelType = node.attrs?.panelType as string || "info";
-  const emoji = {
-    info: "ℹ️",
-    note: "📝",
-    warning: "⚠️",
-    error: "❌",
-    success: "✅",
-  }[panelType] || "ℹ️";
+  const prefix = {
+    info: "[INFO]",
+    note: "[NOTE]",
+    warning: "[WARNING]",
+    error: "[ERROR]",
+    success: "[SUCCESS]",
+  }[panelType] || "[INFO]";
   
-  return `> ${emoji} ${content}`;
+  return `> **${prefix}** ${content}`;
 }
 
 /**

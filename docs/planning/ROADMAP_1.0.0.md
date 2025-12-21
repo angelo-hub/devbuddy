@@ -316,6 +316,7 @@ Features from Linear/Jira web UIs that would add significant value.
 | **Keyboard navigation** | 🟢 P2 | 🟡 | ⬜ Not Started |
 | **Accessibility audit** | 🟢 P2 | 🟡 | ⬜ Not Started |
 | **Performance audit** (large ticket lists) | 🟢 P2 | 🟡 | ⬜ Not Started |
+| **Migrate webview emojis to Lucide React icons** | 🟡 P1 | 🟢 | ✅ Done |
 
 ---
 

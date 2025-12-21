@@ -1,4 +1,5 @@
 import React from "react";
+import { ArrowUp, ArrowDown, ArrowRight } from "lucide-react";
 import styles from "./SubIssues.module.css";
 
 interface SubIssue {
@@ -85,7 +86,7 @@ export const SubIssues: React.FC<SubIssuesProps> = ({ childrenIssues, parent, on
       {parent && (
         <div className={styles.parentSection}>
           <h3 className={styles.title}>
-            <span className={styles.titleIcon}>⬆️</span>
+            <ArrowUp size={16} className={styles.titleIcon} />
             Parent Issue
           </h3>
           <a
@@ -95,7 +96,7 @@ export const SubIssues: React.FC<SubIssuesProps> = ({ childrenIssues, parent, on
           >
             <span className={styles.issueIdentifier}>{parent.identifier}</span>
             <span className={styles.issueTitle}>{parent.title}</span>
-            <span className={styles.openArrow}>→</span>
+            <ArrowRight size={14} className={styles.openArrow} />
           </a>
         </div>
       )}
@@ -103,7 +104,7 @@ export const SubIssues: React.FC<SubIssuesProps> = ({ childrenIssues, parent, on
       {childrenIssues && childrenIssues.nodes.length > 0 && (
         <div className={styles.childrenSection}>
           <h3 className={styles.title}>
-            <span className={styles.titleIcon}>⬇️</span>
+            <ArrowDown size={16} className={styles.titleIcon} />
             Sub-issues ({childrenIssues.nodes.length})
           </h3>
           <div className={styles.subIssuesList}>
@@ -132,7 +133,7 @@ export const SubIssues: React.FC<SubIssuesProps> = ({ childrenIssues, parent, on
                         </span>
                       )}
                     </div>
-                    <span className={styles.openArrow}>→</span>
+                    <ArrowRight size={14} className={styles.openArrow} />
                   </div>
                   <div className={styles.subIssueTitle}>{subIssue.title}</div>
                   {subIssue.assignee && (

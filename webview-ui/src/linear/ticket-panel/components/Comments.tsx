@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { MessageSquare, User } from "lucide-react";
 import { renderMarkdown } from "@shared/utils/markdownRenderer";
 import styles from "./Comments.module.css";
 
@@ -47,7 +48,7 @@ export const Comments: React.FC<CommentsProps> = ({ comments }) => {
   return (
     <div className={styles.container}>
       <h3 className={styles.title}>
-        <span className={styles.titleIcon}>💬</span>
+        <MessageSquare size={16} className={styles.titleIcon} />
         Comments ({commentCount})
       </h3>
 
@@ -70,15 +71,7 @@ export const Comments: React.FC<CommentsProps> = ({ comments }) => {
                 />
               ) : (
                 <div className={styles.avatar} title={comment.user?.name || "Unknown User"}>
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    style={{ margin: '6px' }}
-                  >
-                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                  </svg>
+                  <User size={20} style={{ margin: '6px' }} />
                 </div>
               )}
               <div className={styles.commentContent}>
