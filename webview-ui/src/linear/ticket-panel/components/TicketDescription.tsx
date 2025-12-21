@@ -6,11 +6,13 @@ import styles from "./TicketDescription.module.css";
 interface TicketDescriptionProps {
   description?: string;
   onUpdateDescription?: (description: string) => void;
+  onTicketClick?: (ticketId: string) => void;
 }
 
 export const TicketDescription: React.FC<TicketDescriptionProps> = ({
   description,
   onUpdateDescription,
+  onTicketClick,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedDescription, setEditedDescription] = useState(description || "");
@@ -37,8 +39,8 @@ export const TicketDescription: React.FC<TicketDescriptionProps> = ({
 
   // Memoize the rendered markdown to prevent infinite re-renders
   const renderedDescription = useMemo(() => {
-    return description ? renderMarkdown(description) : null;
-  }, [description]);
+    return description ? renderMarkdown(description, { onTicketClick }) : null;
+  }, [description, onTicketClick]);
 
   return (
     <div className={styles.section}>

@@ -306,11 +306,15 @@ function App() {
         <div className={styles.divider} />
       )}
 
-      <TicketDescription description={issue.description} onUpdateDescription={handleUpdateDescription} />
+      <TicketDescription 
+        description={issue.description} 
+        onUpdateDescription={handleUpdateDescription}
+        onTicketClick={handleOpenIssue}
+      />
 
       <div className={styles.divider} />
 
-      <Comments comments={issue.comments} />
+      <Comments comments={issue.comments} onTicketClick={handleOpenIssue} />
 
       <div className={styles.divider} />
 

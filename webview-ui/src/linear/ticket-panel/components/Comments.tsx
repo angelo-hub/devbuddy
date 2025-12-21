@@ -18,6 +18,7 @@ interface CommentsProps {
   comments?: {
     nodes: Comment[];
   };
+  onTicketClick?: (ticketId: string) => void;
 }
 
 // Helper to format relative time
@@ -35,14 +36,14 @@ function formatRelativeTime(dateString: string): string {
 }
 
 // Memoized comment renderer to prevent re-renders
-const CommentBody: React.FC<{ body: string }> = React.memo(({ body }) => {
-  const renderedBody = useMemo(() => renderMarkdown(body), [body]);
+const CommentBody: React.FC<{ body: string; onTicketClick?: (ticketId: string) => void }> = React.memo(({ body, onTicketClick }) => {
+  const renderedBody = useMemo(() => renderMarkdown(body, { onTicketClick }), [body, onTicketClick]);
   return <>{renderedBody}</>;
 });
 
 CommentBody.displayName = 'CommentBody';
 
-export const Comments: React.FC<CommentsProps> = ({ comments }) => {
+export const Comments: React.FC<CommentsProps> = ({ comments, onTicketClick }) => {
   const commentCount = comments?.nodes?.length || 0;
 
   return (
@@ -86,7 +87,7 @@ export const Comments: React.FC<CommentsProps> = ({ comments }) => {
                   </div>
                 </div>
                 <div className={styles.commentBody}>
-                  <CommentBody body={comment.body} />
+                  <CommentBody body={comment.body} onTicketClick={onTicketClick} />
                 </div>
               </div>
             </div>

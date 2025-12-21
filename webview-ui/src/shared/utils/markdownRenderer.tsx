@@ -16,6 +16,20 @@ import "../components/MarkdownEditor/highlight.css";
 const lowlight = createLowlight(common);
 
 /**
+ * Options for markdown rendering
+ */
+export interface MarkdownRenderOptions {
+  /** Callback when a ticket link is clicked (e.g., Linear issue) */
+  onTicketClick?: (ticketId: string) => void;
+}
+
+/**
+ * Pattern to detect Linear issue URLs
+ * Matches: https://linear.app/{workspace}/issue/{identifier}/{optional-slug}
+ */
+const LINEAR_ISSUE_URL_PATTERN = /^https?:\/\/linear\.app\/[^/]+\/issue\/([A-Z]+-\d+)(?:\/[^/]*)?$/i;
+
+/**
  * Map language codes to lowlight language identifiers
  */
 const languageMap: Record<string, string> = {
@@ -65,7 +79,7 @@ const languageMap: Record<string, string> = {
 /**
  * Parse inline markdown formatting (bold, italic, code, links, strikethrough)
  */
-function parseInlineMarkdown(text: string): React.ReactNode[] {
+function parseInlineMarkdown(text: string, options?: MarkdownRenderOptions): React.ReactNode[] {
   const elements: React.ReactNode[] = [];
   let key = 0;
   let lastIndex = 0;
@@ -108,7 +122,7 @@ function parseInlineMarkdown(text: string): React.ReactNode[] {
       // Recursively parse nested formatting
       elements.push(
         <strong key={`bold-${key++}`}>
-          {parseInlineMarkdown(content)}
+          {parseInlineMarkdown(content, options)}
         </strong>
       );
     } else if (match[4]) {
@@ -116,7 +130,7 @@ function parseInlineMarkdown(text: string): React.ReactNode[] {
       const content = match[5];
       elements.push(
         <strong key={`bold-${key++}`}>
-          {parseInlineMarkdown(content)}
+          {parseInlineMarkdown(content, options)}
         </strong>
       );
     } else if (match[6]) {
@@ -124,7 +138,7 @@ function parseInlineMarkdown(text: string): React.ReactNode[] {
       const content = match[7];
       elements.push(
         <em key={`italic-${key++}`}>
-          {parseInlineMarkdown(content)}
+          {parseInlineMarkdown(content, options)}
         </em>
       );
     } else if (match[8]) {
@@ -132,7 +146,7 @@ function parseInlineMarkdown(text: string): React.ReactNode[] {
       const content = match[9];
       elements.push(
         <em key={`italic-${key++}`}>
-          {parseInlineMarkdown(content)}
+          {parseInlineMarkdown(content, options)}
         </em>
       );
     } else if (match[10]) {
@@ -140,24 +154,80 @@ function parseInlineMarkdown(text: string): React.ReactNode[] {
       const content = match[11];
       elements.push(
         <del key={`strike-${key++}`}>
-          {parseInlineMarkdown(content)}
+          {parseInlineMarkdown(content, options)}
         </del>
       );
     } else if (match[12]) {
       // Link: [text](url)
       const linkText = match[13];
       const url = match[14];
-      elements.push(
-        <a
-          key={`link-${key++}`}
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ color: "var(--vscode-textLink-foreground)" }}
-        >
-          {linkText}
-        </a>
-      );
+      
+      // Check if this is a Linear issue link
+      const linearMatch = url.match(LINEAR_ISSUE_URL_PATTERN);
+      if (linearMatch && options?.onTicketClick) {
+        const ticketId = linearMatch[1].toUpperCase();
+        // Extract title from URL slug (last part after ticket ID)
+        const slugMatch = url.match(/\/([^/]+)$/);
+        const titleFromSlug = slugMatch 
+          ? slugMatch[1].replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase())
+          : '';
+        
+        elements.push(
+          <span
+            key={`ticket-link-${key++}`}
+            onClick={(e) => {
+              e.preventDefault();
+              options.onTicketClick!(ticketId);
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '2px 8px',
+              background: 'var(--vscode-badge-background)',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '0.9em',
+              verticalAlign: 'middle',
+            }}
+            title={`Open ${ticketId} in DevBuddy`}
+          >
+            <span style={{ 
+              width: '12px', 
+              height: '12px', 
+              borderRadius: '50%', 
+              border: '2px solid var(--vscode-descriptionForeground)',
+              display: 'inline-block',
+              flexShrink: 0,
+            }} />
+            <span style={{ fontWeight: 500 }}>{ticketId}</span>
+            {titleFromSlug && (
+              <span style={{ 
+                opacity: 0.8,
+                maxWidth: '200px',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}>
+                {titleFromSlug}
+              </span>
+            )}
+          </span>
+        );
+      } else {
+        // Regular external link
+        elements.push(
+          <a
+            key={`link-${key++}`}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "var(--vscode-textLink-foreground)" }}
+          >
+            {linkText}
+          </a>
+        );
+      }
     }
 
     lastIndex = match.index + match[0].length;
@@ -250,7 +320,7 @@ function renderPlainCodeBlock(code: string, key: number): React.ReactNode {
 /**
  * Main renderer: Convert Markdown to React elements
  */
-export function renderMarkdown(markdown: string | undefined): React.ReactNode {
+export function renderMarkdown(markdown: string | undefined, options?: MarkdownRenderOptions): React.ReactNode {
   if (!markdown) {
     return null;
   }
@@ -318,7 +388,7 @@ export function renderMarkdown(markdown: string | undefined): React.ReactNode {
         const Tag = `h${level}` as keyof JSX.IntrinsicElements;
         elements.push(
           <Tag key={key++} style={{ marginBottom: "8px", marginTop: "16px" }}>
-            {parseInlineMarkdown(content)}
+            {parseInlineMarkdown(content, options)}
           </Tag>
         );
         continue;
@@ -350,7 +420,7 @@ export function renderMarkdown(markdown: string | undefined): React.ReactNode {
         }
         listItems.push(
           <li key={key++} style={{ marginBottom: "4px" }}>
-            {parseInlineMarkdown(ulMatch[1])}
+            {parseInlineMarkdown(ulMatch[1], options)}
           </li>
         );
         continue;
@@ -366,7 +436,7 @@ export function renderMarkdown(markdown: string | undefined): React.ReactNode {
         }
         listItems.push(
           <li key={key++} style={{ marginBottom: "4px" }}>
-            {parseInlineMarkdown(olMatch[1])}
+            {parseInlineMarkdown(olMatch[1], options)}
           </li>
         );
         continue;
@@ -387,7 +457,7 @@ export function renderMarkdown(markdown: string | undefined): React.ReactNode {
               fontStyle: "italic",
             }}
           >
-            {parseInlineMarkdown(quoteMatch[1])}
+            {parseInlineMarkdown(quoteMatch[1], options)}
           </blockquote>
         );
         continue;
@@ -406,7 +476,7 @@ export function renderMarkdown(markdown: string | undefined): React.ReactNode {
       flushList();
       elements.push(
         <p key={key++} style={{ marginBottom: "8px", lineHeight: "1.6" }}>
-          {parseInlineMarkdown(line)}
+          {parseInlineMarkdown(line, options)}
         </p>
       );
     }
