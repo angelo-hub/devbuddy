@@ -12,9 +12,11 @@ This document tracks the path to DevBuddy 1.0.0, focusing on:
 1. **Sidebar Parity** - Bring Jira sidebar to Linear's level
 2. **Multi-Repo Support** - Branch associations across repositories
 3. **Web UI Feature Parity** - Essential features from Linear/Jira web apps
-4. **Polish & Stability** - Documentation, UX refinements
+4. **Licensing Infrastructure** - Build Pro plumbing (growth-first, no restrictions)
+5. **Polish & Stability** - Documentation, UX refinements
 
 **Pro Features remain in Beta** until fully polished post-1.0.
+**Licensing Strategy:** Infrastructure only for 1.0—no feature gates or nags until 1000+ installs.
 
 ---
 
@@ -413,6 +415,88 @@ BYOT allows users to use their own API keys for AI-powered features instead of r
 
 ---
 
+## 8.3 Licensing Infrastructure 💎
+
+### Strategy: Growth-First Monetization
+
+Build the licensing plumbing now, but **do not enable restrictions**. Focus on user growth first, monetize later.
+
+**Philosophy:** Users should discover Pro features organically, not be nagged into them.
+
+### Implementation Phases
+
+| Phase | Trigger | Actions |
+|-------|---------|---------|
+| **Phase 1: Infrastructure** (1.0.0) | Now | Build license system, no restrictions |
+| **Phase 2: Soft Upsell** (1000+ installs) | Growth milestone | 14-day Pro trial, graceful degradation |
+| **Phase 3: Monetization** (5000+ installs) | Volume milestone | Enable Pro gates, contributor unlocks |
+
+### 1.0.0 Tasks (Phase 1)
+
+| Task | Priority | Effort | Status |
+|------|----------|--------|--------|
+| **License service infrastructure** | 🟡 P1 | 🟡 | ⬜ Not Started |
+| **Pro feature detection utility** | 🟡 P1 | 🟢 | ⬜ Not Started |
+| **Subtle Pro badges in UI** (💎 icon, not popups) | 🟡 P1 | 🟢 | ⬜ Not Started |
+| **"Unlock with Pro" soft prompt** (on feature click only) | 🟡 P1 | 🟢 | ⬜ Not Started |
+| **License key storage** (VS Code Secret Storage) | 🟡 P1 | 🟢 | ⬜ Not Started |
+| **License validation command** | 🟡 P1 | 🟢 | ⬜ Not Started |
+
+### What NOT to Build for 1.0.0
+
+- ❌ No weekly/periodic nag popups
+- ❌ No feature restrictions (all features work)
+- ❌ No trial countdown timers
+- ❌ No "upgrade now" notifications
+
+### UI Pattern: Soft Discovery
+
+Pro features show a subtle badge, user clicks → sees value → soft prompt:
+
+```
+┌─────────────────────────────────────────────┐
+│ 🚀 AI Ticket Creation                   💎  │
+│ ─────────────────────────────────────────── │
+│ Generate tickets from natural language      │
+│                                             │
+│ [Unlock with Pro]              [Maybe Later]│
+└─────────────────────────────────────────────┘
+```
+
+### Architecture
+
+```typescript
+// src/pro/licenseService.ts
+interface LicenseInfo {
+  isValid: boolean;
+  tier: 'free' | 'pro' | 'team';
+  expiresAt?: Date;
+  features: string[];
+}
+
+// Check without restricting (Phase 1)
+async function checkProFeature(feature: string): Promise<boolean> {
+  const license = await getLicenseInfo();
+  // Log for analytics, but don't gate
+  telemetry.track('pro_feature_used', { feature, hasPro: license.isValid });
+  return true; // Always allow in Phase 1
+}
+```
+
+### Future Phases (Post-1.0)
+
+**Phase 2: Soft Upsell (1000+ installs)**
+- 14-day Pro trial on first install
+- After trial: features work but show "Pro" badge
+- Quarterly "what you're missing" summary (not nag)
+
+**Phase 3: Full Monetization (5000+ installs)**
+- Gate advanced features behind Pro
+- "Pro for Contributors" program (reviews, stars, referrals)
+- Team/Enterprise tier for multi-seat
+
+---
+
 ## 8.1 Pro Features Roadmap (Post-1.0)
 
 ### Developer Stats Dashboard 💎
@@ -529,7 +613,10 @@ JQL: assignee = currentUser() AND updated < -5d AND resolution = Unresolved
 - [ ] Jira: Full PR summary support
 - [ ] Jira: Status update via chat
 
-### Milestone 5: Polish & Documentation (Week 5-6)
+### Milestone 5: Licensing & Polish (Week 5-6)
+- [ ] License service infrastructure
+- [ ] Pro feature badges (subtle 💎 icons)
+- [ ] "Unlock with Pro" soft prompts
 - [ ] Documentation updates
 - [ ] Demo GIFs
 - [ ] Bug fixes
@@ -554,6 +641,7 @@ JQL: assignee = currentUser() AND updated < -5d AND resolution = Unresolved
 - [ ] Issue links display
 - [ ] Priority/estimate editing
 - [ ] Chat parity for Jira
+- [ ] **Licensing infrastructure** (no restrictions enabled)
 
 ### Nice to Have (Can wait for 1.1)
 - [ ] Activity feed
@@ -572,7 +660,7 @@ JQL: assignee = currentUser() AND updated < -5d AND resolution = Unresolved
 | Week 2 | Sidebar + Ticket Panel | ✅ Complete |
 | Week 3 | Multi-Repo Foundation | ✅ Complete |
 | Week 4 | Chat/AI Parity | ⬜ Not Started |
-| Week 5 | Polish & Docs | ⬜ Not Started |
+| Week 5 | Licensing & Polish | ⬜ Not Started |
 | Week 6 | Testing & Release | ⬜ Not Started |
 
 ---

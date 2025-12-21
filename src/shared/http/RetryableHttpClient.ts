@@ -63,12 +63,19 @@ export class HttpError extends Error {
     public readonly status: number,
     public readonly statusText: string,
     public readonly body?: string,
-    public readonly retryable: boolean = false
+    public readonly retryable: boolean = false,
+    public readonly retryAfterHeader?: string | null
   ) {
     super(message);
     this.name = "HttpError";
   }
 }
+
+/**
+ * Minimum delay in milliseconds for rate limit retries when no Retry-After header is present.
+ * This ensures we wait long enough to avoid immediately hitting the rate limit again.
+ */
+const MIN_RATE_LIMIT_DELAY_MS = 30000; // 30 seconds
 
 /**
  * Default retry configuration
@@ -320,13 +327,13 @@ export class RetryableHttpClient {
         // Check for Retry-After header on 429 responses
         if (error instanceof HttpError && error.status === 429) {
           const retryAfter = parseRetryAfter(
-            (error as any).retryAfterHeader || null
+            error.retryAfterHeader ?? null
           );
           if (retryAfter !== null) {
             delay = Math.min(retryAfter, retryConfig.maxDelay);
           } else {
-            // Default delay for rate limiting without Retry-After
-            delay = Math.max(delay, 30000); // At least 30 seconds
+            // When no Retry-After header, use minimum delay to avoid immediately re-triggering rate limit
+            delay = Math.max(delay, MIN_RATE_LIMIT_DELAY_MS);
           }
         }
 
@@ -380,18 +387,17 @@ export class RetryableHttpClient {
 
       if (!response.ok) {
         const errorBody = await response.text();
+        const retryAfterHeader = response.status === 429 
+          ? response.headers.get("Retry-After") 
+          : undefined;
         const error = new HttpError(
           `HTTP ${response.status}: ${response.statusText}`,
           response.status,
           response.statusText,
           errorBody,
-          this.defaultConfig.retryableStatuses.includes(response.status)
+          this.defaultConfig.retryableStatuses.includes(response.status),
+          retryAfterHeader
         );
-        
-        // Attach Retry-After header for 429 responses
-        if (response.status === 429) {
-          (error as any).retryAfterHeader = response.headers.get("Retry-After");
-        }
         
         throw error;
       }

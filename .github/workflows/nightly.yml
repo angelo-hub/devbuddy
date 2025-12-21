@@ -1,0 +1,91 @@
+name: Nightly Build
+
+on:
+  # Run every day at 2 AM UTC
+  schedule:
+    - cron: "0 2 * * *"
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  # ============================================
+  # MULTI-PLATFORM BUILD & TEST
+  # Full matrix testing on all platforms
+  # ============================================
+  nightly-build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: ["20"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run type check
+        run: npm run type-check
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Compile extension
+        run: npm run compile
+
+      - name: Compile webviews
+        run: npm run compile:webview
+
+      # Note: We don't inject telemetry secrets for nightly builds
+      # The extension handles missing connection strings gracefully
+      - name: Package extension
+        run: npm run package
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dev-buddy-nightly-${{ matrix.os }}-${{ github.run_number }}
+          path: "*.vsix"
+          retention-days: 7
+
+  # ============================================
+  # NIGHTLY SUMMARY
+  # ============================================
+  nightly-summary:
+    name: Summary
+    runs-on: ubuntu-latest
+    needs: [nightly-build]
+    if: always()
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## 🌙 Nightly Build Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Platform | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|--------|" >> $GITHUB_STEP_SUMMARY
+
+          # Check matrix job results
+          if [[ "${{ needs.nightly-build.result }}" == "success" ]]; then
+            echo "| All Platforms | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Some Platforms | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Run:** #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on failure
+        if: needs.nightly-build.result == 'failure'
+        run: |
+          echo "::warning::Nightly build failed! Check the workflow logs for details."
