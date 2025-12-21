@@ -57,18 +57,18 @@ jobs:
         run: |
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           echo "Current version: $CURRENT_VERSION"
-          
+
           # Parse version components
           MAJOR=$(echo $CURRENT_VERSION | cut -d. -f1)
           MINOR=$(echo $CURRENT_VERSION | cut -d. -f2)
           PATCH=$(echo $CURRENT_VERSION | cut -d. -f3 | cut -d- -f1)
-          
+
           echo "Parsed: major=$MAJOR, minor=$MINOR, patch=$PATCH"
-          
+
           # VS Code pre-release convention: odd minor versions are pre-releases
           # Even minor versions (0, 2, 4, 6, 8...) = stable
           # Odd minor versions (1, 3, 5, 7, 9...) = pre-release
-          
+
           if [ $((MINOR % 2)) -eq 0 ]; then
             # Current is stable (even minor), move to next odd minor for pre-release
             NEW_MINOR=$((MINOR + 1))
@@ -88,7 +88,7 @@ jobs:
               echo "Incrementing patch to $NEW_PATCH"
             fi
           fi
-          
+
           echo "New version: $NEW_VERSION"
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
@@ -145,43 +145,43 @@ jobs:
           name: DevBuddy v${{ steps.version.outputs.new_version }} (Pre-release)
           body: |
             ## 🧪 Pre-release Version
-            
+
             This is a **pre-release** of DevBuddy using VS Code's odd/even versioning:
             - **Even minor versions** (0.8.x, 0.10.x) = Stable releases
             - **Odd minor versions** (0.9.x, 0.11.x) = Pre-releases
-            
+
             This version contains experimental features and may have bugs.
-            
+
             ### ⚠️ Important Notes
-            
+
             - This version is for testing purposes only
             - Use at your own risk in production environments
             - Report any issues on [GitHub Issues](https://github.com/${{ github.repository }}/issues)
-            
+
             ### How to Install
-            
+
             **Option 1: Via VS Code (Recommended)**
             1. Open VS Code/Cursor
             2. Go to Extensions view
             3. Search for "DevBuddy"
             4. Click the dropdown next to "Install" and select **"Switch to Pre-Release Version"**
-            
+
             **Option 2: Manual Installation**
             Download the `.vsix` file below and install it:
-            
+
             ```bash
             code --install-extension ${{ steps.vsix.outputs.filename }}
             ```
-            
+
             ### Reporting Issues
-            
+
             Please report any bugs or issues you encounter:
             - [Create an issue](https://github.com/${{ github.repository }}/issues/new)
             - Include the version number: `${{ steps.version.outputs.new_version }}`
             - Describe what you were doing when the issue occurred
-            
+
             ---
-            
+
             Thank you for testing DevBuddy! 🙏
           files: ${{ steps.vsix.outputs.filename }}
           draft: false
