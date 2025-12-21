@@ -361,20 +361,7 @@ export class LinearClient extends BaseTicketProvider<
 
     try {
       const response = await this.executeQuery(query);
-      const issue = response.data.issue;
-      
-      // Debug logging to see Linear's native description format
-      if (issue && issue.description) {
-        console.log('[Linear Debug] Fetched issue description:');
-        console.log('Issue ID:', issue.identifier);
-        console.log('Description length:', issue.description.length);
-        console.log('First 500 chars:', issue.description.substring(0, 500));
-        console.log('Has code block markers (```)?', issue.description.includes('```'));
-        console.log('Has newlines?', issue.description.includes('\n'));
-        console.log('Raw description:', issue.description);
-      }
-      
-      return issue;
+      return response.data.issue;
     } catch (error) {
       console.error(
         `[Linear Buddy] Failed to fetch issue ${idOrIdentifier}:`,

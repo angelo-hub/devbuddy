@@ -103,6 +103,34 @@ export const JiraApiSubtaskSchema = z.object({
   }),
 });
 
+// Issue Link Type schema
+export const JiraApiIssueLinkTypeSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  inward: z.string(),
+  outward: z.string(),
+});
+
+// Linked Issue reference schema (simplified issue fields)
+export const JiraApiLinkedIssueSchema = z.object({
+  id: z.string(),
+  key: z.string(),
+  fields: z.object({
+    summary: z.string(),
+    status: JiraApiStatusSchema,
+    issuetype: JiraApiIssueTypeSchema,
+    priority: JiraApiPrioritySchema.optional().nullable(),
+  }),
+});
+
+// Issue Link schema
+export const JiraApiIssueLinkSchema = z.object({
+  id: z.string(),
+  type: JiraApiIssueLinkTypeSchema,
+  inwardIssue: JiraApiLinkedIssueSchema.optional(),
+  outwardIssue: JiraApiLinkedIssueSchema.optional(),
+});
+
 export const JiraApiCommentSchema = z.object({
   id: z.string(),
   body: z.union([JiraApiADFSchema, z.string()]),
@@ -143,6 +171,7 @@ export const JiraApiIssueSchema = z.object({
     }).optional(),
     attachment: z.array(JiraApiAttachmentSchema).optional(),
     subtasks: z.array(JiraApiSubtaskSchema).optional(),
+    issuelinks: z.array(JiraApiIssueLinkSchema).optional(),
     parent: z.object({
       id: z.string(),
       key: z.string(),
@@ -267,6 +296,9 @@ export type JiraApiIssue = z.infer<typeof JiraApiIssueSchema>;
 export type JiraApiTransition = z.infer<typeof JiraApiTransitionSchema>;
 export type JiraApiComment = z.infer<typeof JiraApiCommentSchema>;
 export type JiraApiAttachment = z.infer<typeof JiraApiAttachmentSchema>;
+export type JiraApiIssueLink = z.infer<typeof JiraApiIssueLinkSchema>;
+export type JiraApiIssueLinkType = z.infer<typeof JiraApiIssueLinkTypeSchema>;
+export type JiraApiLinkedIssue = z.infer<typeof JiraApiLinkedIssueSchema>;
 export type JiraApiBoard = z.infer<typeof JiraApiBoardSchema>;
 export type JiraApiSprint = z.infer<typeof JiraApiSprintSchema>;
 export type JiraApiCreateResponse = z.infer<typeof JiraApiCreateResponseSchema>;

@@ -10,6 +10,7 @@ import { CommentForm } from "./components/CommentForm";
 import { ActionButtons } from "./components/ActionButtons";
 import { SubtasksSection } from "./components/SubtasksSection";
 import { BranchManager } from "./components/BranchManager";
+import { IssueLinksSection } from "./components/IssueLinksSection";
 import styles from "./App.module.css";
 
 // Types for Jira issue data
@@ -94,6 +95,34 @@ interface JiraIssue {
     content: string;
     thumbnail?: string;
   }>;
+  issueLinks?: Array<{
+    id: string;
+    type: {
+      id: string;
+      name: string;
+      inward: string;
+      outward: string;
+    };
+    direction: "inward" | "outward";
+    linkedIssue: {
+      id: string;
+      key: string;
+      summary: string;
+      status: {
+        id: string;
+        name: string;
+        statusCategory?: {
+          key: string;
+          colorName: string;
+        };
+      };
+      issueType: {
+        id: string;
+        name: string;
+        iconUrl?: string;
+      };
+    };
+  }>;
 }
 
 interface JiraTransition {
@@ -139,7 +168,8 @@ type MessageFromWebview =
   | { command: "removeAssociation"; ticketKey: string }
   | { command: "loadBranchInfo"; ticketKey: string }
   | { command: "loadAllBranches" }
-  | { command: "openInRepository"; ticketKey: string; repositoryPath: string };
+  | { command: "openInRepository"; ticketKey: string; repositoryPath: string }
+  | { command: "openLinkedIssue"; issueKey: string };
 
 // Get initial state from window object (passed from extension)
 declare global {
@@ -295,6 +325,10 @@ function App() {
     postMessage({ command: "copyUrl" });
   };
 
+  const handleOpenLinkedIssue = (issueKey: string) => {
+    postMessage({ command: "openLinkedIssue", issueKey });
+  };
+
   if (!issue) {
     return (
       <div className={styles.container}>
@@ -366,6 +400,16 @@ function App() {
         <>
           <div className={styles.divider} />
           <SubtasksSection subtasks={issue.subtasks} />
+        </>
+      )}
+
+      {issue.issueLinks && issue.issueLinks.length > 0 && (
+        <>
+          <div className={styles.divider} />
+          <IssueLinksSection 
+            issueLinks={issue.issueLinks} 
+            onOpenLinkedIssue={handleOpenLinkedIssue}
+          />
         </>
       )}
 

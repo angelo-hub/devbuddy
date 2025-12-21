@@ -31,6 +31,7 @@ export interface JiraIssue {
   epic?: JiraEpic | null;
   parentIssue?: JiraIssueReference | null;
   subtasks?: JiraIssueReference[];
+  issueLinks?: JiraIssueLink[];
   comments?: JiraComment[];
   attachments?: JiraAttachment[];
   customFields?: Record<string, any>;
@@ -136,6 +137,26 @@ export interface JiraIssueReference {
   summary: string;
   status: JiraStatus;
   issueType: JiraIssueType;
+}
+
+/**
+ * Jira Issue Link Type
+ */
+export interface JiraIssueLinkType {
+  id: string;
+  name: string;
+  inward: string;  // e.g., "is blocked by"
+  outward: string; // e.g., "blocks"
+}
+
+/**
+ * Jira Issue Link
+ */
+export interface JiraIssueLink {
+  id: string;
+  type: JiraIssueLinkType;
+  direction: "inward" | "outward";
+  linkedIssue: JiraIssueReference;
 }
 
 /**

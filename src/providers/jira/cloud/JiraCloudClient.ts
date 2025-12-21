@@ -26,6 +26,7 @@ import {
   JiraSearchOptions,
   JiraComment,
   JiraPaginatedResponse,
+  JiraIssueLink,
 } from "../common/types";
 import {
   JiraApiIssueSchema,
@@ -55,6 +56,7 @@ import {
   JiraApiBoard,
   JiraApiSprint,
   JiraApiCreateResponse,
+  JiraApiIssueLink,
 } from "./schemas";
 import { getLogger } from "@shared/utils/logger";
 
@@ -170,6 +172,7 @@ export class JiraCloudClient extends BaseJiraClient {
         "comment",
         "attachment",
         "subtasks",
+        "issuelinks",
         "parent",
       ].join(",");
 
@@ -1220,6 +1223,7 @@ export class JiraCloudClient extends BaseJiraClient {
         status: st.fields.status,
         issueType: st.fields.issuetype,
       })),
+      issueLinks: this.normalizeIssueLinks(fields.issuelinks),
       comments: fields.comment?.comments?.map((c) => ({
         id: c.id,
         body: this.serializeADF(c.body),
@@ -1252,6 +1256,50 @@ export class JiraCloudClient extends BaseJiraClient {
       active: user.active !== false,
       timeZone: user.timeZone,
     };
+  }
+
+  /**
+   * Normalize Jira issue links to our internal structure
+   */
+  private normalizeIssueLinks(links: JiraApiIssueLink[] | undefined): JiraIssueLink[] {
+    if (!links || links.length === 0) {
+      return [];
+    }
+
+    return links.map((link) => {
+      // Determine direction and get the linked issue
+      const isInward = !!link.inwardIssue;
+      const linkedIssue = isInward ? link.inwardIssue! : link.outwardIssue!;
+
+      return {
+        id: link.id,
+        type: {
+          id: link.type.id,
+          name: link.type.name,
+          inward: link.type.inward,
+          outward: link.type.outward,
+        },
+        direction: isInward ? "inward" as const : "outward" as const,
+        linkedIssue: {
+          id: linkedIssue.id,
+          key: linkedIssue.key,
+          summary: linkedIssue.fields.summary,
+          status: {
+            id: linkedIssue.fields.status.id,
+            name: linkedIssue.fields.status.name,
+            description: linkedIssue.fields.status.description,
+            statusCategory: linkedIssue.fields.status.statusCategory,
+          },
+          issueType: {
+            id: linkedIssue.fields.issuetype.id,
+            name: linkedIssue.fields.issuetype.name,
+            description: linkedIssue.fields.issuetype.description,
+            iconUrl: linkedIssue.fields.issuetype.iconUrl,
+            subtask: linkedIssue.fields.issuetype.subtask,
+          },
+        },
+      };
+    });
   }
 
   /**

@@ -36,6 +36,7 @@ import {
   UpdateJiraIssueInput,
   JiraSearchOptions,
   JiraComment,
+  JiraIssueLink,
 } from "../common/types";
 import { getLogger } from "@shared/utils/logger";
 
@@ -1229,7 +1230,45 @@ export class JiraServerClient extends BaseJiraClient {
         status: this.normalizeStatus(st.fields.status),
         issueType: this.normalizeIssueType(st.fields.issuetype),
       })),
+      issueLinks: this.normalizeIssueLinks(apiIssue.fields.issuelinks),
     };
+  }
+
+  /**
+   * Normalize Jira issue links to our internal structure
+   */
+  private normalizeIssueLinks(links: any[] | undefined): JiraIssueLink[] {
+    if (!links || links.length === 0) {
+      return [];
+    }
+
+    return links.map((link: any) => {
+      // Determine direction and get the linked issue
+      const isInward = !!link.inwardIssue;
+      const linkedIssue = isInward ? link.inwardIssue : link.outwardIssue;
+
+      if (!linkedIssue) {
+        return null;
+      }
+
+      return {
+        id: link.id,
+        type: {
+          id: link.type.id,
+          name: link.type.name,
+          inward: link.type.inward,
+          outward: link.type.outward,
+        },
+        direction: isInward ? "inward" as const : "outward" as const,
+        linkedIssue: {
+          id: linkedIssue.id,
+          key: linkedIssue.key,
+          summary: linkedIssue.fields.summary,
+          status: this.normalizeStatus(linkedIssue.fields.status),
+          issueType: this.normalizeIssueType(linkedIssue.fields.issuetype),
+        },
+      };
+    }).filter((link: JiraIssueLink | null): link is JiraIssueLink => link !== null);
   }
 
   /**
