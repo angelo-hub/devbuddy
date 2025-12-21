@@ -23,8 +23,43 @@ import {
   JiraSearchOptions,
   JiraComment,
 } from "./types";
+import {
+  getHttpClient,
+  TTLCache,
+  TTL,
+  generateCacheKey,
+  HttpError,
+} from "@shared/http";
+import { getLogger } from "@shared/utils/logger";
+
+const logger = getLogger();
+
+/**
+ * Request options with caching support
+ */
+export interface JiraRequestOptions {
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  body?: object | string;
+  headers?: Record<string, string>;
+  /** TTL for caching (only applies to GET requests). Use 0 to skip cache. */
+  ttl?: number;
+  /** Skip cache lookup/storage for this request */
+  skipCache?: boolean;
+}
 
 export abstract class BaseJiraClient {
+  /** Cache for API responses */
+  protected cache: TTLCache;
+
+  constructor() {
+    // Initialize cache with default settings
+    // Jira has stricter rate limits, so we use longer default TTL
+    this.cache = new TTLCache({
+      defaultTTL: TTL.MEDIUM, // 2 minutes default
+      maxSize: 200,
+    });
+  }
+
   /**
    * Get the base API URL (platform-specific)
    */
@@ -36,44 +71,97 @@ export abstract class BaseJiraClient {
   protected abstract getAuthHeaders(): Record<string, string>;
 
   /**
-   * Make authenticated HTTP request to Jira API
+   * Make authenticated HTTP request to Jira API with retry and caching support
    */
   protected async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: JiraRequestOptions = {}
   ): Promise<T> {
+    const { method = "GET", body, headers = {}, ttl, skipCache = false } = options;
     const url = `${this.getApiBaseUrl()}${endpoint}`;
-    const headers = {
-      "Accept": "application/json",
-      "Content-Type": "application/json",
-      ...this.getAuthHeaders(),
-      ...options.headers,
-    };
 
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
+    // Only cache GET requests
+    const isCacheable = method === "GET" && !skipCache;
+    const cacheKey = isCacheable ? generateCacheKey("jira", endpoint) : "";
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(
-        `Jira API error: ${response.status} ${response.statusText} - ${errorText}`
-      );
+    // Check cache first for GET requests
+    if (isCacheable) {
+      const cached = this.cache.get(cacheKey);
+      if (cached !== undefined) {
+        logger.debug(`[Jira] Cache hit for ${endpoint}`);
+        return cached as T;
+      }
     }
 
-    // Handle empty responses (204 No Content)
-    const contentLength = response.headers.get("content-length");
-    if (response.status === 204 || contentLength === "0") {
-      return undefined as T;
-    }
+    const httpClient = getHttpClient();
 
-    const text = await response.text();
-    if (!text || text.trim() === "") {
-      return undefined as T;
-    }
+    try {
+      const response = await httpClient.request<T>(url, {
+        method,
+        body,
+        headers: {
+          ...this.getAuthHeaders(),
+          ...headers,
+        },
+        retry: {
+          maxRetries: 3,
+          baseDelay: 1000,
+          maxDelay: 30000, // Jira rate limits can require longer waits
+          retryableStatuses: [429, 500, 502, 503, 504],
+          retryOnNetworkError: true,
+        },
+      });
 
-    return JSON.parse(text) as T;
+      // Cache successful GET responses
+      if (isCacheable && response.data !== undefined) {
+        const effectiveTTL = ttl ?? TTL.MEDIUM;
+        if (effectiveTTL > 0) {
+          this.cache.set(cacheKey, response.data, effectiveTTL);
+        }
+      }
+
+      return response.data;
+    } catch (error) {
+      if (error instanceof HttpError) {
+        logger.error(
+          `[Jira] API Error - ${method} ${endpoint}: ${error.status} ${error.statusText}`
+        );
+        throw new Error(
+          `Jira API error: ${error.status} ${error.statusText} - ${error.body}`
+        );
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Clear the entire API response cache
+   */
+  clearCache(): void {
+    this.cache.clear();
+    logger.debug("[Jira] Cache cleared");
+  }
+
+  /**
+   * Invalidate cache entries matching a pattern
+   * @param pattern String pattern to match against cache keys
+   */
+  invalidateCache(pattern: string): void {
+    const count = this.cache.invalidateByPattern(pattern);
+    logger.debug(`[Jira] Invalidated ${count} cache entries matching: ${pattern}`);
+  }
+
+  /**
+   * Invalidate cache after a mutation (create, update, delete)
+   * Call this after any operation that modifies data
+   */
+  protected invalidateAfterMutation(issueKey?: string): void {
+    // Invalidate issue-related caches
+    this.invalidateCache("issue");
+    this.invalidateCache("search");
+    if (issueKey) {
+      this.invalidateCache(issueKey);
+    }
   }
 
   // ==================== Issue Operations ====================

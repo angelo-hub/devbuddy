@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { UniversalTicketsProvider } from "@shared/views/UniversalTicketsProvider";
 import { getLogger } from "@shared/utils/logger";
+import { debounce } from "@shared/utils/debounce";
 
 /**
  * Register the tickets tree view (sidebar)
@@ -17,11 +18,24 @@ export async function registerTreeView(context: vscode.ExtensionContext): Promis
     });
     context.subscriptions.push(treeView);
 
-    // Trigger refresh when the tree view becomes visible
+    // Track if we've done the initial data load
+    let hasInitialData = false;
+    
+    // Debounced refresh to prevent rapid-fire updates on visibility changes
+    const debouncedVisibilityRefresh = debounce(() => {
+      // Only refresh on visibility if we haven't loaded data yet
+      // Once we have data, the cache will keep it fresh
+      if (!hasInitialData) {
+        logger.debug("Universal tree view became visible, loading initial data");
+        ticketsProvider?.refresh();
+        hasInitialData = true;
+      }
+    }, 500);
+
+    // Trigger refresh when the tree view becomes visible (debounced)
     treeView.onDidChangeVisibility((e) => {
       if (e.visible) {
-        logger.debug("Universal tree view became visible, triggering refresh");
-        ticketsProvider?.refresh();
+        debouncedVisibilityRefresh();
       }
     });
     

@@ -7,6 +7,7 @@
 
 import * as vscode from "vscode";
 import { getLogger } from "@shared/utils/logger";
+import { disposeAllCaches, NetworkMonitor } from "@shared/http";
 
 // Activation modules
 import { registerUriHandler } from "./activation/uriHandler";
@@ -134,5 +135,15 @@ export async function activate(context: vscode.ExtensionContext) {
  */
 export function deactivate() {
   const logger = getLogger();
+  
+  // Clean up HTTP infrastructure
+  try {
+    disposeAllCaches();
+    NetworkMonitor.resetInstance();
+    logger.debug("HTTP infrastructure cleaned up");
+  } catch (error) {
+    logger.error("Failed to clean up HTTP infrastructure", error);
+  }
+  
   logger.info("Extension is now deactivated");
 }

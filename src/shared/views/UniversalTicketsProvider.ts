@@ -18,6 +18,7 @@ import { BranchAssociationManager } from "@shared/git/branchAssociationManager";
 import { getRepositoryRegistry } from "@shared/git/repositoryRegistry";
 import { fuzzySearch } from "@shared/utils/fuzzySearch";
 import { debounce } from "@shared/utils/debounce";
+import { getUserFriendlyError, type UserFriendlyError } from "@shared/http";
 
 const logger = getLogger();
 
@@ -349,7 +350,7 @@ export class UniversalTicketsProvider
       return [];
     } catch (error) {
       logger.error("Failed to load Linear tickets:", error);
-      return [this.createErrorItem("Failed to load Linear tickets")];
+      return [this.createErrorItemFromError(error, "Linear")];
     }
   }
 
@@ -982,7 +983,7 @@ export class UniversalTicketsProvider
       return [];
     } catch (error) {
       logger.error("Failed to load Jira issues:", error);
-      return [this.createErrorItem("Failed to load Jira issues")];
+      return [this.createErrorItemFromError(error, "Jira")];
     }
   }
 
@@ -1508,13 +1509,61 @@ export class UniversalTicketsProvider
 
   // ==================== UTILITY METHODS ====================
 
-  private createErrorItem(message: string): UniversalTicketTreeItem {
+  /**
+   * Create an error item from a raw error with user-friendly messaging
+   */
+  private createErrorItemFromError(error: unknown, context: string): UniversalTicketTreeItem {
+    const friendlyError = getUserFriendlyError(error, context);
+    return this.createErrorItemFromFriendlyError(friendlyError);
+  }
+
+  /**
+   * Create an error item from a UserFriendlyError
+   */
+  private createErrorItemFromFriendlyError(error: UserFriendlyError): UniversalTicketTreeItem {
     const item = new UniversalTicketTreeItem(
-      `❌ ${message}`,
+      error.title,
       vscode.TreeItemCollapsibleState.None,
       null
     );
+    
+    item.iconPath = new vscode.ThemeIcon(
+      error.icon,
+      new vscode.ThemeColor("errorForeground")
+    );
+    
+    // Build tooltip with description and action hint
+    let tooltip = error.description;
+    if (error.action) {
+      tooltip += `\n\n💡 ${error.action}`;
+    }
+    if (error.canRetry) {
+      tooltip += "\n\nClick the refresh button (↻) to try again.";
+    }
+    item.tooltip = tooltip;
+    
+    // Add description showing actionable hint
+    if (error.canRetry) {
+      item.description = "Click ↻ to retry";
+    } else if (error.action) {
+      item.description = error.action;
+    }
+    
+    return item;
+  }
+
+  /**
+   * Create a simple error item with custom message (legacy support)
+   */
+  private createErrorItem(message: string): UniversalTicketTreeItem {
+    const item = new UniversalTicketTreeItem(
+      message,
+      vscode.TreeItemCollapsibleState.None,
+      null
+    );
+    item.iconPath = new vscode.ThemeIcon("error", new vscode.ThemeColor("errorForeground"));
     item.tooltip = "Click refresh to try again";
+    item.description = "Click ↻ to retry";
     return item;
   }
 }

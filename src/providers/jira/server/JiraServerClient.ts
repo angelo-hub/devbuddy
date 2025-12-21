@@ -21,6 +21,7 @@
 
 import * as vscode from "vscode";
 import { BaseJiraClient } from "../common/BaseJiraClient";
+import { TTL } from "@shared/http";
 import {
   JiraIssue,
   JiraProject,
@@ -571,10 +572,13 @@ export class JiraServerClient extends BaseJiraClient {
       const response = await this.request<any>("/issue", {
         method: "POST",
         body: JSON.stringify({ fields }),
+        skipCache: true,
       });
 
       // Fetch the created issue to get full details
       if (response.key) {
+        // Invalidate cache after creating issue
+        this.invalidateAfterMutation(response.key);
         return this.getIssue(response.key);
       }
 
@@ -620,7 +624,11 @@ export class JiraServerClient extends BaseJiraClient {
       await this.request(`/issue/${key}`, {
         method: "PUT",
         body: JSON.stringify({ fields }),
+        skipCache: true,
       });
+
+      // Invalidate cache after updating issue
+      this.invalidateAfterMutation(key);
 
       return true;
     } catch (error) {
@@ -636,7 +644,11 @@ export class JiraServerClient extends BaseJiraClient {
         body: JSON.stringify({
           transition: { id: transitionId },
         }),
+        skipCache: true,
       });
+
+      // Invalidate cache after transition
+      this.invalidateAfterMutation(key);
 
       return true;
     } catch (error) {
@@ -675,7 +687,11 @@ export class JiraServerClient extends BaseJiraClient {
     try {
       await this.request(`/issue/${key}`, {
         method: "DELETE",
+        skipCache: true,
       });
+
+      // Invalidate cache after deletion
+      this.invalidateAfterMutation(key);
 
       return true;
     } catch (error) {
@@ -688,7 +704,8 @@ export class JiraServerClient extends BaseJiraClient {
 
   async getProjects(): Promise<JiraProject[]> {
     try {
-      const response = await this.request<any>("/project");
+      // Projects rarely change, cache for 15 minutes
+      const response = await this.request<any>("/project", { ttl: TTL.LONG });
       return response.map((p: any) => this.normalizeProject(p));
     } catch (error) {
       logger.error("Failed to fetch projects", error);
@@ -746,7 +763,8 @@ export class JiraServerClient extends BaseJiraClient {
 
   async getIssueTypes(projectKeyOrId: string): Promise<JiraIssueType[]> {
     try {
-      const response = await this.request<any>(`/project/${projectKeyOrId}`);
+      // Issue types rarely change, cache for 30 minutes
+      const response = await this.request<any>(`/project/${projectKeyOrId}`, { ttl: TTL.VERY_LONG });
       return response.issueTypes?.map((it: any) => this.normalizeIssueType(it)) || [];
     } catch (error) {
       logger.error(`Failed to fetch issue types for ${projectKeyOrId}`, error);
@@ -756,7 +774,8 @@ export class JiraServerClient extends BaseJiraClient {
 
   async getPriorities(): Promise<JiraPriority[]> {
     try {
-      const response = await this.request<any>("/priority");
+      // Priorities rarely change, cache for 30 minutes
+      const response = await this.request<any>("/priority", { ttl: TTL.VERY_LONG });
       return response.map((p: any) => this.normalizePriority(p));
     } catch (error) {
       logger.error("Failed to fetch priorities", error);
@@ -766,7 +785,8 @@ export class JiraServerClient extends BaseJiraClient {
 
   async getStatuses(projectKey: string): Promise<JiraStatus[]> {
     try {
-      const response = await this.request<any>(`/project/${projectKey}/statuses`);
+      // Statuses rarely change, cache for 15 minutes
+      const response = await this.request<any>(`/project/${projectKey}/statuses`, { ttl: TTL.LONG });
       
       // Extract unique statuses from all issue types
       const statusMap = new Map<string, any>();
