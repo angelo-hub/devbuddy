@@ -199,12 +199,12 @@ These features work the same across all platforms:
 
 ### Short-Term (Next Release)
 
-| Feature | Target Platform | Priority |
-|---------|----------------|----------|
-| **Jira Standup Builder** | Jira Cloud | High |
-| **Jira Branch Integration** | Jira Cloud | High |
-| **Jira PR Summaries** | Jira Cloud | Medium |
-| **Jira Chat Participant** | Jira Cloud | Medium |
+| Feature | Target Platform | Priority | Status |
+|---------|----------------|----------|--------|
+| **Jira Standup Builder** | Jira Cloud | High | ✅ Done |
+| **Jira Branch Integration** | Jira Cloud | High | ✅ Done |
+| **Jira PR Summaries** | Jira Cloud | Medium | ✅ Done |
+| **Jira Chat Participant** | Jira Cloud | Medium | 🚧 In Progress |
 
 ### Medium-Term
 

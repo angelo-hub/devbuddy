@@ -1089,7 +1089,7 @@
             }
             return dispatcher.useContext(Context);
           }
-          function useState10(initialState) {
+          function useState11(initialState) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useState(initialState);
           }
@@ -1101,7 +1101,7 @@
             var dispatcher = resolveDispatcher();
             return dispatcher.useRef(initialValue);
           }
-          function useEffect11(create2, deps) {
+          function useEffect12(create2, deps) {
             var dispatcher = resolveDispatcher();
             return dispatcher.useEffect(create2, deps);
           }
@@ -1884,7 +1884,7 @@
           exports.useContext = useContext3;
           exports.useDebugValue = useDebugValue3;
           exports.useDeferredValue = useDeferredValue;
-          exports.useEffect = useEffect11;
+          exports.useEffect = useEffect12;
           exports.useId = useId;
           exports.useImperativeHandle = useImperativeHandle2;
           exports.useInsertionEffect = useInsertionEffect;
@@ -1892,7 +1892,7 @@
           exports.useMemo = useMemo4;
           exports.useReducer = useReducer;
           exports.useRef = useRef8;
-          exports.useState = useState10;
+          exports.useState = useState11;
           exports.useSyncExternalStore = useSyncExternalStore3;
           exports.useTransition = useTransition;
           exports.version = ReactVersion;
@@ -2388,9 +2388,9 @@
           if (typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== "undefined" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart === "function") {
             __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(new Error());
           }
-          var React14 = require_react();
+          var React15 = require_react();
           var Scheduler = require_scheduler();
-          var ReactSharedInternals = React14.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+          var ReactSharedInternals = React15.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
           var suppressWarning = false;
           function setSuppressWarning(newSuppressWarning) {
             {
@@ -2439,7 +2439,7 @@
           var HostPortal = 4;
           var HostComponent = 5;
           var HostText = 6;
-          var Fragment6 = 7;
+          var Fragment7 = 7;
           var Mode = 8;
           var ContextConsumer = 9;
           var ContextProvider = 10;
@@ -3596,7 +3596,7 @@
                 return "DehydratedFragment";
               case ForwardRef:
                 return getWrappedName$1(type, type.render, "ForwardRef");
-              case Fragment6:
+              case Fragment7:
                 return "Fragment";
               case HostComponent:
                 return type;
@@ -3997,7 +3997,7 @@
             {
               if (props.value == null) {
                 if (typeof props.children === "object" && props.children !== null) {
-                  React14.Children.forEach(props.children, function(child) {
+                  React15.Children.forEach(props.children, function(child) {
                     if (child == null) {
                       return;
                     }
@@ -4513,7 +4513,7 @@
             }
           }
           function setValueForStyles(node, styles) {
-            var style22 = node.style;
+            var style23 = node.style;
             for (var styleName in styles) {
               if (!styles.hasOwnProperty(styleName)) {
                 continue;
@@ -4529,9 +4529,9 @@
                 styleName = "cssFloat";
               }
               if (isCustomProperty) {
-                style22.setProperty(styleName, styleValue);
+                style23.setProperty(styleName, styleValue);
               } else {
-                style22[styleName] = styleValue;
+                style23[styleName] = styleValue;
               }
             }
           }
@@ -8774,9 +8774,9 @@
             transitionend: makePrefixMap("Transition", "TransitionEnd")
           };
           var prefixedEventNames = {};
-          var style21 = {};
+          var style22 = {};
           if (canUseDOM) {
-            style21 = document.createElement("div").style;
+            style22 = document.createElement("div").style;
             if (!("AnimationEvent" in window)) {
               delete vendorPrefixes.animationend.animation;
               delete vendorPrefixes.animationiteration.animation;
@@ -8794,7 +8794,7 @@
             }
             var prefixMap = vendorPrefixes[eventName];
             for (var styleProp in prefixMap) {
-              if (prefixMap.hasOwnProperty(styleProp) && styleProp in style21) {
+              if (prefixMap.hasOwnProperty(styleProp) && styleProp in style22) {
                 return prefixedEventNames[eventName] = prefixMap[styleProp];
               }
             }
@@ -10454,11 +10454,11 @@
           }
           function hideInstance(instance) {
             instance = instance;
-            var style22 = instance.style;
-            if (typeof style22.setProperty === "function") {
-              style22.setProperty("display", "none", "important");
+            var style23 = instance.style;
+            if (typeof style23.setProperty === "function") {
+              style23.setProperty("display", "none", "important");
             } else {
-              style22.display = "none";
+              style23.display = "none";
             }
           }
           function hideTextInstance(textInstance) {
@@ -12025,7 +12025,7 @@
               }
             }
             function updateFragment2(returnFiber, current2, fragment, lanes, key2) {
-              if (current2 === null || current2.tag !== Fragment6) {
+              if (current2 === null || current2.tag !== Fragment7) {
                 var created = createFiberFromFragment(fragment, returnFiber.mode, lanes, key2);
                 created.return = returnFiber;
                 return created;
@@ -12428,7 +12428,7 @@
                 if (child.key === key2) {
                   var elementType = element2.type;
                   if (elementType === REACT_FRAGMENT_TYPE) {
-                    if (child.tag === Fragment6) {
+                    if (child.tag === Fragment7) {
                       deleteRemainingChildren(returnFiber, child.sibling);
                       var existing = useFiber(child, element2.props.children);
                       existing.return = returnFiber;
@@ -17904,7 +17904,7 @@
                 var _resolvedProps2 = workInProgress2.elementType === type ? _unresolvedProps2 : resolveDefaultProps(type, _unresolvedProps2);
                 return updateForwardRef(current2, workInProgress2, type, _resolvedProps2, renderLanes2);
               }
-              case Fragment6:
+              case Fragment7:
                 return updateFragment(current2, workInProgress2, renderLanes2);
               case Mode:
                 return updateMode(current2, workInProgress2, renderLanes2);
@@ -18176,7 +18176,7 @@
               case SimpleMemoComponent:
               case FunctionComponent:
               case ForwardRef:
-              case Fragment6:
+              case Fragment7:
               case Mode:
               case Profiler:
               case ContextConsumer:
@@ -22437,7 +22437,7 @@
             return fiber;
           }
           function createFiberFromFragment(elements, mode, lanes, key2) {
-            var fiber = createFiber(Fragment6, elements, key2, mode);
+            var fiber = createFiber(Fragment7, elements, key2, mode);
             fiber.lanes = lanes;
             return fiber;
           }
@@ -23593,7 +23593,7 @@
       if (true) {
         (function() {
           "use strict";
-          var React14 = require_react();
+          var React15 = require_react();
           var REACT_ELEMENT_TYPE = Symbol.for("react.element");
           var REACT_PORTAL_TYPE = Symbol.for("react.portal");
           var REACT_FRAGMENT_TYPE = Symbol.for("react.fragment");
@@ -23619,7 +23619,7 @@
             }
             return null;
           }
-          var ReactSharedInternals = React14.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+          var ReactSharedInternals = React15.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
           function error2(format2) {
             {
               {
@@ -24469,11 +24469,11 @@
               return jsxWithValidation(type, props, key2, false);
             }
           }
-          var jsx26 = jsxWithValidationDynamic;
-          var jsxs20 = jsxWithValidationStatic;
+          var jsx27 = jsxWithValidationDynamic;
+          var jsxs21 = jsxWithValidationStatic;
           exports.Fragment = REACT_FRAGMENT_TYPE;
-          exports.jsx = jsx26;
-          exports.jsxs = jsxs20;
+          exports.jsx = jsx27;
+          exports.jsxs = jsxs21;
         })();
       }
     }
@@ -24500,7 +24500,7 @@
           return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
         }
         function useSyncExternalStore$2(subscribe, getSnapshot) {
-          didWarnOld18Alpha || void 0 === React14.startTransition || (didWarnOld18Alpha = true, console.error(
+          didWarnOld18Alpha || void 0 === React15.startTransition || (didWarnOld18Alpha = true, console.error(
             "You are using an outdated, pre-release alpha of React 18 that does not support useSyncExternalStore. The use-sync-external-store shim will not work correctly. Upgrade to a newer pre-release."
           ));
           var value = getSnapshot();
@@ -24510,7 +24510,7 @@
               "The result of getSnapshot should be cached to avoid an infinite loop"
             ), didWarnUncachedGetSnapshot = true);
           }
-          cachedValue = useState10({
+          cachedValue = useState11({
             inst: { value, getSnapshot }
           });
           var inst = cachedValue[0].inst, forceUpdate = cachedValue[1];
@@ -24522,7 +24522,7 @@
             },
             [subscribe, value, getSnapshot]
           );
-          useEffect11(
+          useEffect12(
             function() {
               checkIfSnapshotChanged(inst) && forceUpdate({ inst });
               return subscribe(function() {
@@ -24548,8 +24548,8 @@
           return getSnapshot();
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var React14 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is, useState10 = React14.useState, useEffect11 = React14.useEffect, useLayoutEffect2 = React14.useLayoutEffect, useDebugValue3 = React14.useDebugValue, didWarnOld18Alpha = false, didWarnUncachedGetSnapshot = false, shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
-        exports.useSyncExternalStore = void 0 !== React14.useSyncExternalStore ? React14.useSyncExternalStore : shim;
+        var React15 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is, useState11 = React15.useState, useEffect12 = React15.useEffect, useLayoutEffect2 = React15.useLayoutEffect, useDebugValue3 = React15.useDebugValue, didWarnOld18Alpha = false, didWarnUncachedGetSnapshot = false, shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
+        exports.useSyncExternalStore = void 0 !== React15.useSyncExternalStore ? React15.useSyncExternalStore : shim;
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop(Error());
       })();
     }
@@ -24576,7 +24576,7 @@
           return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var React14 = require_react(), shim = require_shim(), objectIs = "function" === typeof Object.is ? Object.is : is, useSyncExternalStore3 = shim.useSyncExternalStore, useRef8 = React14.useRef, useEffect11 = React14.useEffect, useMemo4 = React14.useMemo, useDebugValue3 = React14.useDebugValue;
+        var React15 = require_react(), shim = require_shim(), objectIs = "function" === typeof Object.is ? Object.is : is, useSyncExternalStore3 = shim.useSyncExternalStore, useRef8 = React15.useRef, useEffect12 = React15.useEffect, useMemo4 = React15.useMemo, useDebugValue3 = React15.useDebugValue;
         exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
           var instRef = useRef8(null);
           if (null === instRef.current) {
@@ -24619,7 +24619,7 @@
             [getSnapshot, getServerSnapshot, selector, isEqual]
           );
           var value = useSyncExternalStore3(subscribe, instRef[0], instRef[1]);
-          useEffect11(
+          useEffect12(
             function() {
               inst.hasValue = true;
               inst.value = value;
@@ -26289,7 +26289,7 @@
   var import_client = __toESM(require_client());
 
   // webview-ui/src/jira/ticket-panel/App.tsx
-  var import_react27 = __toESM(require_react());
+  var import_react28 = __toESM(require_react());
 
   // webview-ui/src/shared/hooks/useVSCode.ts
   var import_react = __toESM(require_react());
@@ -26443,12 +26443,12 @@
     onRemove
   }) => {
     const variantClass = Badge_default[variant] || Badge_default.default;
-    const style21 = color ? {
+    const style22 = color ? {
       backgroundColor: `${color}20`,
       color,
       borderColor: `${color}40`
     } : {};
-    return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: `${Badge_default.badge} ${variantClass} ${onRemove ? Badge_default.removable : ""} ${className || ""}`, style: style21, children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: `${Badge_default.badge} ${variantClass} ${onRemove ? Badge_default.removable : ""} ${className || ""}`, style: style22, children: [
       children,
       onRemove && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
         "button",
@@ -29089,11 +29089,11 @@
     */
     matchStyle(prop, value, context, after) {
       for (let i = after ? this.styles.indexOf(after) + 1 : 0; i < this.styles.length; i++) {
-        let rule = this.styles[i], style21 = rule.style;
-        if (style21.indexOf(prop) != 0 || rule.context && !context.matchesContext(rule.context) || // Test that the style string either precisely matches the prop,
+        let rule = this.styles[i], style22 = rule.style;
+        if (style22.indexOf(prop) != 0 || rule.context && !context.matchesContext(rule.context) || // Test that the style string either precisely matches the prop,
         // or has an '=' sign after the prop, followed by the given
         // value.
-        style21.length > prop.length && (style21.charCodeAt(prop.length) != 61 || style21.slice(prop.length + 1) != value))
+        style22.length > prop.length && (style22.charCodeAt(prop.length) != 61 || style22.slice(prop.length + 1) != value))
           continue;
         if (rule.getAttrs) {
           let result = rule.getAttrs(value);
@@ -30661,17 +30661,17 @@
       if (toRemove && toRemove.length) {
         let end = Math.min(pos + node.nodeSize, to);
         for (let i = 0; i < toRemove.length; i++) {
-          let style21 = toRemove[i], found2;
+          let style22 = toRemove[i], found2;
           for (let j = 0; j < matched.length; j++) {
             let m = matched[j];
-            if (m.step == step - 1 && style21.eq(matched[j].style))
+            if (m.step == step - 1 && style22.eq(matched[j].style))
               found2 = m;
           }
           if (found2) {
             found2.to = end;
             found2.step = step;
           } else {
-            matched.push({ style: style21, from: Math.max(pos, from2), to: end, step });
+            matched.push({ style: style22, from: Math.max(pos, from2), to: end, step });
           }
         }
       }
@@ -48882,7 +48882,7 @@ ${nextLine.slice(indentLevel + 2)}`;
         {
           style: "text-decoration",
           consuming: false,
-          getAttrs: (style21) => style21.includes("line-through") ? {} : false
+          getAttrs: (style22) => style22.includes("line-through") ? {} : false
         }
       ];
     },
@@ -48961,7 +48961,7 @@ ${nextLine.slice(indentLevel + 2)}`;
         {
           style: "text-decoration",
           consuming: false,
-          getAttrs: (style21) => style21.includes("underline") ? {} : false
+          getAttrs: (style22) => style22.includes("underline") ? {} : false
         }
       ];
     },
@@ -76305,7 +76305,7 @@ ${element2.innerHTML}
 
   // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/shared/components/MarkdownEditor/SlashCommands.module.css
   var style10 = document.createElement("style");
-  style10.textContent = '/* Command list container */\n.commandList_SlashCommands {\n  display: flex;\n  flex-direction: column;\n  min-width: 220px;\n  max-width: 280px;\n  max-height: 300px;\n  overflow-y: auto;\n  padding: 4px;\n  background-color: var(--vscode-editorWidget-background, #252526);\n  border: 1px solid var(--vscode-widget-border, #454545);\n  border-radius: 6px;\n  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);\n}\n\n/* Individual command item */\n.commandItem_SlashCommands {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  width: 100%;\n  padding: 8px 10px;\n  background: transparent;\n  border: none;\n  border-radius: 4px;\n  cursor: pointer;\n  text-align: left;\n  transition: background-color 0.1s ease;\n}\n\n.commandItem_SlashCommands:hover,\n.commandItem_SlashCommands.selected_SlashCommands {\n  background-color: var(--vscode-list-hoverBackground, #2a2d2e);\n}\n\n.commandItem_SlashCommands.selected_SlashCommands {\n  background-color: var(--vscode-list-activeSelectionBackground, #094771);\n}\n\n/* Command icon */\n.commandIcon_SlashCommands {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 28px;\n  height: 28px;\n  flex-shrink: 0;\n  background-color: var(--vscode-badge-background, #4d4d4d);\n  border-radius: 4px;\n  color: var(--vscode-badge-foreground, #ffffff);\n}\n\n.commandIcon_SlashCommands svg {\n  width: 16px;\n  height: 16px;\n}\n\n/* Command content */\n.commandContent_SlashCommands {\n  display: flex;\n  flex-direction: column;\n  gap: 2px;\n  min-width: 0;\n  overflow: hidden;\n}\n\n/* Command title */\n.commandTitle_SlashCommands {\n  font-size: 13px;\n  font-weight: 500;\n  color: var(--vscode-foreground, #cccccc);\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n/* Command description */\n.commandDescription_SlashCommands {\n  font-size: 11px;\n  color: var(--vscode-descriptionForeground, #8a8a8a);\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n/* No results message */\n.noResults_SlashCommands {\n  padding: 12px;\n  text-align: center;\n  color: var(--vscode-descriptionForeground, #8a8a8a);\n  font-size: 12px;\n}\n\n/* Scrollbar styling */\n.commandList_SlashCommands::-webkit-scrollbar {\n  width: 8px;\n}\n\n.commandList_SlashCommands::-webkit-scrollbar-track {\n  background: transparent;\n}\n\n.commandList_SlashCommands::-webkit-scrollbar-thumb {\n  background-color: var(--vscode-scrollbarSlider-background, #464646);\n  border-radius: 4px;\n}\n\n.commandList_SlashCommands::-webkit-scrollbar-thumb:hover {\n  background-color: var(--vscode-scrollbarSlider-hoverBackground, #5a5a5a);\n}\n\n/* Tippy theme for slash commands */\n:global(.tippy-box_SlashCommands[data-theme~="slash-command"]) {\n  background: transparent;\n  border: none;\n  padding: 0;\n}\n\n:global(.tippy-box_SlashCommands[data-theme~="slash-command"] .tippy-content_SlashCommands) {\n  padding: 0;\n}\n\n\n';
+  style10.textContent = '/* Command list container */\n.commandList_SlashCommands {\n  display: flex;\n  flex-direction: column;\n  min-width: 220px;\n  max-width: 280px;\n  max-height: 300px;\n  overflow-y: auto;\n  padding: 4px;\n  background-color: var(--vscode-editorWidget-background, #252526);\n  border: 1px solid var(--vscode-widget-border, #454545);\n  border-radius: 6px;\n  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);\n}\n\n/* Individual command item */\n.commandItem_SlashCommands {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  width: 100%;\n  padding: 8px 10px;\n  background: transparent;\n  border: none;\n  border-radius: 4px;\n  cursor: pointer;\n  text-align: left;\n  transition: background-color 0.1s ease;\n}\n\n.commandItem_SlashCommands:hover,\n.commandItem_SlashCommands.selected_SlashCommands {\n  background-color: var(--vscode-list-hoverBackground, #2a2d2e);\n}\n\n.commandItem_SlashCommands.selected_SlashCommands {\n  background-color: var(--vscode-list-activeSelectionBackground, #094771);\n}\n\n/* Command icon */\n.commandIcon_SlashCommands {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 28px;\n  height: 28px;\n  flex-shrink: 0;\n  background-color: var(--vscode-badge-background, #4d4d4d);\n  border-radius: 4px;\n  color: var(--vscode-badge-foreground, #ffffff);\n}\n\n.commandIcon_SlashCommands svg {\n  width: 16px;\n  height: 16px;\n}\n\n/* Command content */\n.commandContent_SlashCommands {\n  display: flex;\n  flex-direction: column;\n  gap: 2px;\n  min-width: 0;\n  overflow: hidden;\n}\n\n/* Command title */\n.commandTitle_SlashCommands {\n  font-size: 13px;\n  font-weight: 500;\n  color: var(--vscode-foreground, #cccccc);\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n/* Command description */\n.commandDescription_SlashCommands {\n  font-size: 11px;\n  color: var(--vscode-descriptionForeground, #8a8a8a);\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n/* No results message */\n.noResults_SlashCommands {\n  padding: 12px;\n  text-align: center;\n  color: var(--vscode-descriptionForeground, #8a8a8a);\n  font-size: 12px;\n}\n\n/* Scrollbar styling */\n.commandList_SlashCommands::-webkit-scrollbar {\n  width: 8px;\n}\n\n.commandList_SlashCommands::-webkit-scrollbar-track {\n  background: transparent;\n}\n\n.commandList_SlashCommands::-webkit-scrollbar-thumb {\n  background-color: var(--vscode-scrollbarSlider-background, #464646);\n  border-radius: 4px;\n}\n\n.commandList_SlashCommands::-webkit-scrollbar-thumb:hover {\n  background-color: var(--vscode-scrollbarSlider-hoverBackground, #5a5a5a);\n}\n\n/* Tippy theme for slash commands */\n:global(.tippy-box_SlashCommands[data-theme~="slash-command"]) {\n  background: transparent;\n  border: none;\n  padding: 0;\n}\n\n:global(.tippy-box_SlashCommands[data-theme~="slash-command"] .tippy-content_SlashCommands) {\n  padding: 0;\n}\n\n\n\n';
   document.head.appendChild(style10);
   var SlashCommands_default = { "commandList": "commandList_SlashCommands", "commandItem": "commandItem_SlashCommands", "selected": "selected_SlashCommands", "commandIcon": "commandIcon_SlashCommands", "commandContent": "commandContent_SlashCommands", "commandTitle": "commandTitle_SlashCommands", "commandDescription": "commandDescription_SlashCommands", "noResults": "noResults_SlashCommands", "tippy-box": "tippy-box_SlashCommands", "tippy-content": "tippy-content_SlashCommands" };
 
@@ -79325,6 +79325,7 @@ ${element2.innerHTML}
 }
 
 
+
 `;
   document.head.appendChild(style12);
   var MarkdownEditor_default = { "container": "container_MarkdownEditor", "disabled": "disabled_MarkdownEditor", "editor": "editor_MarkdownEditor", "editorContent": "editorContent_MarkdownEditor", "isEmpty": "isEmpty_MarkdownEditor", "loading": "loading_MarkdownEditor", "hint": "hint_MarkdownEditor", "link": "link_MarkdownEditor", "ProseMirror": "ProseMirror_MarkdownEditor", "ProseMirror-selectednode": "ProseMirror-selectednode_MarkdownEditor", "ProseMirror-gapcursor": "ProseMirror-gapcursor_MarkdownEditor" };
@@ -80411,22 +80412,238 @@ ${code2}
     ] });
   };
 
-  // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/jira/ticket-panel/App.module.css
+  // webview-ui/src/jira/ticket-panel/components/BranchManager.tsx
+  var import_react27 = __toESM(require_react());
+
+  // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/jira/ticket-panel/components/BranchManager.module.css
   var style20 = document.createElement("style");
-  style20.textContent = ".container_App {\n  background-color: var(--vscode-sideBar-background);\n  color: var(--vscode-foreground);\n  min-height: 100vh;\n  font-family: var(--vscode-font-family);\n}\n\n.emptyState_App {\n  padding: 20px;\n  text-align: center;\n  color: var(--vscode-descriptionForeground);\n}\n\n.divider_App {\n  height: 1px;\n  background-color: var(--vscode-panel-border);\n  margin: 0;\n}\n";
+  style20.textContent = ".container_BranchManager {\n  margin: 16px 0;\n  padding: 12px;\n  border-radius: 4px;\n  background: var(--vscode-editor-inactiveSelectionBackground);\n  border: 1px solid var(--vscode-panel-border);\n}\n\n.header_BranchManager {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  margin-bottom: 12px;\n}\n\n.title_BranchManager {\n  font-size: 13px;\n  font-weight: 600;\n  color: var(--vscode-foreground);\n  display: flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.icon_BranchManager {\n  width: 16px;\n  height: 16px;\n}\n\n.branchInfo_BranchManager {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n\n.branchName_BranchManager {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  padding: 8px;\n  background: var(--vscode-input-background);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 4px;\n  font-family: var(--vscode-editor-font-family);\n  font-size: 12px;\n  color: var(--vscode-foreground);\n}\n\n.branchIcon_BranchManager {\n  color: var(--vscode-charts-blue);\n}\n\n.actions_BranchManager {\n  display: flex;\n  gap: 8px;\n  flex-wrap: wrap;\n}\n\n.checkoutButton_BranchManager {\n  flex: 1;\n  min-width: 120px;\n  padding: 6px 12px;\n  background: var(--vscode-button-background);\n  color: var(--vscode-button-foreground);\n  border: none;\n  border-radius: 4px;\n  font-size: 12px;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: 6px;\n  transition: background 0.2s ease;\n}\n\n.checkoutButton_BranchManager:hover {\n  background: var(--vscode-button-hoverBackground);\n}\n\n.removeButton_BranchManager {\n  padding: 6px 12px;\n  background: transparent;\n  color: var(--vscode-foreground);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 4px;\n  font-size: 12px;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: 6px;\n  transition: all 0.2s ease;\n}\n\n.removeButton_BranchManager:hover {\n  background: var(--vscode-inputValidation-errorBackground);\n  border-color: var(--vscode-inputValidation-errorBorder);\n  color: var(--vscode-errorForeground);\n}\n\n.noBranch_BranchManager {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n\n.noBranchText_BranchManager {\n  font-size: 12px;\n  color: var(--vscode-descriptionForeground);\n}\n\n.associateForm_BranchManager {\n  display: flex;\n  gap: 8px;\n}\n\n.inputContainer_BranchManager {\n  position: relative;\n  flex: 1;\n}\n\n.branchInput_BranchManager {\n  width: 100%;\n  padding: 6px 8px;\n  background: var(--vscode-input-background);\n  color: var(--vscode-input-foreground);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 4px;\n  font-size: 12px;\n  font-family: var(--vscode-editor-font-family);\n}\n\n.branchInput_BranchManager:focus {\n  outline: none;\n  border-color: var(--vscode-focusBorder);\n}\n\n.branchInput_BranchManager::placeholder {\n  color: var(--vscode-input-placeholderForeground);\n}\n\n.dropdown_BranchManager {\n  position: absolute;\n  top: calc(100% + 4px);\n  left: 0;\n  right: 0;\n  max-height: 250px;\n  overflow-y: auto;\n  background: var(--vscode-dropdown-background);\n  border: 1px solid var(--vscode-dropdown-border);\n  border-radius: 4px;\n  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);\n  z-index: 1000;\n}\n\n.dropdownItem_BranchManager {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  padding: 6px 8px;\n  cursor: pointer;\n  font-size: 12px;\n  font-family: var(--vscode-editor-font-family);\n  transition: background 0.1s ease;\n}\n\n.dropdownItem_BranchManager:hover {\n  background: var(--vscode-list-hoverBackground);\n}\n\n.dropdownIcon_BranchManager {\n  flex-shrink: 0;\n  width: 16px;\n  text-align: center;\n}\n\n.dropdownBranch_BranchManager {\n  flex: 1;\n  color: var(--vscode-foreground);\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.dropdownLabel_BranchManager {\n  flex-shrink: 0;\n  font-size: 11px;\n  color: var(--vscode-descriptionForeground);\n  font-style: italic;\n}\n\n.dropdownMore_BranchManager {\n  padding: 6px 8px;\n  font-size: 11px;\n  color: var(--vscode-descriptionForeground);\n  font-style: italic;\n  text-align: center;\n  border-top: 1px solid var(--vscode-dropdown-border);\n}\n\n.associateButton_BranchManager {\n  padding: 6px 12px;\n  background: var(--vscode-button-background);\n  color: var(--vscode-button-foreground);\n  border: none;\n  border-radius: 4px;\n  font-size: 12px;\n  cursor: pointer;\n  white-space: nowrap;\n  transition: background 0.2s ease;\n}\n\n.associateButton_BranchManager:hover {\n  background: var(--vscode-button-hoverBackground);\n}\n\n.associateButton_BranchManager:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n}\n\n.notInProgress_BranchManager {\n  font-size: 12px;\n  color: var(--vscode-descriptionForeground);\n  font-style: italic;\n}\n\n.warning_BranchManager {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n  padding: 8px;\n  background: var(--vscode-inputValidation-warningBackground);\n  border: 1px solid var(--vscode-inputValidation-warningBorder);\n  border-radius: 4px;\n  font-size: 12px;\n  color: var(--vscode-inputValidation-warningForeground);\n}\n\n.warningIcon_BranchManager {\n  color: var(--vscode-editorWarning-foreground);\n}\n";
   document.head.appendChild(style20);
+  var BranchManager_default = { "container": "container_BranchManager", "header": "header_BranchManager", "title": "title_BranchManager", "icon": "icon_BranchManager", "branchInfo": "branchInfo_BranchManager", "branchName": "branchName_BranchManager", "branchIcon": "branchIcon_BranchManager", "actions": "actions_BranchManager", "checkoutButton": "checkoutButton_BranchManager", "removeButton": "removeButton_BranchManager", "noBranch": "noBranch_BranchManager", "noBranchText": "noBranchText_BranchManager", "associateForm": "associateForm_BranchManager", "inputContainer": "inputContainer_BranchManager", "branchInput": "branchInput_BranchManager", "dropdown": "dropdown_BranchManager", "dropdownItem": "dropdownItem_BranchManager", "dropdownIcon": "dropdownIcon_BranchManager", "dropdownBranch": "dropdownBranch_BranchManager", "dropdownLabel": "dropdownLabel_BranchManager", "dropdownMore": "dropdownMore_BranchManager", "associateButton": "associateButton_BranchManager", "notInProgress": "notInProgress_BranchManager", "warning": "warning_BranchManager", "warningIcon": "warningIcon_BranchManager" };
+
+  // webview-ui/src/jira/ticket-panel/components/BranchManager.tsx
+  var import_jsx_runtime31 = __toESM(require_jsx_runtime());
+  var BranchManager = ({
+    ticketKey,
+    statusCategory,
+    onCheckoutBranch,
+    onAssociateBranch,
+    onRemoveAssociation,
+    onLoadBranchInfo,
+    onLoadAllBranches,
+    branchInfo,
+    allBranches
+  }) => {
+    const [selectedBranch, setSelectedBranch] = (0, import_react27.useState)("");
+    const [filterText, setFilterText] = (0, import_react27.useState)("");
+    const [isEditing, setIsEditing] = (0, import_react27.useState)(false);
+    const [showDropdown, setShowDropdown] = (0, import_react27.useState)(false);
+    (0, import_react27.useEffect)(() => {
+      onLoadBranchInfo(ticketKey);
+    }, [ticketKey, onLoadBranchInfo]);
+    (0, import_react27.useEffect)(() => {
+      if (isEditing && !allBranches) {
+        onLoadAllBranches();
+      }
+    }, [isEditing, allBranches, onLoadAllBranches]);
+    const handleAssociate = () => {
+      if (selectedBranch.trim()) {
+        onAssociateBranch(ticketKey, selectedBranch.trim());
+        setSelectedBranch("");
+        setFilterText("");
+        setIsEditing(false);
+        setShowDropdown(false);
+      }
+    };
+    const handleRemove = () => {
+      onRemoveAssociation(ticketKey);
+    };
+    const handleCheckout = () => {
+      onCheckoutBranch(ticketKey);
+    };
+    const handleBranchSelect = (branch) => {
+      setSelectedBranch(branch);
+      setFilterText(branch);
+      setShowDropdown(false);
+    };
+    const handleInputChange = (value) => {
+      setFilterText(value);
+      setSelectedBranch(value);
+      setShowDropdown(true);
+    };
+    const handleInputFocus = () => {
+      setShowDropdown(true);
+    };
+    const getFilteredBranches = () => {
+      if (!allBranches) return [];
+      const { branches, currentBranch, suggestions } = allBranches;
+      const filter = filterText.toLowerCase();
+      let filtered = branches;
+      if (filter) {
+        filtered = branches.filter((b) => b.toLowerCase().includes(filter));
+      }
+      return filtered.sort((a, b) => {
+        if (a === currentBranch) return -1;
+        if (b === currentBranch) return 1;
+        const aIsSuggestion = suggestions.includes(a);
+        const bIsSuggestion = suggestions.includes(b);
+        if (aIsSuggestion && !bIsSuggestion) return -1;
+        if (bIsSuggestion && !aIsSuggestion) return 1;
+        return a.localeCompare(b);
+      });
+    };
+    const getBranchIcon = (branch) => {
+      if (!allBranches) return "\u2387";
+      const { currentBranch, suggestions } = allBranches;
+      if (branch === currentBranch) return "\u2713";
+      if (suggestions.includes(branch)) return "\u{1F4A1}";
+      return "\u2387";
+    };
+    const getBranchLabel = (branch) => {
+      if (!allBranches) return "";
+      const { currentBranch, suggestions } = allBranches;
+      if (branch === currentBranch) return " (current)";
+      if (suggestions.includes(branch)) return " (suggested)";
+      return "";
+    };
+    const isRelevant = statusCategory === "indeterminate" || statusCategory === "new";
+    if (!isRelevant) {
+      return null;
+    }
+    const filteredBranches = getFilteredBranches();
+    return /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)("div", { className: BranchManager_default.container, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("div", { className: BranchManager_default.header, children: /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)("div", { className: BranchManager_default.title, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("span", { className: BranchManager_default.icon, children: "\u{1F33F}" }),
+        "Branch"
+      ] }) }),
+      branchInfo?.branchName ? /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)("div", { className: BranchManager_default.branchInfo, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)("div", { className: BranchManager_default.branchName, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("span", { className: BranchManager_default.branchIcon, children: "\u2387" }),
+          /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("span", { children: branchInfo.branchName })
+        ] }),
+        !branchInfo.exists && /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)("div", { className: BranchManager_default.warning, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("span", { className: BranchManager_default.warningIcon, children: "\u26A0\uFE0F" }),
+          /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("span", { children: "Branch no longer exists in repository" })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)("div", { className: BranchManager_default.actions, children: [
+          branchInfo.exists && /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)(
+            "button",
+            {
+              className: BranchManager_default.checkoutButton,
+              onClick: handleCheckout,
+              children: [
+                /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("span", { children: "\u2197\uFE0F" }),
+                "Checkout Branch"
+              ]
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)("button", { className: BranchManager_default.removeButton, onClick: handleRemove, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("span", { children: "\u{1F5D1}\uFE0F" }),
+            "Remove"
+          ] })
+        ] })
+      ] }) : /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("div", { className: BranchManager_default.noBranch, children: !isEditing ? /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)(import_jsx_runtime31.Fragment, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("div", { className: BranchManager_default.noBranchText, children: "No branch associated with this ticket" }),
+        /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)(
+          "button",
+          {
+            className: BranchManager_default.checkoutButton,
+            onClick: () => setIsEditing(true),
+            children: [
+              /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("span", { children: "+" }),
+              "Associate Branch"
+            ]
+          }
+        )
+      ] }) : /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)("div", { className: BranchManager_default.associateForm, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)("div", { className: BranchManager_default.inputContainer, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime31.jsx)(
+            "input",
+            {
+              type: "text",
+              className: BranchManager_default.branchInput,
+              placeholder: "Type to filter branches...",
+              value: filterText,
+              onChange: (e) => handleInputChange(e.target.value),
+              onFocus: handleInputFocus,
+              onKeyDown: (e) => {
+                if (e.key === "Enter") {
+                  handleAssociate();
+                } else if (e.key === "Escape") {
+                  setIsEditing(false);
+                  setFilterText("");
+                  setSelectedBranch("");
+                  setShowDropdown(false);
+                }
+              },
+              autoFocus: true
+            }
+          ),
+          showDropdown && filteredBranches.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)("div", { className: BranchManager_default.dropdown, children: [
+            filteredBranches.slice(0, 10).map((branch) => /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)(
+              "div",
+              {
+                className: BranchManager_default.dropdownItem,
+                onClick: () => handleBranchSelect(branch),
+                children: [
+                  /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("span", { className: BranchManager_default.dropdownIcon, children: getBranchIcon(branch) }),
+                  /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("span", { className: BranchManager_default.dropdownBranch, children: branch }),
+                  /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("span", { className: BranchManager_default.dropdownLabel, children: getBranchLabel(branch) })
+                ]
+              },
+              branch
+            )),
+            filteredBranches.length > 10 && /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)("div", { className: BranchManager_default.dropdownMore, children: [
+              "... and ",
+              filteredBranches.length - 10,
+              " more"
+            ] })
+          ] })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime31.jsx)(
+          "button",
+          {
+            className: BranchManager_default.associateButton,
+            onClick: handleAssociate,
+            disabled: !selectedBranch.trim(),
+            children: "Associate"
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime31.jsx)(
+          "button",
+          {
+            className: BranchManager_default.removeButton,
+            onClick: () => {
+              setIsEditing(false);
+              setFilterText("");
+              setSelectedBranch("");
+              setShowDropdown(false);
+            },
+            children: "Cancel"
+          }
+        )
+      ] }) })
+    ] });
+  };
+
+  // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/jira/ticket-panel/App.module.css
+  var style21 = document.createElement("style");
+  style21.textContent = ".container_App {\n  background-color: var(--vscode-sideBar-background);\n  color: var(--vscode-foreground);\n  min-height: 100vh;\n  font-family: var(--vscode-font-family);\n}\n\n.emptyState_App {\n  padding: 20px;\n  text-align: center;\n  color: var(--vscode-descriptionForeground);\n}\n\n.divider_App {\n  height: 1px;\n  background-color: var(--vscode-panel-border);\n  margin: 0;\n}\n";
+  document.head.appendChild(style21);
   var App_default = { "container": "container_App", "emptyState": "emptyState_App", "divider": "divider_App" };
 
   // webview-ui/src/jira/ticket-panel/App.tsx
-  var import_jsx_runtime31 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime32 = __toESM(require_jsx_runtime());
   function App() {
     const { postMessage, onMessage } = useVSCode();
-    const [issue, setIssue] = (0, import_react27.useState)(
+    const [issue, setIssue] = (0, import_react28.useState)(
       window.__JIRA_INITIAL_STATE__?.issue || null
     );
-    const [transitions, setTransitions] = (0, import_react27.useState)([]);
-    const [users, setUsers] = (0, import_react27.useState)([]);
-    (0, import_react27.useEffect)(() => {
+    const [transitions, setTransitions] = (0, import_react28.useState)([]);
+    const [users, setUsers] = (0, import_react28.useState)([]);
+    const [branchInfo, setBranchInfo] = (0, import_react28.useState)(null);
+    const [allBranches, setAllBranches] = (0, import_react28.useState)(null);
+    (0, import_react28.useEffect)(() => {
       return onMessage((message) => {
         switch (message.command) {
           case "updateIssue":
@@ -80438,10 +80655,23 @@ ${code2}
           case "usersLoaded":
             setUsers(message.users);
             break;
+          case "branchInfo":
+            setBranchInfo({
+              branchName: message.branchName,
+              exists: message.exists
+            });
+            break;
+          case "allBranchesLoaded":
+            setAllBranches({
+              branches: message.branches,
+              currentBranch: message.currentBranch,
+              suggestions: message.suggestions
+            });
+            break;
         }
       });
     }, [onMessage]);
-    (0, import_react27.useEffect)(() => {
+    (0, import_react28.useEffect)(() => {
       if (issue) {
         postMessage({ command: "loadTransitions" });
         postMessage({ command: "loadUsers", projectKey: issue.project.key });
@@ -80474,6 +80704,27 @@ ${code2}
     const handleRefresh = () => {
       postMessage({ command: "refresh" });
     };
+    const handleCheckoutBranch = (ticketKey) => {
+      postMessage({ command: "checkoutBranch", ticketKey });
+    };
+    const handleAssociateBranch = (ticketKey, branchName) => {
+      postMessage({ command: "associateBranch", ticketKey, branchName });
+      setTimeout(() => {
+        handleLoadBranchInfo(ticketKey);
+      }, 100);
+    };
+    const handleRemoveAssociation = (ticketKey) => {
+      postMessage({ command: "removeAssociation", ticketKey });
+      setTimeout(() => {
+        handleLoadBranchInfo(ticketKey);
+      }, 100);
+    };
+    const handleLoadBranchInfo = (ticketKey) => {
+      postMessage({ command: "loadBranchInfo", ticketKey });
+    };
+    const handleLoadAllBranches = () => {
+      postMessage({ command: "loadAllBranches" });
+    };
     const handleCopyKey = () => {
       postMessage({ command: "copyKey" });
     };
@@ -80481,10 +80732,10 @@ ${code2}
       postMessage({ command: "copyUrl" });
     };
     if (!issue) {
-      return /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("div", { className: App_default.container, children: /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("p", { className: App_default.emptyState, children: "Loading issue..." }) });
+      return /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("div", { className: App_default.container, children: /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("p", { className: App_default.emptyState, children: "Loading issue..." }) });
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)("div", { className: App_default.container, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime31.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime32.jsxs)("div", { className: App_default.container, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime32.jsx)(
         TicketHeader,
         {
           issueKey: issue.key,
@@ -80500,7 +80751,7 @@ ${code2}
           onUpdateSummary: handleUpdateSummary
         }
       ),
-      /* @__PURE__ */ (0, import_jsx_runtime31.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime32.jsx)(
         StatusSelector,
         {
           transitions,
@@ -80509,7 +80760,7 @@ ${code2}
           onUpdate: handleUpdateStatus
         }
       ),
-      /* @__PURE__ */ (0, import_jsx_runtime31.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime32.jsx)(
         AssigneeSelector,
         {
           currentAssignee: issue.assignee,
@@ -80519,7 +80770,7 @@ ${code2}
           onSearchUsers: handleSearchUsers
         }
       ),
-      /* @__PURE__ */ (0, import_jsx_runtime31.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime32.jsx)(
         ActionButtons,
         {
           onOpenInJira: handleOpenInJira,
@@ -80528,7 +80779,21 @@ ${code2}
           onCopyUrl: handleCopyUrl
         }
       ),
-      /* @__PURE__ */ (0, import_jsx_runtime31.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime32.jsx)(
+        BranchManager,
+        {
+          ticketKey: issue.key,
+          statusCategory: issue.status.statusCategory.key,
+          onCheckoutBranch: handleCheckoutBranch,
+          onAssociateBranch: handleAssociateBranch,
+          onRemoveAssociation: handleRemoveAssociation,
+          onLoadBranchInfo: handleLoadBranchInfo,
+          onLoadAllBranches: handleLoadAllBranches,
+          branchInfo: branchInfo || void 0,
+          allBranches: allBranches || void 0
+        }
+      ),
+      /* @__PURE__ */ (0, import_jsx_runtime32.jsx)(
         TicketMetadata,
         {
           created: issue.created,
@@ -80538,30 +80803,30 @@ ${code2}
           labels: issue.labels
         }
       ),
-      issue.subtasks && issue.subtasks.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime31.jsxs)(import_jsx_runtime31.Fragment, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("div", { className: App_default.divider }),
-        /* @__PURE__ */ (0, import_jsx_runtime31.jsx)(SubtasksSection, { subtasks: issue.subtasks })
+      issue.subtasks && issue.subtasks.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime32.jsxs)(import_jsx_runtime32.Fragment, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("div", { className: App_default.divider }),
+        /* @__PURE__ */ (0, import_jsx_runtime32.jsx)(SubtasksSection, { subtasks: issue.subtasks })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("div", { className: App_default.divider }),
-      /* @__PURE__ */ (0, import_jsx_runtime31.jsx)(
+      /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("div", { className: App_default.divider }),
+      /* @__PURE__ */ (0, import_jsx_runtime32.jsx)(
         TicketDescription,
         {
           description: issue.description,
           onUpdateDescription: handleUpdateDescription
         }
       ),
-      /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("div", { className: App_default.divider }),
-      /* @__PURE__ */ (0, import_jsx_runtime31.jsx)(Comments, { comments: issue.comments || [] }),
-      /* @__PURE__ */ (0, import_jsx_runtime31.jsx)("div", { className: App_default.divider }),
-      /* @__PURE__ */ (0, import_jsx_runtime31.jsx)(CommentForm, { onSubmit: handleAddComment })
+      /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("div", { className: App_default.divider }),
+      /* @__PURE__ */ (0, import_jsx_runtime32.jsx)(Comments, { comments: issue.comments || [] }),
+      /* @__PURE__ */ (0, import_jsx_runtime32.jsx)("div", { className: App_default.divider }),
+      /* @__PURE__ */ (0, import_jsx_runtime32.jsx)(CommentForm, { onSubmit: handleAddComment })
     ] });
   }
   var App_default2 = App;
 
   // webview-ui/src/jira/ticket-panel/index.tsx
-  var import_jsx_runtime32 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime33 = __toESM(require_jsx_runtime());
   var root2 = import_client.default.createRoot(document.getElementById("root"));
-  root2.render(/* @__PURE__ */ (0, import_jsx_runtime32.jsx)(App_default2, {}));
+  root2.render(/* @__PURE__ */ (0, import_jsx_runtime33.jsx)(App_default2, {}));
 })();
 /*! Bundled license information:
 

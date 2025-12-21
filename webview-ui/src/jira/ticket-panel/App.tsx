@@ -9,6 +9,7 @@ import { Comments } from "./components/Comments";
 import { CommentForm } from "./components/CommentForm";
 import { ActionButtons } from "./components/ActionButtons";
 import { SubtasksSection } from "./components/SubtasksSection";
+import { BranchManager } from "./components/BranchManager";
 import styles from "./App.module.css";
 
 // Types for Jira issue data
@@ -116,7 +117,9 @@ interface JiraUser {
 type MessageFromExtension =
   | { command: "updateIssue"; issue: JiraIssue }
   | { command: "transitionsLoaded"; transitions: JiraTransition[] }
-  | { command: "usersLoaded"; users: JiraUser[] };
+  | { command: "usersLoaded"; users: JiraUser[] }
+  | { command: "branchInfo"; branchName: string | null; exists: boolean }
+  | { command: "allBranchesLoaded"; branches: string[]; currentBranch: string | null; suggestions: string[] };
 
 type MessageFromWebview =
   | { command: "updateStatus"; transitionId: string }
@@ -130,7 +133,12 @@ type MessageFromWebview =
   | { command: "openInJira" }
   | { command: "refresh" }
   | { command: "copyKey" }
-  | { command: "copyUrl" };
+  | { command: "copyUrl" }
+  | { command: "checkoutBranch"; ticketKey: string }
+  | { command: "associateBranch"; ticketKey: string; branchName: string }
+  | { command: "removeAssociation"; ticketKey: string }
+  | { command: "loadBranchInfo"; ticketKey: string }
+  | { command: "loadAllBranches" };
 
 // Get initial state from window object (passed from extension)
 declare global {
@@ -152,6 +160,15 @@ function App() {
   );
   const [transitions, setTransitions] = useState<JiraTransition[]>([]);
   const [users, setUsers] = useState<JiraUser[]>([]);
+  const [branchInfo, setBranchInfo] = useState<{
+    branchName: string | null;
+    exists: boolean;
+  } | null>(null);
+  const [allBranches, setAllBranches] = useState<{
+    branches: string[];
+    currentBranch: string | null;
+    suggestions: string[];
+  } | null>(null);
 
   // Handle messages from extension
   useEffect(() => {
@@ -167,6 +184,21 @@ function App() {
 
         case "usersLoaded":
           setUsers(message.users);
+          break;
+
+        case "branchInfo":
+          setBranchInfo({
+            branchName: message.branchName,
+            exists: message.exists,
+          });
+          break;
+
+        case "allBranchesLoaded":
+          setAllBranches({
+            branches: message.branches,
+            currentBranch: message.currentBranch,
+            suggestions: message.suggestions,
+          });
           break;
       }
     });
@@ -214,6 +246,34 @@ function App() {
 
   const handleRefresh = () => {
     postMessage({ command: "refresh" });
+  };
+
+  const handleCheckoutBranch = (ticketKey: string) => {
+    postMessage({ command: "checkoutBranch", ticketKey });
+  };
+
+  const handleAssociateBranch = (ticketKey: string, branchName: string) => {
+    postMessage({ command: "associateBranch", ticketKey, branchName });
+    // Refresh branch info after associating
+    setTimeout(() => {
+      handleLoadBranchInfo(ticketKey);
+    }, 100);
+  };
+
+  const handleRemoveAssociation = (ticketKey: string) => {
+    postMessage({ command: "removeAssociation", ticketKey });
+    // Refresh branch info after removing
+    setTimeout(() => {
+      handleLoadBranchInfo(ticketKey);
+    }, 100);
+  };
+
+  const handleLoadBranchInfo = (ticketKey: string) => {
+    postMessage({ command: "loadBranchInfo", ticketKey });
+  };
+
+  const handleLoadAllBranches = () => {
+    postMessage({ command: "loadAllBranches" });
   };
 
   const handleCopyKey = () => {
@@ -268,6 +328,18 @@ function App() {
         onRefresh={handleRefresh}
         onCopyKey={handleCopyKey}
         onCopyUrl={handleCopyUrl}
+      />
+
+      <BranchManager
+        ticketKey={issue.key}
+        statusCategory={issue.status.statusCategory.key}
+        onCheckoutBranch={handleCheckoutBranch}
+        onAssociateBranch={handleAssociateBranch}
+        onRemoveAssociation={handleRemoveAssociation}
+        onLoadBranchInfo={handleLoadBranchInfo}
+        onLoadAllBranches={handleLoadAllBranches}
+        branchInfo={branchInfo || undefined}
+        allBranches={allBranches || undefined}
       />
 
       <TicketMetadata

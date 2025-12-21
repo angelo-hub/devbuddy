@@ -238,7 +238,7 @@ Features from Linear/Jira web UIs that would add significant value.
 | Sub-issues | ✅ | ✅ | ✅ |
 | Create Sub-issue | ⬜ | ⬜ | 🟡 |
 | Linked PRs | ✅ | ⬜ | 🟡 |
-| Branch Manager | ✅ | ⬜ | 🔴 P0 |
+| Branch Manager | ✅ | ✅ | ✅ |
 | Issue Links | ✅ | ⬜ | 🟡 |
 | Activity Feed | ⬜ | ⬜ | 🟢 |
 | Estimates | ✅ (display) | ✅ (display) | 🟡 edit |
@@ -246,17 +246,17 @@ Features from Linear/Jira web UIs that would add significant value.
 
 ### Priority Tasks for Ticket Panels
 
-| Task | Priority | Effort | Platform |
-|------|----------|--------|----------|
-| **Jira: Add Branch Manager component** | 🔴 P0 | 🟡 | Jira |
-| **Jira: Show labels** | 🟡 P1 | 🟢 | Jira |
-| **Both: Edit priority** | 🟡 P1 | 🟢 | Both |
-| **Both: Edit estimates** | 🟡 P1 | 🟢 | Both |
-| **Both: Create sub-issue** | 🟡 P1 | 🟡 | Both |
-| **Jira: Show linked PRs** | 🟡 P1 | 🟡 | Jira |
-| **Jira: Show issue links** | 🟡 P1 | 🟢 | Jira |
-| **Both: Edit labels** | 🟢 P2 | 🟡 | Both |
-| **Both: Activity feed** | 🟢 P2 | 🟡 | Both |
+| Task | Priority | Effort | Platform | Status |
+|------|----------|--------|----------|--------|
+| **Jira: Add Branch Manager component** | 🔴 P0 | 🟡 | Jira | ✅ Done |
+| **Jira: Show labels** | 🟡 P1 | 🟢 | Jira | ⬜ |
+| **Both: Edit priority** | 🟡 P1 | 🟢 | Both | ⬜ |
+| **Both: Edit estimates** | 🟡 P1 | 🟢 | Both | ⬜ |
+| **Both: Create sub-issue** | 🟡 P1 | 🟡 | Both | ⬜ |
+| **Jira: Show linked PRs** | 🟡 P1 | 🟡 | Jira | ⬜ |
+| **Jira: Show issue links** | 🟡 P1 | 🟢 | Jira | ⬜ |
+| **Both: Edit labels** | 🟢 P2 | 🟡 | Both | ⬜ |
+| **Both: Activity feed** | 🟢 P2 | 🟡 | Both | ⬜ |
 
 ---
 
@@ -429,7 +429,7 @@ JQL: assignee = currentUser() AND updated < -5d AND resolution = Unresolved
 - [x] Jira: Sprint name display
 
 ### Milestone 2: Ticket Panel Parity (Week 2-3)
-- [ ] Jira: Branch Manager component
+- [x] Jira: Branch Manager component
 - [ ] Jira: Labels display
 - [ ] Jira: Issue links display
 - [ ] Both: Priority editing
@@ -460,8 +460,8 @@ JQL: assignee = currentUser() AND updated < -5d AND resolution = Unresolved
 ### Must Have (Blocking)
 - [x] Core ticket CRUD for both platforms
 - [x] Sidebar with ticket grouping
-- [ ] **Jira sidebar parity** (unassigned, recently completed, sprint)
-- [ ] **Jira branch manager** in ticket panel
+- [x] **Jira sidebar parity** (unassigned, recently completed, sprint)
+- [x] **Jira branch manager** in ticket panel
 - [ ] **Multi-repo branch associations** (basic)
 - [ ] Documentation up-to-date
 - [ ] No critical bugs
