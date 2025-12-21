@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { BaseTicketProvider, CreateTicketInput, TicketFilter } from "@shared/base/BaseTicketProvider";
 import { getLogger } from "@shared/utils/logger";
+import { escapeGraphQLString } from "@shared/utils/queryEscaping";
 import {
   getHttpClient,
   TTLCache,
@@ -893,10 +894,8 @@ export class LinearClient extends BaseTicketProvider<
       return [];
     }
 
-    // Escape special characters in search term to prevent GraphQL injection
-    const escapedSearchTerm = searchTerm
-      .replace(/\\/g, '\\\\')  // Escape backslashes
-      .replace(/"/g, '\\"');    // Escape quotes
+    // Escape special characters in search term to prevent query syntax errors
+    const escapedSearchTerm = escapeGraphQLString(searchTerm);
 
     // Get all users from the organization
     const query = `
@@ -939,10 +938,8 @@ export class LinearClient extends BaseTicketProvider<
       return [];
     }
 
-    // Escape special characters in search term to prevent GraphQL injection
-    const escapedSearchTerm = searchTerm
-      .replace(/\\/g, '\\\\')  // Escape backslashes
-      .replace(/"/g, '\\"');    // Escape quotes
+    // Escape special characters in search term to prevent query syntax errors
+    const escapedSearchTerm = escapeGraphQLString(searchTerm);
 
     // Build filter: search by identifier or title containing the search term
     const query = `

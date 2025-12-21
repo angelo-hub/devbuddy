@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
-import * as path from "path";
 import { JiraCloudClient } from "./JiraCloudClient";
 import { JiraIssue } from "../common/types";
 import { BranchAssociationManager } from "@shared/git/branchAssociationManager";
 import { getLogger } from "@shared/utils/logger";
+import { escapeJQLString } from "@shared/utils/queryEscaping";
 
 const logger = getLogger();
 
@@ -577,17 +577,9 @@ export class JiraTicketPanel {
     }
 
     try {
-      // Escape special characters in JQL search term to prevent injection
-      // JQL requires escaping of: \ " ' space
-      const escapeJQL = (term: string): string => {
-        return term
-          .replace(/\\/g, '\\\\')    // Escape backslashes first
-          .replace(/"/g, '\\"')       // Escape double quotes
-          .replace(/'/g, "\\'")       // Escape single quotes
-          .replace(/\s/g, '\\ ');     // Escape spaces
-      };
-
-      const escapedSearchTerm = escapeJQL(searchTerm);
+      // Escape special characters in JQL search term to prevent query syntax errors
+      // Uses comprehensive JQL escaping for all special characters
+      const escapedSearchTerm = escapeJQLString(searchTerm);
 
       // Search using JQL: key or summary contains the search term
       const jql = `(key ~ "${escapedSearchTerm}" OR summary ~ "${escapedSearchTerm}") ORDER BY updated DESC`;
