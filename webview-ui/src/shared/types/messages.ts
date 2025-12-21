@@ -191,6 +191,7 @@ export type TicketPanelMessageFromWebview =
   | { command: "removeAssociation"; ticketId: string }
   | { command: "loadBranchInfo"; ticketId: string }
   | { command: "loadAllBranches" }
+  | { command: "openInRepository"; ticketId: string; repositoryPath: string }
   | { command: "loadLabels"; teamId: string }
   | { command: "updateLabels"; labelIds: string[] }
   | { command: "loadCycles"; teamId: string }
@@ -200,7 +201,7 @@ export type TicketPanelMessageFromExtension =
   | { command: "updateIssue"; issue: LinearIssue }
   | { command: "workflowStates"; states: WorkflowState[] }
   | { command: "usersLoaded"; users: LinearUser[] }
-  | { command: "branchInfo"; branchName: string | null; exists: boolean }
+  | { command: "branchInfo"; branchName: string | null; exists: boolean; isInDifferentRepo?: boolean; repositoryName?: string; repositoryPath?: string }
   | { command: "allBranchesLoaded"; branches: string[]; currentBranch: string | null; suggestions: string[] }
   | { command: "labelsLoaded"; labels: LinearLabel[] }
   | { command: "cyclesLoaded"; cycles: LinearCycle[] };
