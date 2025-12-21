@@ -23,11 +23,15 @@ tsconfig.*.json
 .versionrc.json
 **/*.map
 
-# Test files
+# Test files and infrastructure
+test/**
+test-env/**
 **/*.test.ts
 **/*.spec.ts
-test-env/**
 *.test.js
+vitest.config.ts
+.nycrc.json
+coverage/**
 
 # Documentation (keep only README.md, LICENSE, EULA)
 docs/**

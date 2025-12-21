@@ -1,0 +1,14 @@
+{
+  "reporter": ["html", "text", "json"],
+  "report-dir": "./coverage/combined",
+  "all": true,
+  "include": ["src/**/*.ts"],
+  "exclude": [
+    "src/**/*.d.ts",
+    "src/test/**",
+    "**/*.backup"
+  ],
+  "extension": [".ts"],
+  "temp-dir": "./coverage/.nyc_output"
+}
+

@@ -27,3 +27,11 @@ test-env/**/data/
 test-env/**/.data/
 test-env/**/volumes/
 
+# Test coverage
+coverage/
+.nyc_output/
+
+# Compiled test files (unit tests run via Vitest, no compilation needed)
+test/**/*.js
+test/**/*.js.map
+
