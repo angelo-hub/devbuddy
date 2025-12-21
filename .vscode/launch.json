@@ -169,11 +169,7 @@
       "outFiles": [
         "${workspaceFolder}/out/**/*.js"
       ],
-      "preLaunchTask": "Build Production Version",
-      "env": {
-        "NODE_ENV": "production",
-        "VSCODE_DEV": "false"
-      }
+      "preLaunchTask": "Build Production Version"
     }
   ]
 }
