@@ -128,10 +128,16 @@ export const IssueLinksSection: React.FC<IssueLinksSectionProps> = ({
   onDeleteLink,
 }) => {
   const [isAddingLink, setIsAddingLink] = useState(false);
-  const [selectedLinkType, setSelectedLinkType] = useState<IssueLinkType | null>(null);
+  // Store user's explicit selection; null means use default (first link type)
+  const [userSelectedLinkTypeId, setUserSelectedLinkTypeId] = useState<string | null>(null);
   const [isOutward, setIsOutward] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedIssue, setSelectedIssue] = useState<IssueSearchResult | null>(null);
+  
+  // Derive the effective link type: user selection or default to first
+  const selectedLinkType = userSelectedLinkTypeId
+    ? linkTypes?.find(t => t.id === userSelectedLinkTypeId) ?? linkTypes?.[0] ?? null
+    : linkTypes?.[0] ?? null;
 
   // Load link types when opening add form
   useEffect(() => {
@@ -139,13 +145,6 @@ export const IssueLinksSection: React.FC<IssueLinksSectionProps> = ({
       onLoadLinkTypes();
     }
   }, [isAddingLink, onLoadLinkTypes, linkTypes]);
-
-  // Set default link type when types are loaded
-  useEffect(() => {
-    if (linkTypes && linkTypes.length > 0 && !selectedLinkType) {
-      setSelectedLinkType(linkTypes[0]);
-    }
-  }, [linkTypes, selectedLinkType]);
 
   // Debounced search
   useEffect(() => {
@@ -170,6 +169,7 @@ export const IssueLinksSection: React.FC<IssueLinksSectionProps> = ({
       setSelectedIssue(null);
       setSearchTerm("");
       setIsAddingLink(false);
+      setUserSelectedLinkTypeId(null);
     }
   }, [selectedIssue, selectedLinkType, isOutward, onCreateLink]);
 
@@ -177,6 +177,7 @@ export const IssueLinksSection: React.FC<IssueLinksSectionProps> = ({
     setIsAddingLink(false);
     setSelectedIssue(null);
     setSearchTerm("");
+    setUserSelectedLinkTypeId(null);
   };
 
   const groupedLinks = groupLinksByType(issueLinks || []);
@@ -277,8 +278,7 @@ export const IssueLinksSection: React.FC<IssueLinksSectionProps> = ({
               <select
                 value={selectedLinkType?.id || ""}
                 onChange={(e) => {
-                  const type = linkTypes?.find(t => t.id === e.target.value);
-                  setSelectedLinkType(type || null);
+                  setUserSelectedLinkTypeId(e.target.value || null);
                 }}
                 className={styles.typeSelect}
               >
