@@ -321,7 +321,51 @@ Features from Linear/Jira web UIs that would add significant value.
 | **Performance audit** (large ticket lists) | 🟢 P2 | 🟡 | ⬜ Not Started |
 | **Migrate webview emojis to Lucide React icons** | 🟡 P1 | 🟢 | ✅ Done |
 
-### 7.1 Authentication Improvements (Post-1.0)
+### 7.1 Webview Architecture (Multi-Panel Support)
+
+| Task | Priority | Effort | Status |
+|------|----------|--------|--------|
+| **Zustand state management** for all webviews | 🟡 P1 | 🟡 | ✅ Done |
+| **Cross-panel synchronization** (sync updates between open panels) | 🟢 P2 | 🟡 | ⬜ Not Started |
+| **Panel registry** in extension host | 🟢 P2 | 🟢 | ⬜ Not Started |
+| **Broadcast state changes** to all panels showing same ticket | 🟢 P2 | 🟢 | ⬜ Not Started |
+
+#### Cross-Panel Sync Architecture
+
+When a user has multiple ticket panels open and updates one, all panels should reflect the change:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Extension Host                            │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │ PanelRegistry                                          │  │
+│  │  - Map<issueId, Set<WebviewPanel>>                    │  │
+│  │  - broadcastUpdate(issueId, update)                   │  │
+│  └───────────────────────────────────────────────────────┘  │
+│           │                      │                          │
+│           ▼                      ▼                          │
+│  ┌─────────────────┐    ┌─────────────────┐                │
+│  │ Panel 1 (ABC-1) │    │ Panel 2 (ABC-1) │                │
+│  │ Zustand Store   │    │ Zustand Store   │                │
+│  └─────────────────┘    └─────────────────┘                │
+└─────────────────────────────────────────────────────────────┘
+
+User updates status in Panel 1:
+  → Panel 1 sends updateStatus to extension
+  → Extension updates API
+  → Extension broadcasts to all panels with same issueId
+  → Panel 2 receives update, Zustand store updates
+  → Both panels show new status
+```
+
+#### Implementation Notes
+
+- **Store per panel** - Each webview has isolated Zustand store (already works)
+- **Extension as message broker** - Route updates between panels
+- **Selective sync** - Only sync to panels showing the same issue
+- **Optimistic updates** - Update local store immediately, sync in background
+
+### 7.2 Authentication Improvements (Post-1.0)
 
 | Task | Priority | Effort | Platform | Status |
 |------|----------|--------|----------|--------|
@@ -561,6 +605,8 @@ JQL: assignee = currentUser() AND updated < -5d AND resolution = Unresolved
 - [ ] Create sub-issues
 - [ ] Label editing
 - [ ] Advanced multi-repo features
+- [ ] **Cross-panel synchronization** (sync ticket updates between open panels)
+- [ ] **Multi-panel management** (panel registry, window coordination)
 
 ---
 
@@ -577,6 +623,6 @@ JQL: assignee = currentUser() AND updated < -5d AND resolution = Unresolved
 
 ---
 
-**Last Updated:** December 21, 2025  
+**Last Updated:** December 21, 2025 (Added cross-panel sync roadmap)  
 **Owner:** Angelo Girardi
 
