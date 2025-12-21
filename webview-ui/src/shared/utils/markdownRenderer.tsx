@@ -166,12 +166,10 @@ function parseInlineMarkdown(text: string, options?: MarkdownRenderOptions): Rea
       const linearMatch = url.match(LINEAR_ISSUE_URL_PATTERN);
       if (linearMatch && options?.onTicketClick) {
         const ticketId = linearMatch[1].toUpperCase();
-        // Extract title from URL slug (last part after ticket ID)
-        const slugMatch = url.match(/\/([^/]+)$/);
-        const titleFromSlug = slugMatch 
-          ? slugMatch[1].replace(/-/g, ' ').replace(/^\w/, c => c.toUpperCase())
-          : '';
         
+        // Render as a clickable chip with just the ticket ID
+        // Note: URL slug title is static and can be stale, so we only show ID
+        // TODO: Implement metadata enrichment to show actual title/status
         elements.push(
           <span
             key={`ticket-link-${key++}`}
@@ -193,25 +191,14 @@ function parseInlineMarkdown(text: string, options?: MarkdownRenderOptions): Rea
             title={`Open ${ticketId} in DevBuddy`}
           >
             <span style={{ 
-              width: '12px', 
-              height: '12px', 
+              width: '10px', 
+              height: '10px', 
               borderRadius: '50%', 
               border: '2px solid var(--vscode-descriptionForeground)',
               display: 'inline-block',
               flexShrink: 0,
             }} />
             <span style={{ fontWeight: 500 }}>{ticketId}</span>
-            {titleFromSlug && (
-              <span style={{ 
-                opacity: 0.8,
-                maxWidth: '200px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}>
-                {titleFromSlug}
-              </span>
-            )}
           </span>
         );
       } else {
