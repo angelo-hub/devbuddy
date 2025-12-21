@@ -91,12 +91,13 @@ Developers work across multiple repositories (microservices, monorepos, frontend
 
 | Task | Priority | Effort | Status |
 |------|----------|--------|--------|
-| **Repository registry** - Map ticket prefixes to repos | 🔴 P0 | 🟡 | ⬜ Not Started |
-| **Cross-workspace branch associations** | 🔴 P0 | 🟡 | ⬜ Not Started |
-| **"Open in Workspace" action** for tickets in other repos | 🟡 P1 | 🟡 | ⬜ Not Started |
-| **Auto-detect related repositories** in parent directory | 🟡 P1 | 🟢 | ⬜ Not Started |
+| **Repository registry** - Map ticket prefixes to repos | 🔴 P0 | 🟡 | ✅ Done |
+| **Cross-workspace branch associations** | 🔴 P0 | 🟡 | ✅ Done |
+| **"Open in Workspace" action** for tickets in other repos | 🟡 P1 | 🟡 | ✅ Done |
+| **Auto-detect related repositories** in parent directory | 🟡 P1 | 🟢 | ✅ Done |
+| **IDE Fork Detection** (VS Code, Cursor, VSCodium, etc.) | 🟡 P1 | 🟢 | ✅ Done |
 | **Multi-workspace ticket search** | 🟢 P2 | 🟡 | ⬜ Not Started |
-| **Repository indicator in sidebar** | 🟢 P2 | 🟢 | ⬜ Not Started |
+| **Repository indicator in sidebar** | 🟢 P2 | 🟢 | ✅ Done |
 
 ### Configuration Design
 
@@ -435,11 +436,13 @@ JQL: assignee = currentUser() AND updated < -5d AND resolution = Unresolved
 - [ ] Both: Priority editing
 - [ ] Both: Estimate editing
 
-### Milestone 3: Multi-Repo Foundation (Week 3-4)
-- [ ] Repository registry configuration
-- [ ] Global branch association storage
-- [ ] Cross-workspace ticket detection
-- [ ] "Open in Workspace" action
+### Milestone 3: Multi-Repo Foundation (Week 3-4) ✅
+- [x] Repository registry configuration
+- [x] Global branch association storage
+- [x] Cross-workspace ticket detection
+- [x] "Open in Workspace" action
+- [x] IDE fork detection (VS Code, Cursor, VSCodium, Windsurf)
+- [x] Repository indicator in sidebar
 
 ### Milestone 4: Chat & AI Parity (Week 4-5)
 - [ ] Jira: Full standup support
@@ -462,7 +465,7 @@ JQL: assignee = currentUser() AND updated < -5d AND resolution = Unresolved
 - [x] Sidebar with ticket grouping
 - [x] **Jira sidebar parity** (unassigned, recently completed, sprint)
 - [x] **Jira branch manager** in ticket panel
-- [ ] **Multi-repo branch associations** (basic)
+- [x] **Multi-repo branch associations** (basic)
 - [ ] Documentation up-to-date
 - [ ] No critical bugs
 
@@ -485,15 +488,15 @@ JQL: assignee = currentUser() AND updated < -5d AND resolution = Unresolved
 
 | Week | Focus | Status |
 |------|-------|--------|
-| Week 1 | Sidebar Parity (Jira) | ⬜ Not Started |
-| Week 2 | Sidebar + Ticket Panel | ⬜ Not Started |
-| Week 3 | Multi-Repo Foundation | ⬜ Not Started |
+| Week 1 | Sidebar Parity (Jira) | ✅ Complete |
+| Week 2 | Sidebar + Ticket Panel | ✅ Complete |
+| Week 3 | Multi-Repo Foundation | ✅ Complete |
 | Week 4 | Chat/AI Parity | ⬜ Not Started |
 | Week 5 | Polish & Docs | ⬜ Not Started |
 | Week 6 | Testing & Release | ⬜ Not Started |
 
 ---
 
-**Last Updated:** December 19, 2025  
+**Last Updated:** December 21, 2025  
 **Owner:** Angelo Girardi
 

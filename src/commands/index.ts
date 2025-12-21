@@ -8,14 +8,11 @@ import { TicketDraftData } from "@shared/base/BaseTicketProvider";
 import { generatePRSummaryCommand } from "@pro/commands/ai/generatePRSummary";
 import { generateStandupCommand } from "@pro/commands/ai/generateStandup";
 import { convertTodoToTicket } from "@commands/convertTodoToTicket";
-import { showFirstTimeSetup } from "@providers/linear/firstTimeSetup";
 import { LinearClient } from "@providers/linear/LinearClient";
-import { LinearIssue } from "@providers/linear/types";
 import { LinearTicketPanel } from "@providers/linear/LinearTicketPanel";
 import { CreateTicketPanel } from "@providers/linear/CreateTicketPanel";
 import { LinearStandupDataProvider } from "@providers/linear/LinearStandupDataProvider";
 import { UniversalStandupBuilderPanel } from "@shared/views/UniversalStandupBuilderPanel";
-import { BranchAssociationManager } from "@shared/git/branchAssociationManager";
 import { getCurrentPlatform } from "@shared/utils/platformDetector";
 import { JiraStandupDataProvider } from "@providers/jira/JiraStandupDataProvider";
 import { JiraCreateTicketPanel } from "@providers/jira/cloud/JiraCreateTicketPanel";
@@ -27,6 +24,7 @@ import { registerLinearCommands } from "./linear";
 import { registerJiraCommands } from "./jira";
 import { registerCommonCommands } from "./common";
 import { registerBranchCommands } from "./branch";
+import { registerMultiRepoCommands } from "./multiRepo";
 
 /**
  * Register all commands for the extension
@@ -41,9 +39,6 @@ export function registerAllCommands(
 ): void {
   const logger = getLogger();
   logger.info("Registering commands...");
-
-  // Initialize branch manager (needed by commands)
-  const branchManager = new BranchAssociationManager(context);
 
   // ==================== CORE COMMANDS ====================
   // These work across all platforms
@@ -179,6 +174,9 @@ export function registerAllCommands(
   registerJiraCommands(context, ticketsProvider);
   registerCommonCommands(context, ticketsProvider);
   registerBranchCommands(context, ticketsProvider);
+  if (ticketsProvider) {
+    registerMultiRepoCommands(context, ticketsProvider);
+  }
 
   logger.success("All commands registered!");
 }

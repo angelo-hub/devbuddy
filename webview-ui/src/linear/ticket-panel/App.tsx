@@ -69,6 +69,9 @@ function App() {
   const [branchInfo, setBranchInfo] = useState<{
     branchName: string | null;
     exists: boolean;
+    isInDifferentRepo?: boolean;
+    repositoryName?: string;
+    repositoryPath?: string;
   } | null>(null);
   const [allBranches, setAllBranches] = useState<{
     branches: string[];
@@ -96,6 +99,9 @@ function App() {
           setBranchInfo({
             branchName: message.branchName,
             exists: message.exists,
+            isInDifferentRepo: message.isInDifferentRepo,
+            repositoryName: message.repositoryName,
+            repositoryPath: message.repositoryPath,
           });
           break;
 
@@ -186,6 +192,10 @@ function App() {
     postMessage({ command: "loadAllBranches" });
   };
 
+  const handleOpenInRepository = (ticketId: string, repositoryPath: string) => {
+    postMessage({ command: "openInRepository", ticketId, repositoryPath });
+  };
+
   const handleLoadLabels = (teamId: string) => {
     postMessage({ command: "loadLabels", teamId });
   };
@@ -251,6 +261,7 @@ function App() {
         onRemoveAssociation={handleRemoveAssociation}
         onLoadBranchInfo={handleLoadBranchInfo}
         onLoadAllBranches={handleLoadAllBranches}
+        onOpenInRepository={handleOpenInRepository}
         branchInfo={branchInfo || undefined}
         allBranches={allBranches || undefined}
       />

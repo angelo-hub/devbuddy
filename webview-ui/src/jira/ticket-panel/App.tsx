@@ -118,7 +118,7 @@ type MessageFromExtension =
   | { command: "updateIssue"; issue: JiraIssue }
   | { command: "transitionsLoaded"; transitions: JiraTransition[] }
   | { command: "usersLoaded"; users: JiraUser[] }
-  | { command: "branchInfo"; branchName: string | null; exists: boolean }
+  | { command: "branchInfo"; branchName: string | null; exists: boolean; isInDifferentRepo?: boolean; repositoryName?: string; repositoryPath?: string }
   | { command: "allBranchesLoaded"; branches: string[]; currentBranch: string | null; suggestions: string[] };
 
 type MessageFromWebview =
@@ -138,7 +138,8 @@ type MessageFromWebview =
   | { command: "associateBranch"; ticketKey: string; branchName: string }
   | { command: "removeAssociation"; ticketKey: string }
   | { command: "loadBranchInfo"; ticketKey: string }
-  | { command: "loadAllBranches" };
+  | { command: "loadAllBranches" }
+  | { command: "openInRepository"; ticketKey: string; repositoryPath: string };
 
 // Get initial state from window object (passed from extension)
 declare global {
@@ -163,6 +164,9 @@ function App() {
   const [branchInfo, setBranchInfo] = useState<{
     branchName: string | null;
     exists: boolean;
+    isInDifferentRepo?: boolean;
+    repositoryName?: string;
+    repositoryPath?: string;
   } | null>(null);
   const [allBranches, setAllBranches] = useState<{
     branches: string[];
@@ -190,6 +194,9 @@ function App() {
           setBranchInfo({
             branchName: message.branchName,
             exists: message.exists,
+            isInDifferentRepo: message.isInDifferentRepo,
+            repositoryName: message.repositoryName,
+            repositoryPath: message.repositoryPath,
           });
           break;
 
@@ -276,6 +283,10 @@ function App() {
     postMessage({ command: "loadAllBranches" });
   };
 
+  const handleOpenInRepository = (ticketKey: string, repositoryPath: string) => {
+    postMessage({ command: "openInRepository", ticketKey, repositoryPath });
+  };
+
   const handleCopyKey = () => {
     postMessage({ command: "copyKey" });
   };
@@ -338,6 +349,7 @@ function App() {
         onRemoveAssociation={handleRemoveAssociation}
         onLoadBranchInfo={handleLoadBranchInfo}
         onLoadAllBranches={handleLoadAllBranches}
+        onOpenInRepository={handleOpenInRepository}
         branchInfo={branchInfo || undefined}
         allBranches={allBranches || undefined}
       />

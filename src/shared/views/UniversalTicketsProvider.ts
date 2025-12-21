@@ -6,6 +6,7 @@
  */
 
 import * as vscode from "vscode";
+import * as path from "path";
 import { LinearClient } from "@providers/linear/LinearClient";
 import { LinearIssue } from "@providers/linear/types";
 import { JiraCloudClient } from "@providers/jira/cloud/JiraCloudClient";
@@ -14,6 +15,7 @@ import { JiraIssue } from "@providers/jira/common/types";
 import { BaseJiraClient } from "@providers/jira/common/BaseJiraClient";
 import { getLogger } from "@shared/utils/logger";
 import { BranchAssociationManager } from "@shared/git/branchAssociationManager";
+import { getRepositoryRegistry } from "@shared/git/repositoryRegistry";
 import { fuzzySearch } from "@shared/utils/fuzzySearch";
 import { debounce } from "@shared/utils/debounce";
 
@@ -65,7 +67,7 @@ export class UniversalTicketsProvider
     this.detectPlatform();
     
     // Initialize branch manager for Linear
-    this.branchManager = new BranchAssociationManager(context);
+    this.branchManager = new BranchAssociationManager(context, "both");
     
     // Create debounced refresh for search (300ms delay)
     this.debouncedRefresh = debounce(() => {
@@ -78,7 +80,62 @@ export class UniversalTicketsProvider
         this.detectPlatform();
         this.refresh();
       }
+      // Refresh if multi-repo settings change
+      if (e.affectsConfiguration("devBuddy.multiRepo")) {
+        this.refresh();
+      }
     });
+  }
+
+  /**
+   * Check if multi-repo support is enabled
+   */
+  private isMultiRepoEnabled(): boolean {
+    const config = vscode.workspace.getConfiguration("devBuddy");
+    return config.get<boolean>("multiRepo.enabled", false);
+  }
+
+  /**
+   * Get repository info for a ticket's branch association
+   * Returns info about which repo the branch is in, and whether it's different from current
+   */
+  private getRepositoryInfoForTicket(ticketId: string): {
+    isDifferent: boolean;
+    repoName?: string;
+    repoPath?: string;
+    hasBranch: boolean;
+  } {
+    try {
+      const currentPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+
+      // Check global associations for this ticket
+      const globalAssoc = this.branchManager.getGlobalAssociationForTicket(ticketId);
+      
+      if (!globalAssoc) {
+        // No branch association exists
+        return { isDifferent: false, hasBranch: false };
+      }
+
+      // Branch exists - check if it's in a different repo
+      if (currentPath && globalAssoc.repositoryPath) {
+        const isDifferent = path.resolve(currentPath) !== path.resolve(globalAssoc.repositoryPath);
+        return {
+          isDifferent,
+          repoName: globalAssoc.repository,
+          repoPath: globalAssoc.repositoryPath,
+          hasBranch: true,
+        };
+      }
+
+      return { 
+        isDifferent: false, 
+        repoName: globalAssoc.repository,
+        repoPath: globalAssoc.repositoryPath,
+        hasBranch: true 
+      };
+    } catch {
+      return { isDifferent: false, hasBranch: false };
+    }
   }
 
   /**
@@ -662,8 +719,19 @@ export class UniversalTicketsProvider
       this.getLinearTicketContextValue(issue)
     );
 
-    // Set description to show identifier
-    item.description = issue.identifier;
+    // Set description to show identifier and repo info
+    let description = issue.identifier;
+    
+    // Add repository indicator if ticket has a branch in a different repo
+    const repoInfo = this.getRepositoryInfoForTicket(issue.identifier);
+    if (repoInfo.hasBranch && repoInfo.repoName) {
+      if (repoInfo.isDifferent) {
+        description += ` 📂 ${repoInfo.repoName}`;
+      } else {
+        description += ` ✓ ${repoInfo.repoName}`;
+      }
+    }
+    item.description = description;
 
     // Set icon based on status and priority with proper color coding
     item.iconPath = this.getLinearStatusIcon(issue.state.type, issue.priority);
@@ -1335,8 +1403,19 @@ export class UniversalTicketsProvider
       this.getJiraIssueContextValue(issue)
     );
 
-    // Set description to show key and status
-    item.description = `${issue.key} • ${issue.status.name}`;
+    // Set description to show key, status, and repo info
+    let description = `${issue.key} • ${issue.status.name}`;
+    
+    // Add repository indicator if ticket has a branch
+    const repoInfo = this.getRepositoryInfoForTicket(issue.key);
+    if (repoInfo.hasBranch && repoInfo.repoName) {
+      if (repoInfo.isDifferent) {
+        description += ` 📂 ${repoInfo.repoName}`;
+      } else {
+        description += ` ✓ ${repoInfo.repoName}`;
+      }
+    }
+    item.description = description;
 
     // Use VS Code ThemeIcons based on issue type
     item.iconPath = this.getJiraIssueIcon(issue);

@@ -154,6 +154,26 @@
         "icon": "$(clear-all)"
       },
       {
+        "command": "devBuddy.openInWorkspace",
+        "title": "DevBuddy: Open Ticket in Repository",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "devBuddy.discoverRepositories",
+        "title": "DevBuddy: Discover Related Repositories",
+        "icon": "$(search)"
+      },
+      {
+        "command": "devBuddy.registerRepository",
+        "title": "DevBuddy: Register Repository",
+        "icon": "$(repo)"
+      },
+      {
+        "command": "devBuddy.migrateToGlobalStorage",
+        "title": "DevBuddy: Migrate Branch Associations to Global Storage",
+        "icon": "$(cloud-upload)"
+      },
+      {
         "command": "devBuddy.createTicket",
         "title": "DevBuddy: Create New Ticket",
         "icon": "$(add)",
@@ -460,6 +480,11 @@
           "group": "branch@1"
         },
         {
+          "command": "devBuddy.openInWorkspace",
+          "when": "view == myTickets && viewItem =~ /linearTicket.*/",
+          "group": "repo@1"
+        },
+        {
           "command": "devBuddy.startWork",
           "when": "view == myTickets && viewItem == linearTicket",
           "group": "inline@3"
@@ -498,6 +523,11 @@
           "command": "devBuddy.jira.copyIssueUrl",
           "when": "view == myTickets && viewItem =~ /jira(Ticket|Issue).*/",
           "group": "copy@2"
+        },
+        {
+          "command": "devBuddy.openInWorkspace",
+          "when": "view == myTickets && viewItem =~ /jira(Ticket|Issue).*/",
+          "group": "repo@1"
         }
       ]
     },
@@ -1057,6 +1087,26 @@
           "type": "boolean",
           "default": true,
           "description": "Open Jira issues in browser (false to open in VS Code webview)"
+        },
+        "devBuddy.multiRepo.enabled": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "**Enable multi-repository support**\n\n✅ **When enabled:**\n- Track branch associations across multiple repositories\n- Open tickets in their correct repository window\n- Auto-discover related repositories in parent directory\n- Show repository indicators in the sidebar\n\n💡 **Use this when:**\n- Working with microservices architecture\n- Managing tickets across multiple repos\n- Using a monorepo with separate ticket prefixes per package"
+        },
+        "devBuddy.multiRepo.autoDiscover": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "**Auto-discover related repositories** in parent directory\n\n✅ **When enabled:**\n- Scans parent directory for other git repositories\n- Extracts ticket prefixes from existing branches\n- Suggests repository associations for tickets\n\n⚠️ **Requires:** `devBuddy.multiRepo.enabled` to be true"
+        },
+        "devBuddy.multiRepo.parentDir": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "**Parent directory** containing related repositories\n\n💡 **Examples:**\n- `/Users/dev/projects` - Absolute path\n- `..` - Relative to current workspace\n\n⚠️ If empty, uses the parent of the current workspace"
+        },
+        "devBuddy.repositories": {
+          "type": "object",
+          "default": {},
+          "markdownDescription": "**Manual repository configuration**\n\nDefine repositories and their ticket prefixes:\n\n```json\n{\n  \"frontend\": {\n    \"path\": \"/Users/dev/frontend\",\n    \"ticketPrefixes\": [\"FE\", \"UI\"]\n  },\n  \"backend\": {\n    \"path\": \"/Users/dev/backend\",\n    \"ticketPrefixes\": [\"BE\", \"API\"]\n  }\n}\n```\n\n💡 **Alternative:** Create `.devbuddy/repos.json` in a parent directory for team-wide configuration"
         }
       }
     }

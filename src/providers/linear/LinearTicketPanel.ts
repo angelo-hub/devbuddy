@@ -36,7 +36,7 @@ export class LinearTicketPanel {
   ) {
     this._panel = panel;
     this._extensionUri = extensionUri;
-    this._branchManager = new BranchAssociationManager(context);
+    this._branchManager = new BranchAssociationManager(context, "both");
     this.initializeClient();
 
     // Set up content and message handling
@@ -96,6 +96,9 @@ export class LinearTicketPanel {
             break;
           case "loadAllBranches":
             await this.handleLoadAllBranches();
+            break;
+          case "openInRepository":
+            await this.handleOpenInRepository(message.ticketId, message.repositoryPath);
             break;
           case "loadLabels":
             await this.handleLoadLabels(message.teamId);
@@ -421,9 +424,40 @@ export class LinearTicketPanel {
   private async handleLoadBranchInfo(ticketId: string): Promise<void> {
     const branchName = this._branchManager.getBranchForTicket(ticketId);
     let exists = false;
+    let isInDifferentRepo = false;
+    let repositoryName: string | undefined;
+    let repositoryPath: string | undefined;
+
+    getLogger().debug(`[BranchManager] Loading branch info for ${ticketId}, found: ${branchName}`);
 
     if (branchName) {
-      exists = await this._branchManager.verifyBranchExists(branchName);
+      // Check if the branch is in a different repository
+      const globalAssoc = this._branchManager.getGlobalAssociationForTicket(ticketId);
+      getLogger().debug(`[BranchManager] Global association: ${JSON.stringify(globalAssoc)}`);
+      
+      if (globalAssoc && globalAssoc.repositoryPath) {
+        const isCurrentRepo = this._branchManager.isTicketInCurrentRepo(ticketId);
+        isInDifferentRepo = !isCurrentRepo;
+        repositoryName = globalAssoc.repository;
+        repositoryPath = globalAssoc.repositoryPath;
+        
+        getLogger().debug(`[BranchManager] isCurrentRepo: ${isCurrentRepo}, isInDifferentRepo: ${isInDifferentRepo}`);
+        getLogger().debug(`[BranchManager] Repository: ${repositoryName} at ${repositoryPath}`);
+        
+        // Only check if branch exists in current repo if not in different repo
+        if (!isInDifferentRepo) {
+          exists = await this._branchManager.verifyBranchExists(branchName);
+          getLogger().debug(`[BranchManager] Branch exists in current repo: ${exists}`);
+        } else {
+          // Branch is in different repo, mark as existing (we trust global storage)
+          exists = true;
+          getLogger().debug(`[BranchManager] Branch is in different repo, treating as existing`);
+        }
+      } else {
+        // No global association, just check locally
+        exists = await this._branchManager.verifyBranchExists(branchName);
+        getLogger().debug(`[BranchManager] No global assoc, local exists: ${exists}`);
+      }
     }
 
     // Send branch info back to webview
@@ -431,6 +465,9 @@ export class LinearTicketPanel {
       command: "branchInfo",
       branchName,
       exists,
+      isInDifferentRepo,
+      repositoryName,
+      repositoryPath,
     });
   }
 
@@ -465,6 +502,17 @@ export class LinearTicketPanel {
         suggestions: [],
       });
     }
+  }
+
+  /**
+   * Handle open in different repository
+   */
+  private async handleOpenInRepository(ticketId: string, repositoryPath: string): Promise<void> {
+    // Use the devBuddy.openInWorkspace command
+    await vscode.commands.executeCommand("devBuddy.openInWorkspace", {
+      ticketId,
+      repositoryPath,
+    });
   }
 
   /**

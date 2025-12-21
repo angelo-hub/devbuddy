@@ -9,9 +9,16 @@ interface BranchManagerProps {
   onRemoveAssociation: (ticketKey: string) => void;
   onLoadBranchInfo: (ticketKey: string) => void;
   onLoadAllBranches: () => void;
+  onOpenInRepository?: (ticketKey: string, repositoryPath: string) => void;
   branchInfo?: {
     branchName: string | null;
     exists: boolean;
+    /** If branch is in a different repository */
+    isInDifferentRepo?: boolean;
+    /** Repository name where the branch lives */
+    repositoryName?: string;
+    /** Repository path where the branch lives */
+    repositoryPath?: string;
   };
   allBranches?: {
     branches: string[];
@@ -28,6 +35,7 @@ export const BranchManager: React.FC<BranchManagerProps> = ({
   onRemoveAssociation,
   onLoadBranchInfo,
   onLoadAllBranches,
+  onOpenInRepository,
   branchInfo,
   allBranches,
 }) => {
@@ -36,17 +44,21 @@ export const BranchManager: React.FC<BranchManagerProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // Load branch info when component mounts
+  // Load branch info when component mounts or ticketKey changes
+  // Note: intentionally omitting callback from deps to avoid infinite loops
   useEffect(() => {
     onLoadBranchInfo(ticketKey);
-  }, [ticketKey, onLoadBranchInfo]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ticketKey]);
 
   // Load all branches when entering edit mode
+  // Note: intentionally omitting callback from deps to avoid infinite loops
   useEffect(() => {
     if (isEditing && !allBranches) {
       onLoadAllBranches();
     }
-  }, [isEditing, allBranches, onLoadAllBranches]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditing, allBranches]);
 
   const handleAssociate = () => {
     if (selectedBranch.trim()) {
@@ -155,7 +167,16 @@ export const BranchManager: React.FC<BranchManagerProps> = ({
             <span>{branchInfo.branchName}</span>
           </div>
 
-          {!branchInfo.exists && (
+          {/* Branch is in a different repository */}
+          {branchInfo.isInDifferentRepo && branchInfo.repositoryName && (
+            <div className={styles.differentRepo}>
+              <span className={styles.repoIcon}>📂</span>
+              <span>Branch is in <strong>{branchInfo.repositoryName}</strong></span>
+            </div>
+          )}
+
+          {/* Branch doesn't exist and is NOT in a different repo (truly deleted) */}
+          {!branchInfo.exists && !branchInfo.isInDifferentRepo && (
             <div className={styles.warning}>
               <span className={styles.warningIcon}>⚠️</span>
               <span>Branch no longer exists in repository</span>
@@ -163,7 +184,19 @@ export const BranchManager: React.FC<BranchManagerProps> = ({
           )}
 
           <div className={styles.actions}>
-            {branchInfo.exists && (
+            {/* Show "Open Repository" button if branch is in different repo */}
+            {branchInfo.isInDifferentRepo && branchInfo.repositoryPath && onOpenInRepository && (
+              <button
+                className={styles.checkoutButton}
+                onClick={() => onOpenInRepository(ticketKey, branchInfo.repositoryPath!)}
+              >
+                <span>📂</span>
+                Open in {branchInfo.repositoryName}
+              </button>
+            )}
+
+            {/* Show "Checkout Branch" only if branch exists in current repo */}
+            {branchInfo.exists && !branchInfo.isInDifferentRepo && (
               <button
                 className={styles.checkoutButton}
                 onClick={handleCheckout}

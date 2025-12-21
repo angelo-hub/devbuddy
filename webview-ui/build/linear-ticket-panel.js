@@ -80888,9 +80888,9 @@ ${element2.innerHTML}
 
   // css-module:/Users/angelogirardi/development/developer-buddy/webview-ui/src/linear/ticket-panel/components/BranchManager.module.css
   var style24 = document.createElement("style");
-  style24.textContent = ".container_BranchManager {\n  margin: 16px 0;\n  padding: 12px;\n  border-radius: 4px;\n  background: var(--vscode-editor-inactiveSelectionBackground);\n  border: 1px solid var(--vscode-panel-border);\n}\n\n.header_BranchManager {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  margin-bottom: 12px;\n}\n\n.title_BranchManager {\n  font-size: 13px;\n  font-weight: 600;\n  color: var(--vscode-foreground);\n  display: flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.icon_BranchManager {\n  width: 16px;\n  height: 16px;\n}\n\n.branchInfo_BranchManager {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n\n.branchName_BranchManager {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  padding: 8px;\n  background: var(--vscode-input-background);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 4px;\n  font-family: var(--vscode-editor-font-family);\n  font-size: 12px;\n  color: var(--vscode-foreground);\n}\n\n.branchIcon_BranchManager {\n  color: var(--vscode-charts-blue);\n}\n\n.actions_BranchManager {\n  display: flex;\n  gap: 8px;\n  flex-wrap: wrap;\n}\n\n.checkoutButton_BranchManager {\n  flex: 1;\n  min-width: 120px;\n  padding: 6px 12px;\n  background: var(--vscode-button-background);\n  color: var(--vscode-button-foreground);\n  border: none;\n  border-radius: 4px;\n  font-size: 12px;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: 6px;\n  transition: background 0.2s ease;\n}\n\n.checkoutButton_BranchManager:hover {\n  background: var(--vscode-button-hoverBackground);\n}\n\n.removeButton_BranchManager {\n  padding: 6px 12px;\n  background: transparent;\n  color: var(--vscode-foreground);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 4px;\n  font-size: 12px;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: 6px;\n  transition: all 0.2s ease;\n}\n\n.removeButton_BranchManager:hover {\n  background: var(--vscode-inputValidation-errorBackground);\n  border-color: var(--vscode-inputValidation-errorBorder);\n  color: var(--vscode-errorForeground);\n}\n\n.noBranch_BranchManager {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n\n.noBranchText_BranchManager {\n  font-size: 12px;\n  color: var(--vscode-descriptionForeground);\n}\n\n.associateForm_BranchManager {\n  display: flex;\n  gap: 8px;\n}\n\n.inputContainer_BranchManager {\n  position: relative;\n  flex: 1;\n}\n\n.branchInput_BranchManager {\n  width: 100%;\n  padding: 6px 8px;\n  background: var(--vscode-input-background);\n  color: var(--vscode-input-foreground);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 4px;\n  font-size: 12px;\n  font-family: var(--vscode-editor-font-family);\n}\n\n.branchInput_BranchManager:focus {\n  outline: none;\n  border-color: var(--vscode-focusBorder);\n}\n\n.branchInput_BranchManager::placeholder {\n  color: var(--vscode-input-placeholderForeground);\n}\n\n.dropdown_BranchManager {\n  position: absolute;\n  top: calc(100% + 4px);\n  left: 0;\n  right: 0;\n  max-height: 250px;\n  overflow-y: auto;\n  background: var(--vscode-dropdown-background);\n  border: 1px solid var(--vscode-dropdown-border);\n  border-radius: 4px;\n  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);\n  z-index: 1000;\n}\n\n.dropdownItem_BranchManager {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  padding: 6px 8px;\n  cursor: pointer;\n  font-size: 12px;\n  font-family: var(--vscode-editor-font-family);\n  transition: background 0.1s ease;\n}\n\n.dropdownItem_BranchManager:hover {\n  background: var(--vscode-list-hoverBackground);\n}\n\n.dropdownIcon_BranchManager {\n  flex-shrink: 0;\n  width: 16px;\n  text-align: center;\n}\n\n.dropdownBranch_BranchManager {\n  flex: 1;\n  color: var(--vscode-foreground);\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.dropdownLabel_BranchManager {\n  flex-shrink: 0;\n  font-size: 11px;\n  color: var(--vscode-descriptionForeground);\n  font-style: italic;\n}\n\n.dropdownMore_BranchManager {\n  padding: 6px 8px;\n  font-size: 11px;\n  color: var(--vscode-descriptionForeground);\n  font-style: italic;\n  text-align: center;\n  border-top: 1px solid var(--vscode-dropdown-border);\n}\n\n.associateButton_BranchManager {\n  padding: 6px 12px;\n  background: var(--vscode-button-background);\n  color: var(--vscode-button-foreground);\n  border: none;\n  border-radius: 4px;\n  font-size: 12px;\n  cursor: pointer;\n  white-space: nowrap;\n  transition: background 0.2s ease;\n}\n\n.associateButton_BranchManager:hover {\n  background: var(--vscode-button-hoverBackground);\n}\n\n.associateButton_BranchManager:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n}\n\n.notInProgress_BranchManager {\n  font-size: 12px;\n  color: var(--vscode-descriptionForeground);\n  font-style: italic;\n}\n\n.warning_BranchManager {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n  padding: 8px;\n  background: var(--vscode-inputValidation-warningBackground);\n  border: 1px solid var(--vscode-inputValidation-warningBorder);\n  border-radius: 4px;\n  font-size: 12px;\n  color: var(--vscode-inputValidation-warningForeground);\n}\n\n.warningIcon_BranchManager {\n  color: var(--vscode-editorWarning-foreground);\n}\n\n";
+  style24.textContent = ".container_BranchManager {\n  margin: 16px 0;\n  padding: 12px;\n  border-radius: 4px;\n  background: var(--vscode-editor-inactiveSelectionBackground);\n  border: 1px solid var(--vscode-panel-border);\n}\n\n.header_BranchManager {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  margin-bottom: 12px;\n}\n\n.title_BranchManager {\n  font-size: 13px;\n  font-weight: 600;\n  color: var(--vscode-foreground);\n  display: flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.icon_BranchManager {\n  width: 16px;\n  height: 16px;\n}\n\n.branchInfo_BranchManager {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n\n.branchName_BranchManager {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  padding: 8px;\n  background: var(--vscode-input-background);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 4px;\n  font-family: var(--vscode-editor-font-family);\n  font-size: 12px;\n  color: var(--vscode-foreground);\n}\n\n.branchIcon_BranchManager {\n  color: var(--vscode-charts-blue);\n}\n\n.actions_BranchManager {\n  display: flex;\n  gap: 8px;\n  flex-wrap: wrap;\n}\n\n.checkoutButton_BranchManager {\n  flex: 1;\n  min-width: 120px;\n  padding: 6px 12px;\n  background: var(--vscode-button-background);\n  color: var(--vscode-button-foreground);\n  border: none;\n  border-radius: 4px;\n  font-size: 12px;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: 6px;\n  transition: background 0.2s ease;\n}\n\n.checkoutButton_BranchManager:hover {\n  background: var(--vscode-button-hoverBackground);\n}\n\n.removeButton_BranchManager {\n  padding: 6px 12px;\n  background: transparent;\n  color: var(--vscode-foreground);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 4px;\n  font-size: 12px;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: 6px;\n  transition: all 0.2s ease;\n}\n\n.removeButton_BranchManager:hover {\n  background: var(--vscode-inputValidation-errorBackground);\n  border-color: var(--vscode-inputValidation-errorBorder);\n  color: var(--vscode-errorForeground);\n}\n\n.noBranch_BranchManager {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n\n.noBranchText_BranchManager {\n  font-size: 12px;\n  color: var(--vscode-descriptionForeground);\n}\n\n.associateForm_BranchManager {\n  display: flex;\n  gap: 8px;\n}\n\n.inputContainer_BranchManager {\n  position: relative;\n  flex: 1;\n}\n\n.branchInput_BranchManager {\n  width: 100%;\n  padding: 6px 8px;\n  background: var(--vscode-input-background);\n  color: var(--vscode-input-foreground);\n  border: 1px solid var(--vscode-input-border);\n  border-radius: 4px;\n  font-size: 12px;\n  font-family: var(--vscode-editor-font-family);\n}\n\n.branchInput_BranchManager:focus {\n  outline: none;\n  border-color: var(--vscode-focusBorder);\n}\n\n.branchInput_BranchManager::placeholder {\n  color: var(--vscode-input-placeholderForeground);\n}\n\n.dropdown_BranchManager {\n  position: absolute;\n  top: calc(100% + 4px);\n  left: 0;\n  right: 0;\n  max-height: 250px;\n  overflow-y: auto;\n  background: var(--vscode-dropdown-background);\n  border: 1px solid var(--vscode-dropdown-border);\n  border-radius: 4px;\n  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);\n  z-index: 1000;\n}\n\n.dropdownItem_BranchManager {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  padding: 6px 8px;\n  cursor: pointer;\n  font-size: 12px;\n  font-family: var(--vscode-editor-font-family);\n  transition: background 0.1s ease;\n}\n\n.dropdownItem_BranchManager:hover {\n  background: var(--vscode-list-hoverBackground);\n}\n\n.dropdownIcon_BranchManager {\n  flex-shrink: 0;\n  width: 16px;\n  text-align: center;\n}\n\n.dropdownBranch_BranchManager {\n  flex: 1;\n  color: var(--vscode-foreground);\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.dropdownLabel_BranchManager {\n  flex-shrink: 0;\n  font-size: 11px;\n  color: var(--vscode-descriptionForeground);\n  font-style: italic;\n}\n\n.dropdownMore_BranchManager {\n  padding: 6px 8px;\n  font-size: 11px;\n  color: var(--vscode-descriptionForeground);\n  font-style: italic;\n  text-align: center;\n  border-top: 1px solid var(--vscode-dropdown-border);\n}\n\n.associateButton_BranchManager {\n  padding: 6px 12px;\n  background: var(--vscode-button-background);\n  color: var(--vscode-button-foreground);\n  border: none;\n  border-radius: 4px;\n  font-size: 12px;\n  cursor: pointer;\n  white-space: nowrap;\n  transition: background 0.2s ease;\n}\n\n.associateButton_BranchManager:hover {\n  background: var(--vscode-button-hoverBackground);\n}\n\n.associateButton_BranchManager:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n}\n\n.notInProgress_BranchManager {\n  font-size: 12px;\n  color: var(--vscode-descriptionForeground);\n  font-style: italic;\n}\n\n.warning_BranchManager {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n  padding: 8px;\n  background: var(--vscode-inputValidation-warningBackground);\n  border: 1px solid var(--vscode-inputValidation-warningBorder);\n  border-radius: 4px;\n  font-size: 12px;\n  color: var(--vscode-inputValidation-warningForeground);\n}\n\n.warningIcon_BranchManager {\n  color: var(--vscode-editorWarning-foreground);\n}\n\n.differentRepo_BranchManager {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n  padding: 8px;\n  background: var(--vscode-inputValidation-infoBackground, rgba(0, 122, 204, 0.1));\n  border: 1px solid var(--vscode-inputValidation-infoBorder, rgba(0, 122, 204, 0.4));\n  border-radius: 4px;\n  font-size: 12px;\n  color: var(--vscode-inputValidation-infoForeground, var(--vscode-foreground));\n}\n\n.repoIcon_BranchManager {\n  font-size: 14px;\n}\n\n";
   document.head.appendChild(style24);
-  var BranchManager_default = { "container": "container_BranchManager", "header": "header_BranchManager", "title": "title_BranchManager", "icon": "icon_BranchManager", "branchInfo": "branchInfo_BranchManager", "branchName": "branchName_BranchManager", "branchIcon": "branchIcon_BranchManager", "actions": "actions_BranchManager", "checkoutButton": "checkoutButton_BranchManager", "removeButton": "removeButton_BranchManager", "noBranch": "noBranch_BranchManager", "noBranchText": "noBranchText_BranchManager", "associateForm": "associateForm_BranchManager", "inputContainer": "inputContainer_BranchManager", "branchInput": "branchInput_BranchManager", "dropdown": "dropdown_BranchManager", "dropdownItem": "dropdownItem_BranchManager", "dropdownIcon": "dropdownIcon_BranchManager", "dropdownBranch": "dropdownBranch_BranchManager", "dropdownLabel": "dropdownLabel_BranchManager", "dropdownMore": "dropdownMore_BranchManager", "associateButton": "associateButton_BranchManager", "notInProgress": "notInProgress_BranchManager", "warning": "warning_BranchManager", "warningIcon": "warningIcon_BranchManager" };
+  var BranchManager_default = { "container": "container_BranchManager", "header": "header_BranchManager", "title": "title_BranchManager", "icon": "icon_BranchManager", "branchInfo": "branchInfo_BranchManager", "branchName": "branchName_BranchManager", "branchIcon": "branchIcon_BranchManager", "actions": "actions_BranchManager", "checkoutButton": "checkoutButton_BranchManager", "removeButton": "removeButton_BranchManager", "noBranch": "noBranch_BranchManager", "noBranchText": "noBranchText_BranchManager", "associateForm": "associateForm_BranchManager", "inputContainer": "inputContainer_BranchManager", "branchInput": "branchInput_BranchManager", "dropdown": "dropdown_BranchManager", "dropdownItem": "dropdownItem_BranchManager", "dropdownIcon": "dropdownIcon_BranchManager", "dropdownBranch": "dropdownBranch_BranchManager", "dropdownLabel": "dropdownLabel_BranchManager", "dropdownMore": "dropdownMore_BranchManager", "associateButton": "associateButton_BranchManager", "notInProgress": "notInProgress_BranchManager", "warning": "warning_BranchManager", "warningIcon": "warningIcon_BranchManager", "differentRepo": "differentRepo_BranchManager", "repoIcon": "repoIcon_BranchManager" };
 
   // webview-ui/src/linear/ticket-panel/components/BranchManager.tsx
   var import_jsx_runtime35 = __toESM(require_jsx_runtime());
@@ -80902,6 +80902,7 @@ ${element2.innerHTML}
     onRemoveAssociation,
     onLoadBranchInfo,
     onLoadAllBranches,
+    onOpenInRepository,
     branchInfo,
     allBranches
   }) => {
@@ -80911,12 +80912,12 @@ ${element2.innerHTML}
     const [showDropdown, setShowDropdown] = (0, import_react32.useState)(false);
     (0, import_react32.useEffect)(() => {
       onLoadBranchInfo(ticketId);
-    }, [ticketId, onLoadBranchInfo]);
+    }, [ticketId]);
     (0, import_react32.useEffect)(() => {
       if (isEditing && !allBranches) {
         onLoadAllBranches();
       }
-    }, [isEditing, allBranches, onLoadAllBranches]);
+    }, [isEditing, allBranches]);
     const handleAssociate = () => {
       if (selectedBranch.trim()) {
         onAssociateBranch(ticketId, selectedBranch.trim());
@@ -80992,12 +80993,31 @@ ${element2.innerHTML}
           /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("span", { className: BranchManager_default.branchIcon, children: "\u2387" }),
           /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("span", { children: branchInfo.branchName })
         ] }),
-        !branchInfo.exists && /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)("div", { className: BranchManager_default.warning, children: [
+        branchInfo.isInDifferentRepo && branchInfo.repositoryName && /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)("div", { className: BranchManager_default.differentRepo, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("span", { className: BranchManager_default.repoIcon, children: "\u{1F4C2}" }),
+          /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)("span", { children: [
+            "Branch is in ",
+            /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("strong", { children: branchInfo.repositoryName })
+          ] })
+        ] }),
+        !branchInfo.exists && !branchInfo.isInDifferentRepo && /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)("div", { className: BranchManager_default.warning, children: [
           /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("span", { className: BranchManager_default.warningIcon, children: "\u26A0\uFE0F" }),
           /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("span", { children: "Branch no longer exists in repository" })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)("div", { className: BranchManager_default.actions, children: [
-          branchInfo.exists && /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)(
+          branchInfo.isInDifferentRepo && branchInfo.repositoryPath && onOpenInRepository && /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)(
+            "button",
+            {
+              className: BranchManager_default.checkoutButton,
+              onClick: () => onOpenInRepository(ticketId, branchInfo.repositoryPath),
+              children: [
+                /* @__PURE__ */ (0, import_jsx_runtime35.jsx)("span", { children: "\u{1F4C2}" }),
+                "Open in ",
+                branchInfo.repositoryName
+              ]
+            }
+          ),
+          branchInfo.exists && !branchInfo.isInDifferentRepo && /* @__PURE__ */ (0, import_jsx_runtime35.jsxs)(
             "button",
             {
               className: BranchManager_default.checkoutButton,
@@ -81147,7 +81167,10 @@ ${element2.innerHTML}
           case "branchInfo":
             setBranchInfo({
               branchName: message.branchName,
-              exists: message.exists
+              exists: message.exists,
+              isInDifferentRepo: message.isInDifferentRepo,
+              repositoryName: message.repositoryName,
+              repositoryPath: message.repositoryPath
             });
             break;
           case "allBranchesLoaded":
@@ -81217,6 +81240,9 @@ ${element2.innerHTML}
     const handleLoadAllBranches = () => {
       postMessage({ command: "loadAllBranches" });
     };
+    const handleOpenInRepository = (ticketId, repositoryPath) => {
+      postMessage({ command: "openInRepository", ticketId, repositoryPath });
+    };
     const handleLoadLabels = (teamId) => {
       postMessage({ command: "loadLabels", teamId });
     };
@@ -81282,6 +81308,7 @@ ${element2.innerHTML}
           onRemoveAssociation: handleRemoveAssociation,
           onLoadBranchInfo: handleLoadBranchInfo,
           onLoadAllBranches: handleLoadAllBranches,
+          onOpenInRepository: handleOpenInRepository,
           branchInfo: branchInfo || void 0,
           allBranches: allBranches || void 0
         }

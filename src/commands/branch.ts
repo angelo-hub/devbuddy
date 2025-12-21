@@ -67,7 +67,7 @@ export function registerBranchCommands(
   context: vscode.ExtensionContext,
   ticketsProvider: UniversalTicketsProvider | undefined
 ): void {
-  const branchManager = new BranchAssociationManager(context);
+  const branchManager = new BranchAssociationManager(context, "both");
 
   context.subscriptions.push(
     // ==================== START BRANCH ====================

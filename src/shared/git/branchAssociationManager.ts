@@ -1,10 +1,31 @@
 import * as vscode from "vscode";
+import * as path from "path";
 import simpleGit from "simple-git";
 import { getLogger } from "@shared/utils/logger";
+
+const logger = getLogger();
 
 export interface BranchAssociation {
   ticketId: string;
   branchName: string;
+  lastUpdated: string;
+  isAutoDetected?: boolean;
+  /** Repository identifier (for multi-repo support) */
+  repository?: string;
+  /** Absolute path to the repository (for multi-repo support) */
+  repositoryPath?: string;
+}
+
+/**
+ * Global branch association for cross-repository support
+ */
+export interface GlobalBranchAssociation {
+  ticketId: string;
+  branchName: string;
+  /** Repository identifier from registry */
+  repository: string;
+  /** Absolute path to the repository */
+  repositoryPath: string;
   lastUpdated: string;
   isAutoDetected?: boolean;
 }
@@ -16,20 +37,281 @@ export interface BranchHistory {
     associatedAt: string;
     lastUsed: string;
     isActive: boolean;
+    repository?: string;
+    repositoryPath?: string;
   }>;
 }
 
 /**
+ * Storage mode for branch associations
+ */
+export type StorageMode = "workspace" | "global" | "both";
+
+/**
  * Manages associations between tickets and git branches (supports Linear, Jira, and other platforms)
- * Stores them in workspace state with support for future platform-specific attachments
+ * Stores them in workspace state with support for global state for multi-repo support
  */
 export class BranchAssociationManager {
   private static readonly STORAGE_KEY = "devBuddy.branchAssociations";
+  private static readonly GLOBAL_STORAGE_KEY = "devBuddy.globalBranchAssociations";
   private static readonly HISTORY_KEY = "devBuddy.branchHistory";
+  private static readonly GLOBAL_HISTORY_KEY = "devBuddy.globalBranchHistory";
   private context: vscode.ExtensionContext;
+  private storageMode: StorageMode;
 
-  constructor(context: vscode.ExtensionContext) {
+  constructor(context: vscode.ExtensionContext, storageMode: StorageMode = "both") {
     this.context = context;
+    this.storageMode = storageMode;
+  }
+
+  /**
+   * Get the current workspace folder path
+   */
+  private getCurrentWorkspacePath(): string | undefined {
+    return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  }
+
+  /**
+   * Get repository identifier from workspace path
+   */
+  private getRepositoryId(): string {
+    const workspacePath = this.getCurrentWorkspacePath();
+    if (!workspacePath) {
+      return "unknown";
+    }
+    return path.basename(workspacePath).toLowerCase().replace(/[^a-z0-9]/g, "-");
+  }
+
+  /**
+   * Check if multi-repo support is enabled
+   */
+  private isMultiRepoEnabled(): boolean {
+    const config = vscode.workspace.getConfiguration("devBuddy");
+    return config.get<boolean>("multiRepo.enabled", false);
+  }
+
+  /**
+   * Get all global branch associations
+   */
+  getAllGlobalAssociations(): GlobalBranchAssociation[] {
+    return (
+      this.context.globalState.get<GlobalBranchAssociation[]>(
+        BranchAssociationManager.GLOBAL_STORAGE_KEY
+      ) || []
+    );
+  }
+
+  /**
+   * Get global association for a ticket
+   */
+  getGlobalAssociationForTicket(ticketId: string): GlobalBranchAssociation | null {
+    const associations = this.getAllGlobalAssociations();
+    return associations.find((a) => a.ticketId === ticketId) || null;
+  }
+
+  /**
+   * Get all global associations for a specific repository
+   */
+  getGlobalAssociationsForRepository(repositoryPath: string): GlobalBranchAssociation[] {
+    const normalizedPath = path.resolve(repositoryPath);
+    const associations = this.getAllGlobalAssociations();
+    const filtered = associations.filter((a) => path.resolve(a.repositoryPath) === normalizedPath);
+    
+    logger.debug(`[BranchAssociation] Looking for associations in: ${normalizedPath}`);
+    logger.debug(`[BranchAssociation] Total global associations: ${associations.length}`);
+    logger.debug(`[BranchAssociation] Matching associations: ${filtered.length}`);
+    
+    return filtered;
+  }
+
+  /**
+   * Associate a branch globally (across workspaces)
+   */
+  async associateBranchGlobally(
+    ticketId: string,
+    branchName: string,
+    repository: string,
+    repositoryPath: string,
+    isAutoDetected: boolean = false
+  ): Promise<boolean> {
+    try {
+      const associations = this.getAllGlobalAssociations();
+      
+      // Remove any existing association for this ticket
+      const filtered = associations.filter((a) => a.ticketId !== ticketId);
+      
+      // Add the new association
+      filtered.push({
+        ticketId,
+        branchName,
+        repository,
+        repositoryPath: path.resolve(repositoryPath),
+        lastUpdated: new Date().toISOString(),
+        isAutoDetected,
+      });
+      
+      await this.context.globalState.update(
+        BranchAssociationManager.GLOBAL_STORAGE_KEY,
+        filtered
+      );
+      
+      // Also add to global history
+      await this.addToGlobalHistory(ticketId, branchName, repository, repositoryPath);
+      
+      logger.info(
+        `Globally associated ${ticketId} with branch: ${branchName} in ${repository}`
+      );
+      logger.debug(`[BranchAssociation] Saved to globalState. Total: ${filtered.length} associations`);
+      logger.debug(`[BranchAssociation] Repository path: ${path.resolve(repositoryPath)}`);
+      return true;
+    } catch (error) {
+      logger.error("Failed to associate branch globally", error);
+      return false;
+    }
+  }
+
+  /**
+   * Remove a global association
+   */
+  async removeGlobalAssociation(ticketId: string): Promise<boolean> {
+    try {
+      const associations = this.getAllGlobalAssociations();
+      const filtered = associations.filter((a) => a.ticketId !== ticketId);
+      
+      await this.context.globalState.update(
+        BranchAssociationManager.GLOBAL_STORAGE_KEY,
+        filtered
+      );
+      
+      logger.info(`Removed global association for ${ticketId}`);
+      return true;
+    } catch (error) {
+      logger.error("Failed to remove global association", error);
+      return false;
+    }
+  }
+
+  /**
+   * Add to global history
+   */
+  private async addToGlobalHistory(
+    ticketId: string,
+    branchName: string,
+    repository: string,
+    repositoryPath: string,
+    isActive: boolean = true
+  ): Promise<void> {
+    try {
+      const allHistory = this.context.globalState.get<BranchHistory[]>(
+        BranchAssociationManager.GLOBAL_HISTORY_KEY
+      ) || [];
+      
+      let ticketHistory = allHistory.find((h) => h.ticketId === ticketId);
+      
+      if (!ticketHistory) {
+        ticketHistory = {
+          ticketId,
+          branches: [],
+        };
+        allHistory.push(ticketHistory);
+      }
+      
+      if (isActive) {
+        ticketHistory.branches.forEach((b) => (b.isActive = false));
+      }
+      
+      const existingBranch = ticketHistory.branches.find(
+        (b) => b.branchName === branchName && b.repositoryPath === repositoryPath
+      );
+      
+      if (existingBranch) {
+        existingBranch.lastUsed = new Date().toISOString();
+        existingBranch.isActive = isActive;
+      } else {
+        ticketHistory.branches.push({
+          branchName,
+          associatedAt: new Date().toISOString(),
+          lastUsed: new Date().toISOString(),
+          isActive,
+          repository,
+          repositoryPath,
+        });
+      }
+      
+      ticketHistory.branches.sort(
+        (a, b) =>
+          new Date(b.lastUsed).getTime() - new Date(a.lastUsed).getTime()
+      );
+      
+      await this.context.globalState.update(
+        BranchAssociationManager.GLOBAL_HISTORY_KEY,
+        allHistory
+      );
+    } catch (error) {
+      logger.error("Failed to update global branch history", error);
+    }
+  }
+
+  /**
+   * Check if a ticket's branch is in a different repository
+   */
+  async isTicketInDifferentRepository(ticketId: string): Promise<{
+    isDifferent: boolean;
+    repository?: string;
+    repositoryPath?: string;
+    branchName?: string;
+  }> {
+    const globalAssoc = this.getGlobalAssociationForTicket(ticketId);
+    if (!globalAssoc) {
+      return { isDifferent: false };
+    }
+    
+    const currentPath = this.getCurrentWorkspacePath();
+    if (!currentPath) {
+      return { isDifferent: false };
+    }
+    
+    const isDifferent = path.resolve(currentPath) !== path.resolve(globalAssoc.repositoryPath);
+    
+    return {
+      isDifferent,
+      repository: globalAssoc.repository,
+      repositoryPath: globalAssoc.repositoryPath,
+      branchName: globalAssoc.branchName,
+    };
+  }
+
+  /**
+   * Migrate workspace associations to global storage
+   */
+  async migrateToGlobalStorage(): Promise<number> {
+    const workspaceAssociations = this.getAllAssociations();
+    const workspacePath = this.getCurrentWorkspacePath();
+    const repositoryId = this.getRepositoryId();
+    
+    if (!workspacePath) {
+      return 0;
+    }
+    
+    let migratedCount = 0;
+    
+    for (const assoc of workspaceAssociations) {
+      // Only migrate if not already in global storage
+      const existing = this.getGlobalAssociationForTicket(assoc.ticketId);
+      if (!existing) {
+        await this.associateBranchGlobally(
+          assoc.ticketId,
+          assoc.branchName,
+          repositoryId,
+          workspacePath,
+          assoc.isAutoDetected
+        );
+        migratedCount++;
+      }
+    }
+    
+    logger.info(`Migrated ${migratedCount} associations to global storage`);
+    return migratedCount;
   }
 
   /**
@@ -224,14 +506,96 @@ export class BranchAssociationManager {
   }
 
   /**
-   * Get all branch associations
+   * Get all branch associations (workspace-level + global when using "both" or "global" storage mode)
+   * 
+   * When using "both" or "global" mode, returns ALL global associations (not filtered by repo)
+   * so users can see associations from all their projects and context-switch easily.
    */
   getAllAssociations(): BranchAssociation[] {
-    return (
-      this.context.workspaceState.get<BranchAssociation[]>(
+    // If storage mode is "global" only, read ALL global associations
+    if (this.storageMode === "global") {
+      return this.getAllGlobalAssociations().map(g => ({
+        ticketId: g.ticketId,
+        branchName: g.branchName,
+        lastUpdated: g.lastUpdated,
+        isAutoDetected: g.isAutoDetected,
+        repository: g.repository,
+        repositoryPath: g.repositoryPath,
+      }));
+    }
+    
+    const workspaceAssociations = this.context.workspaceState.get<BranchAssociation[]>(
+      BranchAssociationManager.STORAGE_KEY
+    ) || [];
+    
+    // If storage mode is "both", merge workspace with ALL global associations
+    if (this.storageMode === "both") {
+      const globalAssociations = this.getAllGlobalAssociations();
+      
+      // Merge, preferring workspace associations for duplicates
+      const workspaceTicketIds = new Set(workspaceAssociations.map(a => a.ticketId));
+      const mergedGlobal = globalAssociations
+        .filter(g => !workspaceTicketIds.has(g.ticketId))
+        .map(g => ({
+          ticketId: g.ticketId,
+          branchName: g.branchName,
+          lastUpdated: g.lastUpdated,
+          isAutoDetected: g.isAutoDetected,
+          repository: g.repository,
+          repositoryPath: g.repositoryPath,
+        }));
+      
+      return [...workspaceAssociations, ...mergedGlobal];
+    }
+    
+    return workspaceAssociations;
+  }
+
+  /**
+   * Get associations only for the current repository (for UI filtering if needed)
+   */
+  getAssociationsForCurrentRepo(): BranchAssociation[] {
+    const currentPath = this.getCurrentWorkspacePath();
+    if (!currentPath) {
+      return [];
+    }
+    
+    if (this.storageMode === "global" || this.storageMode === "both") {
+      return this.getGlobalAssociationsForRepository(currentPath).map(g => ({
+        ticketId: g.ticketId,
+        branchName: g.branchName,
+        lastUpdated: g.lastUpdated,
+        isAutoDetected: g.isAutoDetected,
+        repository: g.repository,
+        repositoryPath: g.repositoryPath,
+      }));
+    }
+    
+    return this.context.workspaceState.get<BranchAssociation[]>(
+      BranchAssociationManager.STORAGE_KEY
+    ) || [];
+  }
+
+  /**
+   * Check if a ticket's branch is in the current repository
+   */
+  isTicketInCurrentRepo(ticketId: string): boolean {
+    const currentPath = this.getCurrentWorkspacePath();
+    if (!currentPath) {
+      return false;
+    }
+    
+    const globalAssoc = this.getGlobalAssociationForTicket(ticketId);
+    if (!globalAssoc) {
+      // Check workspace associations
+      const workspaceAssoc = (this.context.workspaceState.get<BranchAssociation[]>(
         BranchAssociationManager.STORAGE_KEY
-      ) || []
-    );
+      ) || []).find(a => a.ticketId === ticketId);
+      
+      return !!workspaceAssoc; // If in workspace, it's current repo
+    }
+    
+    return path.resolve(globalAssoc.repositoryPath) === path.resolve(currentPath);
   }
 
   /**
@@ -261,35 +625,56 @@ export class BranchAssociationManager {
     isAutoDetected: boolean = false
   ): Promise<boolean> {
     try {
-      const associations = this.getAllAssociations();
+      const workspacePath = this.getCurrentWorkspacePath();
+      const repositoryId = this.getRepositoryId();
+      
+      // Save to workspace state
+      if (this.storageMode === "workspace" || this.storageMode === "both") {
+        const workspaceAssociations = this.context.workspaceState.get<BranchAssociation[]>(
+          BranchAssociationManager.STORAGE_KEY
+        ) || [];
 
-      // Remove any existing association for this ticket
-      const filtered = associations.filter((a) => a.ticketId !== ticketId);
+        // Remove any existing association for this ticket
+        const filtered = workspaceAssociations.filter((a) => a.ticketId !== ticketId);
 
-      // Add the new association
-      filtered.push({
-        ticketId,
-        branchName,
-        lastUpdated: new Date().toISOString(),
-        isAutoDetected,
-      });
+        // Add the new association
+        filtered.push({
+          ticketId,
+          branchName,
+          lastUpdated: new Date().toISOString(),
+          isAutoDetected,
+          repository: repositoryId,
+          repositoryPath: workspacePath,
+        });
 
-      await this.context.workspaceState.update(
-        BranchAssociationManager.STORAGE_KEY,
-        filtered
-      );
+        await this.context.workspaceState.update(
+          BranchAssociationManager.STORAGE_KEY,
+          filtered
+        );
 
-      // Update history
-      await this.addToHistory(ticketId, branchName);
+        // Update workspace history
+        await this.addToHistory(ticketId, branchName);
+      }
 
-      getLogger().info(
+      // Save to global state if multi-repo enabled or storage mode includes global
+      if ((this.storageMode === "global" || this.storageMode === "both") && workspacePath) {
+        await this.associateBranchGlobally(
+          ticketId,
+          branchName,
+          repositoryId,
+          workspacePath,
+          isAutoDetected
+        );
+      }
+
+      logger.info(
         `Associated ${ticketId} with branch: ${branchName}${
           isAutoDetected ? " (auto-detected)" : ""
         }`
       );
       return true;
     } catch (error) {
-      console.error("[DevBuddy] Failed to associate branch:", error);
+      logger.error("Failed to associate branch", error);
       return false;
     }
   }
@@ -299,25 +684,35 @@ export class BranchAssociationManager {
    */
   async removeAssociation(ticketId: string): Promise<boolean> {
     try {
-      const associations = this.getAllAssociations();
-      const existing = associations.find((a) => a.ticketId === ticketId);
+      // Remove from workspace state
+      if (this.storageMode === "workspace" || this.storageMode === "both") {
+        const workspaceAssociations = this.context.workspaceState.get<BranchAssociation[]>(
+          BranchAssociationManager.STORAGE_KEY
+        ) || [];
+        const existing = workspaceAssociations.find((a) => a.ticketId === ticketId);
 
-      if (existing) {
-        // Mark as disassociated in history
-        await this.markDisassociatedInHistory(ticketId, existing.branchName);
+        if (existing) {
+          // Mark as disassociated in history
+          await this.markDisassociatedInHistory(ticketId, existing.branchName);
+        }
+
+        const filtered = workspaceAssociations.filter((a) => a.ticketId !== ticketId);
+
+        await this.context.workspaceState.update(
+          BranchAssociationManager.STORAGE_KEY,
+          filtered
+        );
       }
 
-      const filtered = associations.filter((a) => a.ticketId !== ticketId);
+      // Remove from global state
+      if (this.storageMode === "global" || this.storageMode === "both") {
+        await this.removeGlobalAssociation(ticketId);
+      }
 
-      await this.context.workspaceState.update(
-        BranchAssociationManager.STORAGE_KEY,
-        filtered
-      );
-
-      getLogger().info(`Removed association for ${ticketId}`);
+      logger.info(`Removed association for ${ticketId}`);
       return true;
     } catch (error) {
-      getLogger().error("Failed to remove association", error);
+      logger.error("Failed to remove association", error);
       return false;
     }
   }
@@ -612,30 +1007,70 @@ export class BranchAssociationManager {
    */
   async cleanupStaleAssociations(): Promise<number> {
     try {
-      const associations = this.getAllAssociations();
-      const validAssociations: BranchAssociation[] = [];
+      let removedCount = 0;
+      
+      // Clean up workspace associations
+      if (this.storageMode === "workspace" || this.storageMode === "both") {
+        const workspaceAssociations = this.context.workspaceState.get<BranchAssociation[]>(
+          BranchAssociationManager.STORAGE_KEY
+        ) || [];
+        const validWorkspaceAssociations: BranchAssociation[] = [];
 
-      for (const association of associations) {
-        const exists = await this.verifyBranchExists(association.branchName);
-        if (exists) {
-          validAssociations.push(association);
+        for (const association of workspaceAssociations) {
+          const exists = await this.verifyBranchExists(association.branchName);
+          if (exists) {
+            validWorkspaceAssociations.push(association);
+          }
+        }
+
+        const workspaceRemovedCount = workspaceAssociations.length - validWorkspaceAssociations.length;
+        if (workspaceRemovedCount > 0) {
+          await this.context.workspaceState.update(
+            BranchAssociationManager.STORAGE_KEY,
+            validWorkspaceAssociations
+          );
+          removedCount += workspaceRemovedCount;
         }
       }
 
-      const removedCount = associations.length - validAssociations.length;
+      // Clean up global associations for current repository
+      if (this.storageMode === "global" || this.storageMode === "both") {
+        const currentPath = this.getCurrentWorkspacePath();
+        if (currentPath) {
+          const globalAssociations = this.getAllGlobalAssociations();
+          const validGlobalAssociations: GlobalBranchAssociation[] = [];
+          
+          for (const association of globalAssociations) {
+            // Only verify branches in the current repository
+            if (path.resolve(association.repositoryPath) === path.resolve(currentPath)) {
+              const exists = await this.verifyBranchExists(association.branchName);
+              if (exists) {
+                validGlobalAssociations.push(association);
+              } else {
+                removedCount++;
+              }
+            } else {
+              // Keep associations from other repositories
+              validGlobalAssociations.push(association);
+            }
+          }
+          
+          if (globalAssociations.length !== validGlobalAssociations.length) {
+            await this.context.globalState.update(
+              BranchAssociationManager.GLOBAL_STORAGE_KEY,
+              validGlobalAssociations
+            );
+          }
+        }
+      }
+
       if (removedCount > 0) {
-        await this.context.workspaceState.update(
-          BranchAssociationManager.STORAGE_KEY,
-          validAssociations
-        );
-        getLogger().info(
-          `Cleaned up ${removedCount} stale branch associations`
-        );
+        logger.info(`Cleaned up ${removedCount} stale branch associations`);
       }
 
       return removedCount;
     } catch (error) {
-      console.error("[DevBuddy] Failed to cleanup associations:", error);
+      logger.error("Failed to cleanup associations", error);
       return 0;
     }
   }

@@ -240,3 +240,19 @@
 .warningIcon {
   color: var(--vscode-editorWarning-foreground);
 }
+
+.differentRepo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  background: var(--vscode-inputValidation-infoBackground, rgba(0, 122, 204, 0.1));
+  border: 1px solid var(--vscode-inputValidation-infoBorder, rgba(0, 122, 204, 0.4));
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--vscode-inputValidation-infoForeground, var(--vscode-foreground));
+}
+
+.repoIcon {
+  font-size: 14px;
+}
