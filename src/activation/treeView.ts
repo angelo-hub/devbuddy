@@ -4,6 +4,11 @@ import { getLogger } from "@shared/utils/logger";
 import { debounce } from "@shared/utils/debounce";
 
 /**
+ * Debounce delay for tree view refresh on visibility changes (in milliseconds)
+ */
+const TREE_VIEW_REFRESH_DEBOUNCE_MS = 500;
+
+/**
  * Register the tickets tree view (sidebar)
  */
 export async function registerTreeView(context: vscode.ExtensionContext): Promise<UniversalTicketsProvider | undefined> {
@@ -30,7 +35,7 @@ export async function registerTreeView(context: vscode.ExtensionContext): Promis
         ticketsProvider?.refresh();
         hasInitialData = true;
       }
-    }, 500);
+    }, TREE_VIEW_REFRESH_DEBOUNCE_MS);
 
     // Trigger refresh when the tree view becomes visible (debounced)
     treeView.onDidChangeVisibility((e) => {
