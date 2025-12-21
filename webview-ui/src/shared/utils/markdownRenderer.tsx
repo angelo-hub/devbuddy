@@ -372,7 +372,7 @@ export function renderMarkdown(markdown: string | undefined, options?: MarkdownR
         flushList();
         const level = headingMatch[1].length;
         const content = headingMatch[2];
-        const Tag = `h${level}` as keyof JSX.IntrinsicElements;
+        const Tag = `h${level}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
         elements.push(
           <Tag key={key++} style={{ marginBottom: "8px", marginTop: "16px" }}>
             {parseInlineMarkdown(content, options)}

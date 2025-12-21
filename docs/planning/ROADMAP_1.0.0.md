@@ -325,10 +325,20 @@ Features from Linear/Jira web UIs that would add significant value.
 
 | Task | Priority | Effort | Status |
 |------|----------|--------|--------|
+| **React 19 upgrade** with React Compiler | 🟡 P1 | 🟡 | ✅ Done |
 | **Zustand state management** for all webviews | 🟡 P1 | 🟡 | ✅ Done |
 | **Cross-panel synchronization** (sync updates between open panels) | 🟢 P2 | 🟡 | ⬜ Not Started |
 | **Panel registry** in extension host | 🟢 P2 | 🟢 | ⬜ Not Started |
 | **Broadcast state changes** to all panels showing same ticket | 🟢 P2 | 🟢 | ⬜ Not Started |
+
+#### React 19 + React Compiler
+
+Upgraded from React 18 to React 19 with the React Compiler for automatic memoization:
+
+- **React 19.2.3** - Latest stable with improved performance
+- **React Compiler 1.0** - Automatic memoization without manual `useMemo`/`useCallback`
+- **Babel integration** - Custom esbuild plugin for React Compiler transformation
+- **Build flag** - Use `--no-compiler` to disable for debugging
 
 #### Cross-Panel Sync Architecture
 

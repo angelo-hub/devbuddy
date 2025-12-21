@@ -12,7 +12,8 @@
   "plugins": [
     "@typescript-eslint",
     "react",
-    "react-hooks"
+    "react-hooks",
+    "react-compiler"
   ],
   "extends": [
     "eslint:recommended",
@@ -81,7 +82,8 @@
         "react/react-in-jsx-scope": "off",
         "react/prop-types": "off",
         "react-hooks/rules-of-hooks": "error",
-        "react-hooks/exhaustive-deps": "warn"
+        "react-hooks/exhaustive-deps": "warn",
+        "react-compiler/react-compiler": "error"
       }
     },
     {

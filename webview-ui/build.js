@@ -1,12 +1,15 @@
 const esbuild = require("esbuild");
 const path = require("path");
 const fs = require("fs");
+const babel = require("@babel/core");
 
 const production = process.argv.includes("--production");
 const watch = process.argv.includes("--watch");
 const analyze = process.argv.includes("--analyze");
 // Use ESM with code splitting for smaller total bundle size (~77% reduction)
 const useCodeSplitting = process.argv.includes("--split");
+// Enable React Compiler (can be disabled for debugging)
+const useReactCompiler = !process.argv.includes("--no-compiler");
 
 /**
  * @type {import('esbuild').Plugin}
@@ -167,6 +170,98 @@ const analyzePlugin = {
   },
 };
 
+/**
+ * Create React Compiler babel plugin for esbuild
+ * Uses babel-plugin-react-compiler for automatic memoization
+ * @type {import('esbuild').Plugin}
+ */
+const reactCompilerPlugin = {
+  name: "react-compiler",
+  setup(build) {
+    // Only process TypeScript/JavaScript React files
+    build.onLoad({ filter: /\.[jt]sx$/ }, async (args) => {
+      const source = await fs.promises.readFile(args.path, "utf8");
+      
+      try {
+        const result = await babel.transformAsync(source, {
+          filename: args.path,
+          presets: [
+            ["@babel/preset-react", { runtime: "automatic" }],
+            ["@babel/preset-typescript", { isTSX: true, allExtensions: true }],
+          ],
+          plugins: [
+            ["babel-plugin-react-compiler", {
+              // React Compiler configuration
+              // See: https://react.dev/learn/react-compiler
+            }],
+          ],
+          sourceMaps: false,
+        });
+        
+        return {
+          contents: result.code,
+          loader: "js", // Output is already JavaScript
+        };
+      } catch (error) {
+        return {
+          errors: [{
+            text: error.message,
+            location: {
+              file: args.path,
+              line: error.loc?.line,
+              column: error.loc?.column,
+            },
+          }],
+        };
+      }
+    });
+    
+    // Handle .ts files (non-JSX TypeScript)
+    build.onLoad({ filter: /\.ts$/ }, async (args) => {
+      // Skip .d.ts files
+      if (args.path.endsWith(".d.ts")) return null;
+      
+      const source = await fs.promises.readFile(args.path, "utf8");
+      
+      try {
+        const result = await babel.transformAsync(source, {
+          filename: args.path,
+          presets: [
+            ["@babel/preset-typescript"],
+          ],
+          sourceMaps: false,
+        });
+        
+        return {
+          contents: result.code,
+          loader: "js",
+        };
+      } catch (error) {
+        return {
+          errors: [{
+            text: error.message,
+            location: {
+              file: args.path,
+              line: error.loc?.line,
+              column: error.loc?.column,
+            },
+          }],
+        };
+      }
+    });
+  },
+};
+
+function getReactCompilerPlugin() {
+  if (!useReactCompiler) {
+    console.log("⚠️  React Compiler disabled (--no-compiler flag)");
+    return null;
+  }
+  
+  console.log("⚛️  React 19 + React Compiler enabled");
+  return reactCompilerPlugin;
+}
+
 async function main() {
   // Ensure output directory exists
   const outDir = path.resolve(__dirname, "build");
@@ -204,6 +299,8 @@ async function main() {
     plugins: [
       pathAliasPlugin,
       cssModulesPlugin,
+      // React Compiler with Babel (handles JSX/TSX transformation)
+      ...(useReactCompiler ? [getReactCompilerPlugin()].filter(Boolean) : []),
       esbuildProblemMatcherPlugin,
       ...(analyze ? [analyzePlugin] : []),
     ],
@@ -212,7 +309,8 @@ async function main() {
       ".tsx": "tsx",
       ".ts": "ts",
     },
-    jsx: "automatic",
+    // Only use esbuild's JSX when React Compiler is disabled
+    ...(useReactCompiler ? {} : { jsx: "automatic" }),
     resolveExtensions: [".tsx", ".ts", ".jsx", ".js", ".css", ".json"],
   };
 

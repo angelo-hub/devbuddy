@@ -215,7 +215,7 @@ function renderPlainCodeBlock(code: string, key: number): React.ReactNode {
 function renderHeading(node: ADFNode, key: number): React.ReactNode {
   const level = node.attrs?.level || 1;
   const content = node.content?.map((child, idx) => renderNode(child, idx));
-  const Tag = `h${level}` as keyof JSX.IntrinsicElements;
+  const Tag = `h${level}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 
   return (
     <Tag key={key} style={{ marginBottom: "8px", marginTop: "16px" }}>
