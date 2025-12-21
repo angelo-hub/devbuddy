@@ -19,7 +19,6 @@ import { BranchAssociationManager } from "@shared/git/branchAssociationManager";
 import { getCurrentPlatform } from "@shared/utils/platformDetector";
 import { JiraStandupDataProvider } from "@providers/jira/JiraStandupDataProvider";
 import { JiraCreateTicketPanel } from "@providers/jira/cloud/JiraCreateTicketPanel";
-import { JiraIssue } from "@providers/jira/common/types";
 import { JiraIssuePanel } from "@providers/jira/cloud/JiraIssuePanel";
 import { JiraCloudClient } from "@providers/jira/cloud/JiraCloudClient";
 
@@ -27,6 +26,7 @@ import { JiraCloudClient } from "@providers/jira/cloud/JiraCloudClient";
 import { registerLinearCommands } from "./linear";
 import { registerJiraCommands } from "./jira";
 import { registerCommonCommands } from "./common";
+import { registerBranchCommands } from "./branch";
 
 /**
  * Register all commands for the extension
@@ -178,6 +178,7 @@ export function registerAllCommands(
   registerLinearCommands(context, ticketsProvider);
   registerJiraCommands(context, ticketsProvider);
   registerCommonCommands(context, ticketsProvider);
+  registerBranchCommands(context, ticketsProvider);
 
   logger.success("All commands registered!");
 }
