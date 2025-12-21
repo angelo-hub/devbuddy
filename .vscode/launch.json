@@ -157,6 +157,23 @@
         "${workspaceFolder}/out/test/**/*.js"
       ],
       "preLaunchTask": "${defaultBuildTask}"
+    },
+    {
+      "name": "Test Packaged Extension (Simulate VSIX)",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--disable-extensions"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/out/**/*.js"
+      ],
+      "preLaunchTask": "Build Production Version",
+      "env": {
+        "NODE_ENV": "production",
+        "VSCODE_DEV": "false"
+      }
     }
   ]
 }
