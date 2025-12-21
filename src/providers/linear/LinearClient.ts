@@ -759,6 +759,13 @@ export class LinearClient extends BaseTicketProvider<
       return null;
     }
 
+    // Validate type to prevent injection - only allow specific enum values
+    const validTypes = ["blocks", "blocked_by", "related", "duplicate", "duplicate_of"];
+    if (!validTypes.includes(type)) {
+      logger.error(`[Linear] Invalid relation type: ${type}`);
+      return null;
+    }
+
     const mutation = `
       mutation {
         issueRelationCreate(
@@ -886,13 +893,18 @@ export class LinearClient extends BaseTicketProvider<
       return [];
     }
 
+    // Escape special characters in search term to prevent GraphQL injection
+    const escapedSearchTerm = searchTerm
+      .replace(/\\/g, '\\\\')  // Escape backslashes
+      .replace(/"/g, '\\"');    // Escape quotes
+
     // Get all users from the organization
     const query = `
       query {
         users(filter: { 
           or: [
-            { name: { containsIgnoreCase: "${searchTerm}" } },
-            { email: { containsIgnoreCase: "${searchTerm}" } }
+            { name: { containsIgnoreCase: "${escapedSearchTerm}" } },
+            { email: { containsIgnoreCase: "${escapedSearchTerm}" } }
           ]
         }) {
           nodes {
@@ -927,14 +939,19 @@ export class LinearClient extends BaseTicketProvider<
       return [];
     }
 
+    // Escape special characters in search term to prevent GraphQL injection
+    const escapedSearchTerm = searchTerm
+      .replace(/\\/g, '\\\\')  // Escape backslashes
+      .replace(/"/g, '\\"');    // Escape quotes
+
     // Build filter: search by identifier or title containing the search term
     const query = `
       query {
         issues(
           filter: {
             or: [
-              { identifier: { containsIgnoreCase: "${searchTerm}" } },
-              { title: { containsIgnoreCase: "${searchTerm}" } }
+              { identifier: { containsIgnoreCase: "${escapedSearchTerm}" } },
+              { title: { containsIgnoreCase: "${escapedSearchTerm}" } }
             ]
           }
           first: ${limit}

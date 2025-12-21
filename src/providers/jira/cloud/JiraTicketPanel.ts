@@ -577,8 +577,20 @@ export class JiraTicketPanel {
     }
 
     try {
+      // Escape special characters in JQL search term to prevent injection
+      // JQL requires escaping of: \ " ' space
+      const escapeJQL = (term: string): string => {
+        return term
+          .replace(/\\/g, '\\\\')    // Escape backslashes first
+          .replace(/"/g, '\\"')       // Escape double quotes
+          .replace(/'/g, "\\'")       // Escape single quotes
+          .replace(/\s/g, '\\ ');     // Escape spaces
+      };
+
+      const escapedSearchTerm = escapeJQL(searchTerm);
+
       // Search using JQL: key or summary contains the search term
-      const jql = `(key ~ "${searchTerm}" OR summary ~ "${searchTerm}") ORDER BY updated DESC`;
+      const jql = `(key ~ "${escapedSearchTerm}" OR summary ~ "${escapedSearchTerm}") ORDER BY updated DESC`;
       const searchResults = await this._jiraClient.searchIssues({
         jql,
         maxResults: 20,
