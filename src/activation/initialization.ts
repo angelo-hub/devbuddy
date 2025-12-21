@@ -5,6 +5,7 @@ import { getLogger } from "@shared/utils/logger";
 import { getTelemetryManager } from "@shared/utils/telemetryManager";
 import { loadDevCredentials, showDevModeWarning } from "@shared/utils/devEnvLoader";
 import { AIProviderManager } from "@shared/ai/aiProviderManager";
+import { initializeNetworkMonitor } from "@shared/http";
 
 /**
  * Initialize core services and storage
@@ -50,6 +51,14 @@ export async function initializeCoreServices(context: vscode.ExtensionContext): 
     logger.debug("AI Provider Manager initialized");
   } catch (error) {
     logger.error("Failed to initialize AI Provider Manager (non-critical)", error);
+  }
+  
+  // Initialize Network Monitor for API health tracking
+  try {
+    initializeNetworkMonitor(context);
+    logger.debug("Network Monitor initialized");
+  } catch (error) {
+    logger.error("Failed to initialize Network Monitor (non-critical)", error);
   }
   
   // Initialize Branch Association Manager

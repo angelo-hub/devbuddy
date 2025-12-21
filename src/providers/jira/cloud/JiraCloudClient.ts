@@ -10,6 +10,7 @@
 
 import * as vscode from "vscode";
 import { BaseJiraClient } from "../common/BaseJiraClient";
+import { TTL } from "@shared/http";
 import {
   JiraIssue,
   JiraProject,
@@ -427,6 +428,9 @@ export class JiraCloudClient extends BaseJiraClient {
 
       logger.success(`Created Jira issue: ${validated.key}`);
 
+      // Invalidate cache after creating a new issue
+      this.invalidateAfterMutation(validated.key);
+
       // Fetch the full issue details
       return this.getIssue(validated.key);
     } catch (error) {
@@ -528,7 +532,11 @@ export class JiraCloudClient extends BaseJiraClient {
       await this.request(`/issue/${key}`, {
         method: "PUT",
         body: JSON.stringify({ fields }),
+        skipCache: true,
       });
+
+      // Invalidate cache after updating issue
+      this.invalidateAfterMutation(key);
 
       logger.success(`Updated Jira issue: ${key}`);
       return true;
@@ -581,7 +589,11 @@ export class JiraCloudClient extends BaseJiraClient {
         body: JSON.stringify({
           transition: { id: transitionId },
         }),
+        skipCache: true,
       });
+
+      // Invalidate cache after transition
+      this.invalidateAfterMutation(key);
 
       logger.success(`Transitioned issue ${key}`);
       return true;
@@ -639,7 +651,11 @@ export class JiraCloudClient extends BaseJiraClient {
     try {
       await this.request(`/issue/${key}`, {
         method: "DELETE",
+        skipCache: true,
       });
+
+      // Invalidate cache after deletion
+      this.invalidateAfterMutation(key);
 
       logger.success(`Deleted issue ${key}`);
       return true;
@@ -662,8 +678,10 @@ export class JiraCloudClient extends BaseJiraClient {
       let isLast = false;
 
       while (!isLast) {
+        // Projects rarely change, cache for 15 minutes
         const response = await this.request<unknown>(
-          `/project/search?startAt=${startAt}&maxResults=${maxResults}`
+          `/project/search?startAt=${startAt}&maxResults=${maxResults}`,
+          { ttl: TTL.LONG }
         );
 
         // Validate response with Zod
@@ -805,8 +823,10 @@ export class JiraCloudClient extends BaseJiraClient {
    */
   async getIssueTypes(projectKeyOrId: string): Promise<JiraIssueType[]> {
     try {
+      // Issue types rarely change, cache for 30 minutes
       const response = await this.request<unknown>(
-        `/issuetype/project?projectId=${projectKeyOrId}`
+        `/issuetype/project?projectId=${projectKeyOrId}`,
+        { ttl: TTL.VERY_LONG }
       );
 
       // Validate response with Zod
@@ -834,7 +854,8 @@ export class JiraCloudClient extends BaseJiraClient {
    */
   async getPriorities(): Promise<JiraPriority[]> {
     try {
-      const response = await this.request<unknown>("/priority");
+      // Priorities rarely change, cache for 30 minutes
+      const response = await this.request<unknown>("/priority", { ttl: TTL.VERY_LONG });
 
       // Validate response with Zod
       const validated = JiraPrioritiesResponseSchema.parse(response);
@@ -859,8 +880,10 @@ export class JiraCloudClient extends BaseJiraClient {
    */
   async getStatuses(projectKey: string): Promise<JiraStatus[]> {
     try {
+      // Statuses rarely change, cache for 15 minutes
       const response = await this.request<unknown>(
-        `/project/${projectKey}/statuses`
+        `/project/${projectKey}/statuses`,
+        { ttl: TTL.LONG }
       );
 
       // Validate response with Zod

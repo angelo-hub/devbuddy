@@ -1,7 +1,16 @@
 import * as vscode from "vscode";
 import { BaseTicketProvider, CreateTicketInput, TicketFilter } from "@shared/base/BaseTicketProvider";
 import { getLogger } from "@shared/utils/logger";
+import {
+  getHttpClient,
+  TTLCache,
+  TTL,
+  generateQueryCacheKey,
+  HttpError,
+} from "@shared/http";
 import { LinearIssue, LinearUser, LinearProject, LinearTeam, LinearTemplate } from "./types";
+
+const logger = getLogger();
 
 export class LinearClient extends BaseTicketProvider<
   LinearIssue,
@@ -14,10 +23,18 @@ export class LinearClient extends BaseTicketProvider<
   private apiToken: string;
   private baseUrl = "https://api.linear.app/graphql";
   private static secretStorage: vscode.SecretStorage | undefined;
+  
+  /** Cache for API responses */
+  private cache: TTLCache;
 
   constructor(apiToken?: string) {
     super();
     this.apiToken = apiToken || "";
+    // Initialize cache with default settings
+    this.cache = new TTLCache({
+      defaultTTL: TTL.MEDIUM, // 2 minutes default
+      maxSize: 150,
+    });
   }
 
   /**
@@ -393,10 +410,14 @@ export class LinearClient extends BaseTicketProvider<
     `;
 
     try {
-      const response = await this.executeQuery(mutation);
+      const response = await this.executeQuery(mutation, { skipCache: true });
+      if (response.data.issueUpdate.success) {
+        // Invalidate cached issue data after successful update
+        this.invalidateCache("issue");
+      }
       return response.data.issueUpdate.success;
     } catch (error) {
-      console.error(`[Linear Buddy] Failed to update issue status:`, error);
+      logger.error(`[Linear] Failed to update issue status:`, error);
       return false;
     }
   }
@@ -423,10 +444,10 @@ export class LinearClient extends BaseTicketProvider<
     `;
 
     try {
-      const response = await this.executeQuery(mutation);
+      const response = await this.executeQuery(mutation, { skipCache: true });
       return response.data.commentCreate.success;
     } catch (error) {
-      console.error(`[Linear Buddy] Failed to add comment:`, error);
+      logger.error(`[Linear] Failed to add comment:`, error);
       return false;
     }
   }
@@ -455,10 +476,13 @@ export class LinearClient extends BaseTicketProvider<
     `;
 
     try {
-      const response = await this.executeQuery(mutation);
+      const response = await this.executeQuery(mutation, { skipCache: true });
+      if (response.data.issueUpdate.success) {
+        this.invalidateCache("issue");
+      }
       return response.data.issueUpdate.success;
     } catch (error) {
-      console.error(`[Linear Buddy] Failed to update issue title:`, error);
+      logger.error(`[Linear] Failed to update issue title:`, error);
       return false;
     }
   }
@@ -499,13 +523,13 @@ export class LinearClient extends BaseTicketProvider<
     `;
 
     try {
-      const response = await this.executeQuery(mutation);
+      const response = await this.executeQuery(mutation, { skipCache: true });
+      if (response.data.issueUpdate.success) {
+        this.invalidateCache("issue");
+      }
       return response.data.issueUpdate.success;
     } catch (error) {
-      console.error(
-        `[Linear Buddy] Failed to update issue description:`,
-        error
-      );
+      logger.error(`[Linear] Failed to update issue description:`, error);
       return false;
     }
   }
@@ -542,10 +566,13 @@ export class LinearClient extends BaseTicketProvider<
     `;
 
     try {
-      const response = await this.executeQuery(mutation);
+      const response = await this.executeQuery(mutation, { skipCache: true });
+      if (response.data.issueUpdate.success) {
+        this.invalidateCache("issue");
+      }
       return response.data.issueUpdate.success;
     } catch (error) {
-      console.error(`[Linear Buddy] Failed to update issue assignee:`, error);
+      logger.error(`[Linear] Failed to update issue assignee:`, error);
       return false;
     }
   }
@@ -589,10 +616,13 @@ export class LinearClient extends BaseTicketProvider<
     `;
 
     try {
-      const response = await this.executeQuery(mutation);
+      const response = await this.executeQuery(mutation, { skipCache: true });
+      if (response.data.issueUpdate.success) {
+        this.invalidateCache("issue");
+      }
       return response.data.issueUpdate.success;
     } catch (error) {
-      console.error(`[Linear Buddy] Failed to update issue labels:`, error);
+      logger.error(`[Linear] Failed to update issue labels:`, error);
       return false;
     }
   }
@@ -636,7 +666,8 @@ export class LinearClient extends BaseTicketProvider<
     `;
 
     try {
-      const response = await this.executeQuery(query);
+      // Cycles are metadata, cache for 15 minutes
+      const response = await this.executeQuery(query, { ttl: TTL.LONG });
       const activeCycles = response.data.team.cycles?.nodes || [];
       const upcomingCycles = response.data.team.upcomingCycles?.nodes || [];
       // Combine and deduplicate
@@ -646,7 +677,7 @@ export class LinearClient extends BaseTicketProvider<
       );
       return uniqueCycles;
     } catch (error) {
-      console.error(`[Linear Buddy] Failed to fetch cycles:`, error);
+      logger.error(`[Linear] Failed to fetch cycles:`, error);
       return [];
     }
   }
@@ -684,10 +715,13 @@ export class LinearClient extends BaseTicketProvider<
     `;
 
     try {
-      const response = await this.executeQuery(mutation);
+      const response = await this.executeQuery(mutation, { skipCache: true });
+      if (response.data.issueUpdate.success) {
+        this.invalidateCache("issue");
+      }
       return response.data.issueUpdate.success;
     } catch (error) {
-      console.error(`[Linear Buddy] Failed to update issue cycle:`, error);
+      logger.error(`[Linear] Failed to update issue cycle:`, error);
       return false;
     }
   }
@@ -716,10 +750,11 @@ export class LinearClient extends BaseTicketProvider<
     `;
 
     try {
-      const response = await this.executeQuery(query);
+      // Team members rarely change, cache for 15 minutes
+      const response = await this.executeQuery(query, { ttl: TTL.LONG });
       return response.data.team.members.nodes;
     } catch (error) {
-      console.error(`[Linear Buddy] Failed to fetch team members:`, error);
+      logger.error(`[Linear] Failed to fetch team members:`, error);
       return [];
     }
   }
@@ -752,10 +787,11 @@ export class LinearClient extends BaseTicketProvider<
     `;
 
     try {
-      const response = await this.executeQuery(query);
+      // User search results can be cached briefly
+      const response = await this.executeQuery(query, { ttl: TTL.MEDIUM });
       return response.data.users.nodes;
     } catch (error) {
-      console.error(`[Linear Buddy] Failed to search users:`, error);
+      logger.error(`[Linear] Failed to search users:`, error);
       return [];
     }
   }
@@ -781,10 +817,11 @@ export class LinearClient extends BaseTicketProvider<
     `;
 
     try {
-      const response = await this.executeQuery(query);
+      // Teams rarely change, cache for 15 minutes
+      const response = await this.executeQuery(query, { ttl: TTL.LONG });
       return response.data.teams.nodes;
     } catch (error) {
-      console.error(`[Linear Buddy] Failed to fetch teams:`, error);
+      logger.error(`[Linear] Failed to fetch teams:`, error);
       return [];
     }
   }
@@ -863,21 +900,24 @@ export class LinearClient extends BaseTicketProvider<
     `;
 
     try {
-      const response = await this.executeQuery(mutation);
+      const response = await this.executeQuery(mutation, { skipCache: true });
       if (response.data.issueCreate.success) {
         const createdIssue = response.data.issueCreate.issue;
         
+        // Invalidate issues cache after creating new issue
+        this.invalidateCache("viewer");
+        this.invalidateCache("issue");
+        
         // Debug log what came back
         if (createdIssue && createdIssue.description) {
-          console.log('[Linear Debug] Created issue returned with description:');
-          console.log('Description:', createdIssue.description);
+          logger.debug(`[Linear] Created issue returned with description: ${createdIssue.description}`);
         }
         
         return createdIssue;
       }
       return null;
     } catch (error) {
-      console.error(`[Linear Buddy] Failed to create issue:`, error);
+      logger.error(`[Linear] Failed to create issue:`, error);
       return null;
     }
   }
@@ -906,10 +946,11 @@ export class LinearClient extends BaseTicketProvider<
     `;
 
     try {
-      const response = await this.executeQuery(query);
+      // Templates rarely change, cache for 15 minutes
+      const response = await this.executeQuery(query, { ttl: TTL.LONG });
       return response.data.team.templates.nodes;
     } catch (error) {
-      console.error(`[Linear Buddy] Failed to fetch templates:`, error);
+      logger.error(`[Linear] Failed to fetch templates:`, error);
       return [];
     }
   }
@@ -939,10 +980,11 @@ export class LinearClient extends BaseTicketProvider<
     `;
 
     try {
-      const response = await this.executeQuery(query);
+      // Labels rarely change, cache for 15 minutes
+      const response = await this.executeQuery(query, { ttl: TTL.LONG });
       return response.data.team.labels.nodes;
     } catch (error) {
-      console.error(`[Linear Buddy] Failed to fetch labels:`, error);
+      logger.error(`[Linear] Failed to fetch labels:`, error);
       return [];
     }
   }
@@ -1392,37 +1434,90 @@ export class LinearClient extends BaseTicketProvider<
   }
 
   /**
-   * Execute a GraphQL query
+   * Execute a GraphQL query with caching and retry support
+   * @param query The GraphQL query string
+   * @param options Optional configuration for caching
    */
-  private async executeQuery(query: string): Promise<any> {
-    const response = await fetch(this.baseUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: this.apiToken,
-      },
-      body: JSON.stringify({ query }),
-    });
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error(
-        `[Linear Buddy] API Error - Status: ${response.status} ${response.statusText}`
-      );
-      console.error(`[Linear Buddy] Response body:`, errorBody);
-      throw new Error(
-        `Linear API error: ${response.status} ${response.statusText} - ${errorBody}`
-      );
+  private async executeQuery(
+    query: string,
+    options?: { ttl?: number; skipCache?: boolean }
+  ): Promise<any> {
+    const cacheKey = generateQueryCacheKey(query);
+    
+    // Check cache first (unless explicitly skipped)
+    if (!options?.skipCache) {
+      const cached = this.cache.get(cacheKey);
+      if (cached) {
+        logger.debug(`[Linear] Cache hit for query`);
+        return cached;
+      }
     }
 
-    const data: any = await response.json();
+    const httpClient = getHttpClient();
 
-    if (data.errors) {
-      console.error(`[Linear Buddy] GraphQL Errors:`, data.errors);
-      throw new Error(`Linear GraphQL error: ${JSON.stringify(data.errors)}`);
+    try {
+      const response = await httpClient.post<any>(
+        this.baseUrl,
+        { query },
+        {
+          headers: {
+            Authorization: this.apiToken,
+          },
+          retry: {
+            maxRetries: 3,
+            baseDelay: 1000,
+            maxDelay: 10000,
+            retryableStatuses: [429, 500, 502, 503, 504],
+            retryOnNetworkError: true,
+          },
+        }
+      );
+
+      const data = response.data;
+
+      // GraphQL errors are not retryable - they indicate query/data issues
+      if (data.errors) {
+        logger.error(`[Linear] GraphQL Errors:`, data.errors);
+        throw new Error(`Linear GraphQL error: ${JSON.stringify(data.errors)}`);
+      }
+
+      // Cache successful response
+      const ttl = options?.ttl ?? TTL.MEDIUM;
+      if (ttl > 0) {
+        this.cache.set(cacheKey, data, ttl);
+      }
+
+      return data;
+    } catch (error) {
+      if (error instanceof HttpError) {
+        logger.error(
+          `[Linear] API Error - Status: ${error.status} ${error.statusText}`
+        );
+        logger.error(`[Linear] Response body:`, error.body);
+        throw new Error(
+          `Linear API error: ${error.status} ${error.statusText} - ${error.body}`
+        );
+      }
+      throw error;
     }
+  }
 
-    return data;
+  /**
+   * Clear the API response cache
+   * Useful after mutations to ensure fresh data
+   */
+  clearCache(): void {
+    this.cache.clear();
+    logger.debug("[Linear] Cache cleared");
+  }
+
+  /**
+   * Invalidate cache entries matching a pattern
+   * @param pattern String pattern to match against cache keys
+   */
+  invalidateCache(pattern: string): void {
+    const count = this.cache.invalidateByPattern(pattern);
+    logger.debug(`[Linear] Invalidated ${count} cache entries matching: ${pattern}`);
   }
 }
 

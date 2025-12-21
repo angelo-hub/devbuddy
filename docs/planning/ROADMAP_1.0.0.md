@@ -310,7 +310,8 @@ Features from Linear/Jira web UIs that would add significant value.
 
 | Task | Priority | Effort | Status |
 |------|----------|--------|--------|
-| **Jira rate limiting** | 🟡 P1 | 🟢 | ⬜ Not Started |
+| **API Infrastructure** (retry, cache, network monitor) | 🟡 P1 | 🟡 | ✅ Done |
+| **Jira rate limiting** | 🟡 P1 | 🟢 | ✅ Done |
 | **Error handling audit** | 🟡 P1 | 🟡 | ⬜ Not Started |
 | **Loading states consistency** | 🟡 P1 | 🟢 | ⬜ Not Started |
 | **Keyboard navigation** | 🟢 P2 | 🟡 | ⬜ Not Started |
