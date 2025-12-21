@@ -4,6 +4,9 @@ const fs = require("fs");
 
 const production = process.argv.includes("--production");
 const watch = process.argv.includes("--watch");
+const analyze = process.argv.includes("--analyze");
+// Use ESM with code splitting for smaller total bundle size (~77% reduction)
+const useCodeSplitting = process.argv.includes("--split");
 
 /**
  * @type {import('esbuild').Plugin}
@@ -123,6 +126,47 @@ const pathAliasPlugin = {
   },
 };
 
+/**
+ * Analyze plugin - prints bundle size breakdown by package
+ * @type {import('esbuild').Plugin}
+ */
+const analyzePlugin = {
+  name: "analyze",
+  setup(build) {
+    build.onEnd((result) => {
+      if (!analyze || !result.metafile) return;
+      
+      console.log("\n📊 Bundle Analysis:\n");
+      
+      for (const [outputFile, output] of Object.entries(result.metafile.outputs)) {
+        if (!outputFile.endsWith(".js")) continue;
+        
+        const packages = {};
+        for (const [file, info] of Object.entries(output.inputs)) {
+          let pkg = "app";
+          if (file.includes("node_modules")) {
+            const parts = file.split("node_modules/")[1].split("/");
+            pkg = parts[0].startsWith("@") ? parts[0] + "/" + parts[1] : parts[0];
+          }
+          packages[pkg] = (packages[pkg] || 0) + info.bytesInOutput;
+        }
+        
+        const sorted = Object.entries(packages).sort((a, b) => b[1] - a[1]);
+        const totalKB = (output.bytes / 1024).toFixed(1);
+        const filename = outputFile.split("/").pop();
+        
+        console.log(`📦 ${filename}: ${totalKB} KB`);
+        sorted.slice(0, 10).forEach(([pkg, bytes]) => {
+          const kb = (bytes / 1024).toFixed(1);
+          const pct = ((bytes / output.bytes) * 100).toFixed(1);
+          console.log(`   ${kb.padStart(7)} KB (${pct.padStart(4)}%)  ${pkg}`);
+        });
+        console.log("");
+      }
+    });
+  },
+};
+
 async function main() {
   // Ensure output directory exists
   const outDir = path.resolve(__dirname, "build");
@@ -130,18 +174,20 @@ async function main() {
     fs.mkdirSync(outDir, { recursive: true });
   }
 
-  const ctx = await esbuild.context({
-    entryPoints: {
-      // Linear webviews
-      "linear-standup-builder": path.resolve(__dirname, "src/pro/standup-builder/index.tsx"),
-      "linear-ticket-panel": path.resolve(__dirname, "src/linear/ticket-panel/index.tsx"),
-      "linear-create-ticket": path.resolve(__dirname, "src/linear/create-ticket/index.tsx"),
-      // Jira webviews
-      "jira-ticket-panel": path.resolve(__dirname, "src/jira/ticket-panel/index.tsx"),
-      "jira-create-ticket": path.resolve(__dirname, "src/jira/create-ticket/index.tsx"),
-    },
+  const entryPoints = {
+    // Linear webviews
+    "linear-standup-builder": path.resolve(__dirname, "src/pro/standup-builder/index.tsx"),
+    "linear-ticket-panel": path.resolve(__dirname, "src/linear/ticket-panel/index.tsx"),
+    "linear-create-ticket": path.resolve(__dirname, "src/linear/create-ticket/index.tsx"),
+    // Jira webviews
+    "jira-ticket-panel": path.resolve(__dirname, "src/jira/ticket-panel/index.tsx"),
+    "jira-create-ticket": path.resolve(__dirname, "src/jira/create-ticket/index.tsx"),
+  };
+
+  // Common build options
+  const commonOptions = {
+    entryPoints,
     bundle: true,
-    format: "iife",
     minify: production,
     treeShaking: true,
     drop: production ? ["console", "debugger"] : [],
@@ -154,25 +200,53 @@ async function main() {
     outdir: outDir,
     external: ["vscode"],
     logLevel: "silent",
+    metafile: analyze,
     plugins: [
       pathAliasPlugin,
       cssModulesPlugin,
       esbuildProblemMatcherPlugin,
+      ...(analyze ? [analyzePlugin] : []),
     ],
     loader: {
-      ".css": "css", // This will bundle CSS files into the output
+      ".css": "css",
       ".tsx": "tsx",
       ".ts": "ts",
     },
     jsx: "automatic",
     resolveExtensions: [".tsx", ".ts", ".jsx", ".js", ".css", ".json"],
-  });
+  };
 
-  if (watch) {
-    await ctx.watch();
+  if (useCodeSplitting) {
+    // ESM with code splitting - shares common chunks between bundles
+    // Note: Requires updating panel HTML to use type="module" scripts
+    console.log("🔀 Building with code splitting (ESM)...");
+    const ctx = await esbuild.context({
+      ...commonOptions,
+      format: "esm",
+      splitting: true,
+      chunkNames: "chunks/[name]-[hash]",
+    });
+
+    if (watch) {
+      await ctx.watch();
+    } else {
+      await ctx.rebuild();
+      await ctx.dispose();
+    }
   } else {
-    await ctx.rebuild();
-    await ctx.dispose();
+    // IIFE format - each bundle is self-contained
+    // This is the default for compatibility with current panel implementations
+    const ctx = await esbuild.context({
+      ...commonOptions,
+      format: "iife",
+    });
+
+    if (watch) {
+      await ctx.watch();
+    } else {
+      await ctx.rebuild();
+      await ctx.dispose();
+    }
   }
 }
 

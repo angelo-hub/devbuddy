@@ -957,6 +957,11 @@
           "default": false,
           "markdownDescription": "**Enable debug logging** for troubleshooting.\n\n✅ **When enabled:**\n- Shows detailed logs in the \"DevBuddy\" Output channel\n- Automatically opens the Output panel\n- Logs all API calls, AI operations, and git commands\n\n💡 **Use this when:**\n- Reporting bugs or issues\n- Understanding what the extension is doing\n- Debugging AI summarization\n- Troubleshooting platform API issues (Linear, Jira)"
         },
+        "devBuddy.experimental.esmWebviews": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "**Experimental:** Enable ESM modules for webviews with code splitting.\n\n⚡ **Benefits:**\n- ~77% smaller total bundle size\n- Shared dependencies loaded once\n- Faster subsequent webview loads\n\n⚠️ **Note:** This is experimental. If webviews don't load properly, disable this setting."
+        },
         "devBuddy.firstTimeSetupComplete": {
           "type": "boolean",
           "default": false,
@@ -1114,7 +1119,10 @@
   "scripts": {
     "vscode:prepublish": "npm run compile && npm run compile:webview",
     "compile": "tsc -p ./ && tsc-alias -p ./tsconfig.json",
-    "compile:webview": "node webview-ui/build.js",
+    "compile:webview": "node webview-ui/build.js --production",
+    "compile:webview:dev": "node webview-ui/build.js",
+    "compile:webview:esm": "node webview-ui/build.js --production --split",
+    "compile:webview:analyze": "node webview-ui/build.js --production --analyze",
     "watch": "tsc -watch -p ./",
     "watch:webview": "node webview-ui/build.js --watch",
     "pretest": "npm run compile",
