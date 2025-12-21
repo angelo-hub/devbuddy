@@ -1,98 +1,75 @@
-# IDE and test files
-.vscode/**
-.vscode-test/**
-.vscode-test-fresh/**
+# ===========================================
+# DevBuddy .vscodeignore
+# Excludes files from the packaged extension
+# ===========================================
 
-# Test environments - NEVER package Docker testing infrastructure
-test-env/**
-
-# Source files (only compiled output in out/ should be included)
+# Source files (compiled to out/)
 src/**
 webview-ui/src/**
-webview-ui/tsconfig.json
 webview-ui/build.js
-!webview-ui/build/**
-!out/**
-!out/**/*.js
-
-# Environment files - CRITICAL: Never package credentials!
-.env
-.env.*
-.env.local
-.env.development
-.env.production
-
-# Build configuration
-.gitignore
-tsconfig.json
 webview-ui/tsconfig.json
-**/*.map
-**/*.ts
+webview-ui/node_modules/**
 
-# Node modules (only production dependencies needed)
-node_modules/@types/**
-
-# Development scripts and documentation
-scripts/**
-reinstall.sh
-.versionrc.json
-
-# Documentation that shouldn't be in package
-docs/**
-*.md
-!README.md
-!MARKETPLACE_README.md
-!LICENSE
-!LICENSE.pro
-!EULA.md
-
-# Development summary files
-*_SUMMARY.md
-*_COMPLETE.md
-*_IMPLEMENTATION.md
-*_GUIDE.md
-AGENTS.md
-DEVBUDDY_REBRAND_COMPLETE.md
-
-# Media files not needed in package
-media/walkthrough/**/*.md
-!media/walkthrough/welcome.md
-!media/walkthrough/platform-selection.md
-!media/walkthrough/status.md
-!media/walkthrough/create-ticket.md
-!media/walkthrough/todo-converter.md
-!media/walkthrough/chat.md
-!media/walkthrough/help.md
-!media/walkthrough/sidebar.md
-!media/walkthrough/branches.md
-!media/walkthrough/standup.md
-!media/walkthrough/pr-summary.md
-!media/walkthrough/setup-linear.md
-!media/walkthrough/setup-jira.md
-!media/walkthrough/setup-connect.md
-!media/walkthrough/jira-features.md
-
-# Exclude large video/gif files (hosted on GitHub instead)
-media/walkthrough/videos/**
-
-# Test and CI files
+# Config and dev files
+.vscode/**
 .github/**
+.gitignore
+.vscodeignore
+tsconfig.json
+tsconfig.*.json
+*.tsbuildinfo
+.eslintrc*
+.prettierrc*
+.versionrc.json
+**/*.map
+
+# Test files
 **/*.test.ts
 **/*.spec.ts
+test-env/**
+*.test.js
 
-# Logs
-*.log
-npm-debug.log*
+# Documentation (keep only README.md, LICENSE, EULA)
+docs/**
+AGENTS.md
+FEATURE_COMPATIBILITY_MATRIX.md
+JIRA_*.md
+*.plan.md
+*_SUMMARY.md
+*_GUIDE.md
+*_CHECKLIST.md
+DOCUMENTATION.md
+DEVELOPER_GUIDE.md
+PRO_IMPLEMENTATION_GUIDE.md
+WALKTHROUGH_README_IMPROVEMENTS_SUMMARY.md
+CRITICAL_FIX_COMPLETE.md
+ACTIVATION_FIX_SUMMARY.md
+CLEANUP_SUMMARY.md
+LICENSING_MODEL.md
+LICENSING_QUICK_REFERENCE.md
+MEDIA_BUNDLE_OPTIMIZATION.md
+SECURITY_CHECKLIST.md
+TELEMETRY_CHECKLIST.md
+MARKETPLACE_README.md
+example-pr-template.md
 
-# OS files
+# Large media files - walkthroughs use external URLs
+media/walkthrough/videos/**
+
+# Build artifacts
+*.vsix
+out/**/*.map
+
+# Dependencies
+node_modules/**
+
+# Scripts (dev only)
+scripts/**
+reinstall.sh
+
+# Misc
 .DS_Store
 Thumbs.db
-
-# Old VSIX files
-*.vsix
-
-# Git
-.git/**
-.gitignore
-.gitattributes
-
+*.log
+.env*
+cursor-plan*
