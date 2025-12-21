@@ -107,7 +107,8 @@ export const IssueRelationsSection: React.FC<IssueRelationsSectionProps> = ({
       }, 300);
       return () => clearTimeout(timeoutId);
     }
-  }, [searchTerm, onSearchIssues]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]); // Only re-run when searchTerm changes, not onSearchIssues
 
   const handleAddRelation = useCallback(() => {
     if (selectedIssue) {

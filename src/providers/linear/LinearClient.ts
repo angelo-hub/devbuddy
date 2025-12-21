@@ -941,13 +941,15 @@ export class LinearClient extends BaseTicketProvider<
     // Escape special characters in search term to prevent query syntax errors
     const escapedSearchTerm = escapeGraphQLString(searchTerm);
 
-    // Build filter: search by identifier or title containing the search term
+    // Build filter: search by number (for exact matches like "ENG-123") or title
+    // Note: Linear API doesn't support filtering by "identifier" field
+    // Use "number" field to search by issue number (numeric part only)
     const query = `
       query {
         issues(
           filter: {
             or: [
-              { identifier: { containsIgnoreCase: "${escapedSearchTerm}" } },
+              { number: { eq: ${parseInt(searchTerm) || 0} } },
               { title: { containsIgnoreCase: "${escapedSearchTerm}" } }
             ]
           }
