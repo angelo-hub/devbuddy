@@ -98,6 +98,9 @@ export class JiraTicketPanel {
           case "openInRepository":
             await this.handleOpenInRepository(message.ticketKey, message.repositoryPath);
             break;
+          case "openLinkedIssue":
+            await this.handleOpenLinkedIssue(message.issueKey);
+            break;
         }
       },
       null,
@@ -502,6 +505,32 @@ export class JiraTicketPanel {
       ticketId: ticketKey,
       repositoryPath,
     });
+  }
+
+  /**
+   * Handle opening a linked issue - fetches the issue and opens it in the panel
+   */
+  private async handleOpenLinkedIssue(issueKey: string): Promise<void> {
+    if (!this._jiraClient) {
+      vscode.window.showErrorMessage("Jira client not initialized");
+      return;
+    }
+
+    try {
+      logger.debug(`Opening linked issue: ${issueKey}`);
+      const linkedIssue = await this._jiraClient.getIssue(issueKey);
+      
+      if (linkedIssue) {
+        // Update the panel with the new issue
+        this.updateIssue(linkedIssue);
+        vscode.window.showInformationMessage(`Opened ${issueKey}`);
+      } else {
+        vscode.window.showErrorMessage(`Could not find issue ${issueKey}`);
+      }
+    } catch (error) {
+      logger.error(`Failed to open linked issue ${issueKey}:`, error);
+      vscode.window.showErrorMessage(`Failed to open issue ${issueKey}`);
+    }
   }
 
   public dispose(): void {

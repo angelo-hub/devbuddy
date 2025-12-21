@@ -163,7 +163,7 @@ Features from Linear/Jira web UIs that would add significant value.
 
 | Task | Priority | Effort | Platforms |
 |------|----------|--------|-----------|
-| **Show related/blocked issues** in ticket panel | 🔴 P0 | 🟢 | Linear ✅, Jira ⬜ |
+| **Show related/blocked issues** in ticket panel | 🔴 P0 | 🟢 | Linear ✅, Jira ✅ |
 | **Create issue links** (blocks, relates to) | 🟡 P1 | 🟡 | Both |
 | **Dependency visualization** (mini graph) | 🟢 P2 | 🔴 | Both |
 
@@ -240,7 +240,7 @@ Features from Linear/Jira web UIs that would add significant value.
 | Create Sub-issue | ⬜ | ⬜ | 🟡 |
 | Linked PRs | ✅ | ⬜ | 🟡 |
 | Branch Manager | ✅ | ✅ | ✅ |
-| Issue Links | ✅ | ⬜ | 🟡 |
+| Issue Links | ✅ | ✅ | ✅ |
 | Activity Feed | ⬜ | ⬜ | 🟢 |
 | Estimates | ✅ (display) | ✅ (display) | 🟡 edit |
 | Sprint/Cycle | ✅ | ⬜ | 🟡 |
@@ -255,7 +255,7 @@ Features from Linear/Jira web UIs that would add significant value.
 | **Both: Edit estimates** | 🟡 P1 | 🟢 | Both | ⬜ |
 | **Both: Create sub-issue** | 🟡 P1 | 🟡 | Both | ⬜ |
 | **Jira: Show linked PRs** | 🟡 P1 | 🟡 | Jira | ⬜ |
-| **Jira: Show issue links** | 🟡 P1 | 🟢 | Jira | ⬜ |
+| **Jira: Show issue links** | 🟡 P1 | 🟢 | Jira | ✅ Done |
 | **Both: Edit labels** | 🟢 P2 | 🟡 | Both | ⬜ |
 | **Both: Activity feed** | 🟢 P2 | 🟡 | Both | ⬜ |
 
