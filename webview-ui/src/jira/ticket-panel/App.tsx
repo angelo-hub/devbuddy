@@ -143,12 +143,35 @@ interface JiraUser {
   };
 }
 
+interface JiraIssueLinkType {
+  id: string;
+  name: string;
+  inward: string;
+  outward: string;
+}
+
+interface JiraIssueSearchResult {
+  id: string;
+  key: string;
+  summary: string;
+  status: {
+    name: string;
+    statusCategory?: {
+      key: string;
+    };
+  };
+}
+
 type MessageFromExtension =
   | { command: "updateIssue"; issue: JiraIssue }
   | { command: "transitionsLoaded"; transitions: JiraTransition[] }
   | { command: "usersLoaded"; users: JiraUser[] }
   | { command: "branchInfo"; branchName: string | null; exists: boolean; isInDifferentRepo?: boolean; repositoryName?: string; repositoryPath?: string }
-  | { command: "allBranchesLoaded"; branches: string[]; currentBranch: string | null; suggestions: string[] };
+  | { command: "allBranchesLoaded"; branches: string[]; currentBranch: string | null; suggestions: string[] }
+  | { command: "linkTypesLoaded"; linkTypes: JiraIssueLinkType[] }
+  | { command: "issueSearchResults"; issues: JiraIssueSearchResult[] }
+  | { command: "linkCreated"; success: boolean }
+  | { command: "linkDeleted"; success: boolean };
 
 type MessageFromWebview =
   | { command: "updateStatus"; transitionId: string }
@@ -169,7 +192,11 @@ type MessageFromWebview =
   | { command: "loadBranchInfo"; ticketKey: string }
   | { command: "loadAllBranches" }
   | { command: "openInRepository"; ticketKey: string; repositoryPath: string }
-  | { command: "openLinkedIssue"; issueKey: string };
+  | { command: "openLinkedIssue"; issueKey: string }
+  | { command: "loadLinkTypes" }
+  | { command: "searchIssues"; searchTerm: string }
+  | { command: "createLink"; targetIssueKey: string; linkTypeName: string; isOutward: boolean }
+  | { command: "deleteLink"; linkId: string };
 
 // Get initial state from window object (passed from extension)
 declare global {
@@ -203,6 +230,8 @@ function App() {
     currentBranch: string | null;
     suggestions: string[];
   } | null>(null);
+  const [linkTypes, setLinkTypes] = useState<JiraIssueLinkType[]>([]);
+  const [issueSearchResults, setIssueSearchResults] = useState<JiraIssueSearchResult[]>([]);
 
   // Handle messages from extension
   useEffect(() => {
@@ -236,6 +265,19 @@ function App() {
             currentBranch: message.currentBranch,
             suggestions: message.suggestions,
           });
+          break;
+
+        case "linkTypesLoaded":
+          setLinkTypes(message.linkTypes);
+          break;
+
+        case "issueSearchResults":
+          setIssueSearchResults(message.issues);
+          break;
+
+        case "linkCreated":
+        case "linkDeleted":
+          // Issue will be refreshed automatically
           break;
       }
     });
@@ -329,6 +371,22 @@ function App() {
     postMessage({ command: "openLinkedIssue", issueKey });
   };
 
+  const handleLoadLinkTypes = () => {
+    postMessage({ command: "loadLinkTypes" });
+  };
+
+  const handleSearchIssues = (searchTerm: string) => {
+    postMessage({ command: "searchIssues", searchTerm });
+  };
+
+  const handleCreateLink = (targetIssueKey: string, linkTypeName: string, isOutward: boolean) => {
+    postMessage({ command: "createLink", targetIssueKey, linkTypeName, isOutward });
+  };
+
+  const handleDeleteLink = (linkId: string) => {
+    postMessage({ command: "deleteLink", linkId });
+  };
+
   if (!issue) {
     return (
       <div className={styles.container}>
@@ -403,15 +461,18 @@ function App() {
         </>
       )}
 
-      {issue.issueLinks && issue.issueLinks.length > 0 && (
-        <>
-          <div className={styles.divider} />
-          <IssueLinksSection 
-            issueLinks={issue.issueLinks} 
-            onOpenLinkedIssue={handleOpenLinkedIssue}
-          />
-        </>
-      )}
+      <div className={styles.divider} />
+      <IssueLinksSection 
+        issueLinks={issue.issueLinks || []}
+        currentIssueKey={issue.key}
+        linkTypes={linkTypes}
+        searchResults={issueSearchResults}
+        onOpenLinkedIssue={handleOpenLinkedIssue}
+        onSearchIssues={handleSearchIssues}
+        onLoadLinkTypes={handleLoadLinkTypes}
+        onCreateLink={handleCreateLink}
+        onDeleteLink={handleDeleteLink}
+      />
 
       <div className={styles.divider} />
 

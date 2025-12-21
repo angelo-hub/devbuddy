@@ -101,6 +101,18 @@ export class JiraTicketPanel {
           case "openLinkedIssue":
             await this.handleOpenLinkedIssue(message.issueKey);
             break;
+          case "loadLinkTypes":
+            await this.handleLoadLinkTypes();
+            break;
+          case "searchIssues":
+            await this.handleSearchIssues(message.searchTerm);
+            break;
+          case "createLink":
+            await this.handleCreateLink(message.targetIssueKey, message.linkTypeName, message.isOutward);
+            break;
+          case "deleteLink":
+            await this.handleDeleteLink(message.linkId);
+            break;
         }
       },
       null,
@@ -530,6 +542,148 @@ export class JiraTicketPanel {
     } catch (error) {
       logger.error(`Failed to open linked issue ${issueKey}:`, error);
       vscode.window.showErrorMessage(`Failed to open issue ${issueKey}`);
+    }
+  }
+
+  /**
+   * Handle loading available issue link types
+   */
+  private async handleLoadLinkTypes(): Promise<void> {
+    if (!this._jiraClient) {
+      return;
+    }
+
+    try {
+      const linkTypes = await this._jiraClient.getIssueLinkTypes();
+      this._panel.webview.postMessage({
+        command: "linkTypesLoaded",
+        linkTypes,
+      });
+    } catch (error) {
+      logger.error("Failed to load link types:", error);
+      this._panel.webview.postMessage({
+        command: "linkTypesLoaded",
+        linkTypes: [],
+      });
+    }
+  }
+
+  /**
+   * Handle searching for issues (for creating links)
+   */
+  private async handleSearchIssues(searchTerm: string): Promise<void> {
+    if (!this._jiraClient) {
+      return;
+    }
+
+    try {
+      // Search using JQL: key or summary contains the search term
+      const jql = `(key ~ "${searchTerm}" OR summary ~ "${searchTerm}") ORDER BY updated DESC`;
+      const searchResults = await this._jiraClient.searchIssues({
+        jql,
+        maxResults: 20,
+      });
+
+      // Map to simpler format for the webview
+      const issues = searchResults.map((issue) => ({
+        id: issue.id,
+        key: issue.key,
+        summary: issue.summary,
+        status: {
+          name: issue.status.name,
+          statusCategory: issue.status.statusCategory,
+        },
+      }));
+
+      this._panel.webview.postMessage({
+        command: "issueSearchResults",
+        issues,
+      });
+    } catch (error) {
+      logger.error("Failed to search issues:", error);
+      this._panel.webview.postMessage({
+        command: "issueSearchResults",
+        issues: [],
+      });
+    }
+  }
+
+  /**
+   * Handle creating a link between issues
+   */
+  private async handleCreateLink(
+    targetIssueKey: string,
+    linkTypeName: string,
+    isOutward: boolean
+  ): Promise<void> {
+    if (!this._jiraClient || !this._issue) {
+      return;
+    }
+
+    try {
+      const success = await this._jiraClient.createIssueLink(
+        this._issue.key,
+        targetIssueKey,
+        linkTypeName,
+        isOutward
+      );
+
+      if (success) {
+        vscode.window.showInformationMessage("Issue link created!");
+        await this.refresh();
+        this._panel.webview.postMessage({
+          command: "linkCreated",
+          success: true,
+        });
+      } else {
+        vscode.window.showErrorMessage("Failed to create issue link");
+        this._panel.webview.postMessage({
+          command: "linkCreated",
+          success: false,
+        });
+      }
+    } catch (error) {
+      logger.error("Failed to create issue link:", error);
+      vscode.window.showErrorMessage("Failed to create issue link");
+      this._panel.webview.postMessage({
+        command: "linkCreated",
+        success: false,
+      });
+    }
+  }
+
+  /**
+   * Handle deleting an issue link
+   */
+  private async handleDeleteLink(linkId: string): Promise<void> {
+    if (!this._jiraClient) {
+      return;
+    }
+
+    try {
+      const success = await this._jiraClient.deleteIssueLink(linkId);
+
+      if (success) {
+        vscode.window.showInformationMessage("Issue link removed!");
+        await this.refresh();
+        this._panel.webview.postMessage({
+          command: "linkDeleted",
+          success: true,
+        });
+      } else {
+        vscode.window.showErrorMessage("Failed to remove issue link");
+        this._panel.webview.postMessage({
+          command: "linkDeleted",
+          success: false,
+        });
+      }
+    } catch (error) {
+      logger.error("Failed to delete issue link:", error);
+      vscode.window.showErrorMessage("Failed to remove issue link");
+      this._panel.webview.postMessage({
+        command: "linkDeleted",
+        success: false,
+      });
     }
   }
 

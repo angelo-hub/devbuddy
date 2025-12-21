@@ -22,6 +22,7 @@ import {
   UpdateJiraIssueInput,
   JiraSearchOptions,
   JiraComment,
+  JiraIssueLinkType,
 } from "./types";
 import {
   getHttpClient,
@@ -297,6 +298,34 @@ export abstract class BaseJiraClient {
    * Get unassigned issues in a specific sprint
    */
   abstract getSprintUnassignedIssues(sprintId: number): Promise<JiraIssue[]>;
+
+  // ==================== Issue Link Operations ====================
+
+  /**
+   * Get available issue link types
+   * These define the relationships between issues (e.g., "blocks", "relates to", "duplicates")
+   */
+  abstract getIssueLinkTypes(): Promise<JiraIssueLinkType[]>;
+
+  /**
+   * Create a link between two issues
+   * @param sourceIssueKey The issue from which the link originates
+   * @param targetIssueKey The issue to which the link points
+   * @param linkTypeName The name of the link type (e.g., "Blocks", "Relates")
+   * @param isOutward Whether the sourceIssue is the outward side of the link (true) or inward side (false)
+   */
+  abstract createIssueLink(
+    sourceIssueKey: string,
+    targetIssueKey: string,
+    linkTypeName: string,
+    isOutward: boolean
+  ): Promise<boolean>;
+
+  /**
+   * Delete an issue link
+   * @param linkId The ID of the link to delete
+   */
+  abstract deleteIssueLink(linkId: string): Promise<boolean>;
 
   // ==================== Configuration ====================
 

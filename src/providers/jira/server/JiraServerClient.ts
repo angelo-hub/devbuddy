@@ -37,6 +37,7 @@ import {
   JiraSearchOptions,
   JiraComment,
   JiraIssueLink,
+  JiraIssueLinkType,
 } from "../common/types";
 import { getLogger } from "@shared/utils/logger";
 
@@ -1415,6 +1416,113 @@ export class JiraServerClient extends BaseJiraClient {
       completeDate: apiSprint.completeDate,
       goal: apiSprint.goal,
     };
+  }
+
+  // ==================== Issue Link Operations ====================
+
+  /**
+   * Get available issue link types
+   * Uses REST API v2: GET /rest/api/2/issueLinkType
+   */
+  async getIssueLinkTypes(): Promise<JiraIssueLinkType[]> {
+    try {
+      const response = await this.request<{ issueLinkTypes: Array<{
+        id: string;
+        name: string;
+        inward: string;
+        outward: string;
+      }> }>(
+        "/issueLinkType",
+        { method: "GET", ttl: TTL.LONG }
+      );
+
+      return response.issueLinkTypes.map((linkType) => ({
+        id: linkType.id,
+        name: linkType.name,
+        inward: linkType.inward,
+        outward: linkType.outward,
+      }));
+    } catch (error) {
+      logger.error("[Jira Server] Failed to get issue link types:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create a link between two issues
+   * Uses REST API v2: POST /rest/api/2/issueLink
+   * 
+   * @param sourceIssueKey The issue from which the link originates
+   * @param targetIssueKey The issue to which the link points
+   * @param linkTypeName The name of the link type (e.g., "Blocks", "Relates")
+   * @param isOutward If true, sourceIssue is outward (e.g., "blocks" targetIssue)
+   *                  If false, sourceIssue is inward (e.g., "is blocked by" targetIssue)
+   * @returns true if link was created successfully
+   */
+  async createIssueLink(
+    sourceIssueKey: string,
+    targetIssueKey: string,
+    linkTypeName: string,
+    isOutward: boolean = true
+  ): Promise<boolean> {
+    try {
+      // For outward: source is outwardIssue, target is inwardIssue
+      // For inward: source is inwardIssue, target is outwardIssue
+      const body = {
+        type: {
+          name: linkTypeName,
+        },
+        outwardIssue: {
+          key: isOutward ? sourceIssueKey : targetIssueKey,
+        },
+        inwardIssue: {
+          key: isOutward ? targetIssueKey : sourceIssueKey,
+        },
+      };
+
+      await this.request(
+        "/issueLink",
+        {
+          method: "POST",
+          body: JSON.stringify(body),
+          skipCache: true,
+        }
+      );
+
+      // Invalidate issue cache for both issues
+      this.invalidateCache("issue");
+      this.invalidateCache(`issue:${sourceIssueKey}`);
+      this.invalidateCache(`issue:${targetIssueKey}`);
+
+      logger.info(`[Jira Server] Created issue link: ${sourceIssueKey} --[${linkTypeName}]--> ${targetIssueKey}`);
+      return true;
+    } catch (error) {
+      logger.error(`[Jira Server] Failed to create issue link:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Delete an issue link by its ID
+   * Uses REST API v2: DELETE /rest/api/2/issueLink/{linkId}
+   * @returns true if link was deleted successfully
+   */
+  async deleteIssueLink(linkId: string): Promise<boolean> {
+    try {
+      await this.request(
+        `/issueLink/${linkId}`,
+        { method: "DELETE", skipCache: true }
+      );
+
+      // Invalidate issue cache
+      this.invalidateCache("issue");
+
+      logger.info(`[Jira Server] Deleted issue link: ${linkId}`);
+      return true;
+    } catch (error) {
+      logger.error(`[Jira Server] Failed to delete issue link:`, error);
+      return false;
+    }
   }
 }
 

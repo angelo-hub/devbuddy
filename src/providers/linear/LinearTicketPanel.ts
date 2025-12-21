@@ -112,6 +112,15 @@ export class LinearTicketPanel {
           case "updateCycle":
             await this.handleUpdateCycle(message.cycleId);
             break;
+          case "searchIssues":
+            await this.handleSearchIssues(message.searchTerm);
+            break;
+          case "createRelation":
+            await this.handleCreateRelation(message.relatedIssueId, message.type);
+            break;
+          case "deleteRelation":
+            await this.handleDeleteRelation(message.relationId);
+            break;
         }
       },
       null,
@@ -600,6 +609,101 @@ export class LinearTicketPanel {
       vscode.commands.executeCommand("devBuddy.refreshTickets");
     } else {
       vscode.window.showErrorMessage("Failed to update cycle");
+    }
+  }
+
+  /**
+   * Handle searching for issues (for creating relations)
+   */
+  private async handleSearchIssues(searchTerm: string): Promise<void> {
+    try {
+      const client = await this.getClient();
+      const issues = await client.searchIssues(searchTerm, 20);
+      this._panel.webview.postMessage({
+        command: "issueSearchResults",
+        issues,
+      });
+    } catch (error) {
+      console.error("[Linear Buddy] Failed to search issues:", error);
+      this._panel.webview.postMessage({
+        command: "issueSearchResults",
+        issues: [],
+      });
+    }
+  }
+
+  /**
+   * Handle creating a relation between issues
+   */
+  private async handleCreateRelation(
+    relatedIssueId: string,
+    type: string
+  ): Promise<void> {
+    if (!this._issue) {
+      return;
+    }
+
+    try {
+      const client = await this.getClient();
+      const result = await client.createIssueRelation(
+        this._issue.id,
+        relatedIssueId,
+        type as "blocks" | "blocked_by" | "related" | "duplicate" | "duplicate_of"
+      );
+
+      if (result) {
+        vscode.window.showInformationMessage("Issue link created!");
+        await this.refresh();
+        this._panel.webview.postMessage({
+          command: "relationCreated",
+          success: true,
+        });
+      } else {
+        vscode.window.showErrorMessage("Failed to create issue link");
+        this._panel.webview.postMessage({
+          command: "relationCreated",
+          success: false,
+        });
+      }
+    } catch (error) {
+      console.error("[Linear Buddy] Failed to create relation:", error);
+      vscode.window.showErrorMessage("Failed to create issue link");
+      this._panel.webview.postMessage({
+        command: "relationCreated",
+        success: false,
+      });
+    }
+  }
+
+  /**
+   * Handle deleting an issue relation
+   */
+  private async handleDeleteRelation(relationId: string): Promise<void> {
+    try {
+      const client = await this.getClient();
+      const success = await client.deleteIssueRelation(relationId);
+
+      if (success) {
+        vscode.window.showInformationMessage("Issue link removed!");
+        await this.refresh();
+        this._panel.webview.postMessage({
+          command: "relationDeleted",
+          success: true,
+        });
+      } else {
+        vscode.window.showErrorMessage("Failed to remove issue link");
+        this._panel.webview.postMessage({
+          command: "relationDeleted",
+          success: false,
+        });
+      }
+    } catch (error) {
+      console.error("[Linear Buddy] Failed to delete relation:", error);
+      vscode.window.showErrorMessage("Failed to remove issue link");
+      this._panel.webview.postMessage({
+        command: "relationDeleted",
+        success: false,
+      });
     }
   }
 

@@ -355,6 +355,36 @@ export class LinearClient extends BaseTicketProvider<
               }
             }
           }
+          relations {
+            nodes {
+              id
+              type
+              relatedIssue {
+                id
+                identifier
+                title
+                state {
+                  name
+                  type
+                }
+              }
+            }
+          }
+          inverseRelations {
+            nodes {
+              id
+              type
+              relatedIssue {
+                id
+                identifier
+                title
+                state {
+                  name
+                  type
+                }
+              }
+            }
+          }
         }
       }
     `;
@@ -714,6 +744,108 @@ export class LinearClient extends BaseTicketProvider<
   }
 
   /**
+   * Create a relation (link) between two issues
+   * @param issueId The source issue ID
+   * @param relatedIssueId The target issue ID to link to
+   * @param type The type of relation: "blocks", "blocked_by", "related", "duplicate", "duplicate_of"
+   * @returns The created relation or null on failure
+   */
+  async createIssueRelation(
+    issueId: string,
+    relatedIssueId: string,
+    type: "blocks" | "blocked_by" | "related" | "duplicate" | "duplicate_of"
+  ): Promise<{ id: string; type: string } | null> {
+    if (!this.isConfigured()) {
+      return null;
+    }
+
+    const mutation = `
+      mutation {
+        issueRelationCreate(
+          input: {
+            issueId: "${issueId}",
+            relatedIssueId: "${relatedIssueId}",
+            type: ${type}
+          }
+        ) {
+          success
+          issueRelation {
+            id
+            type
+            issue {
+              id
+              identifier
+            }
+            relatedIssue {
+              id
+              identifier
+            }
+          }
+        }
+      }
+    `;
+
+    try {
+      const response = await this.executeQuery(mutation, { skipCache: true });
+      if (response.data.issueRelationCreate.success) {
+        // Invalidate issue cache to refresh relations
+        this.invalidateCache("issue");
+        return {
+          id: response.data.issueRelationCreate.issueRelation.id,
+          type: response.data.issueRelationCreate.issueRelation.type,
+        };
+      }
+      return null;
+    } catch (error) {
+      logger.error(`[Linear] Failed to create issue relation:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Delete an issue relation
+   * @param relationId The relation ID to delete
+   */
+  async deleteIssueRelation(relationId: string): Promise<boolean> {
+    if (!this.isConfigured()) {
+      return false;
+    }
+
+    const mutation = `
+      mutation {
+        issueRelationDelete(id: "${relationId}") {
+          success
+        }
+      }
+    `;
+
+    try {
+      const response = await this.executeQuery(mutation, { skipCache: true });
+      if (response.data.issueRelationDelete.success) {
+        this.invalidateCache("issue");
+      }
+      return response.data.issueRelationDelete.success;
+    } catch (error) {
+      logger.error(`[Linear] Failed to delete issue relation:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Get available issue relation types
+   * Returns all supported relation types for creating links
+   */
+  getAvailableRelationTypes(): Array<{ value: string; label: string; description: string }> {
+    return [
+      { value: "blocks", label: "Blocks", description: "This issue blocks another issue" },
+      { value: "blocked_by", label: "Blocked by", description: "This issue is blocked by another issue" },
+      { value: "related", label: "Related to", description: "Issues are related" },
+      { value: "duplicate", label: "Duplicate of", description: "This issue is a duplicate" },
+      { value: "duplicate_of", label: "Has duplicate", description: "Another issue is a duplicate of this" },
+    ];
+  }
+
+  /**
    * Get team members for a specific team
    */
   async getTeamMembers(teamId: string): Promise<LinearUser[]> {
@@ -779,6 +911,53 @@ export class LinearClient extends BaseTicketProvider<
       return response.data.users.nodes;
     } catch (error) {
       logger.error(`[Linear] Failed to search users:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Search issues by identifier or title
+   * Used for finding issues to link
+   */
+  async searchIssues(
+    searchTerm: string,
+    limit: number = 20
+  ): Promise<Array<{ id: string; identifier: string; title: string; state: { name: string; type: string } }>> {
+    if (!this.isConfigured() || !searchTerm.trim()) {
+      return [];
+    }
+
+    // Build filter: search by identifier or title containing the search term
+    const query = `
+      query {
+        issues(
+          filter: {
+            or: [
+              { identifier: { containsIgnoreCase: "${searchTerm}" } },
+              { title: { containsIgnoreCase: "${searchTerm}" } }
+            ]
+          }
+          first: ${limit}
+        ) {
+          nodes {
+            id
+            identifier
+            title
+            state {
+              name
+              type
+            }
+          }
+        }
+      }
+    `;
+
+    try {
+      // Issue search can be cached briefly
+      const response = await this.executeQuery(query, { ttl: TTL.SHORT });
+      return response.data.issues.nodes;
+    } catch (error) {
+      logger.error(`[Linear] Failed to search issues:`, error);
       return [];
     }
   }

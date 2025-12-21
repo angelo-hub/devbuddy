@@ -69,6 +69,49 @@ export interface BaseLabel {
 }
 
 /**
+ * Base interface for issue link types in any platform
+ * These define the relationship between issues (e.g., "blocks", "relates to", "duplicates")
+ */
+export interface BaseIssueLinkType {
+  /** Unique identifier for this link type */
+  id: string;
+  /** Display name (e.g., "Blocks") */
+  name: string;
+  /** Label for the inward direction (e.g., "is blocked by") */
+  inward: string;
+  /** Label for the outward direction (e.g., "blocks") */
+  outward: string;
+}
+
+/**
+ * Normalized issue link direction
+ */
+export type IssueLinkDirection = "inward" | "outward";
+
+/**
+ * Base interface for an issue link in any platform
+ * Represents a relationship between two issues
+ */
+export interface BaseIssueLink {
+  /** Unique identifier for this link */
+  id: string;
+  /** The type of relationship */
+  type: BaseIssueLinkType;
+  /** Whether this is the inward or outward side of the link */
+  direction: IssueLinkDirection;
+  /** The linked issue */
+  linkedIssue: {
+    id: string;
+    identifier: string;
+    title: string;
+    state?: {
+      name: string;
+      type?: string;
+    };
+  };
+}
+
+/**
  * Filter options for fetching tickets
  */
 export interface TicketFilter {
