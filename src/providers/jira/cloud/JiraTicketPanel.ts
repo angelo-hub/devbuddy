@@ -26,7 +26,7 @@ export class JiraTicketPanel {
   ) {
     this._panel = panel;
     this._extensionUri = extensionUri;
-    this._branchManager = new BranchAssociationManager(context);
+    this._branchManager = new BranchAssociationManager(context, "both");
     this.initializeClient();
 
     // Set up content and message handling
@@ -94,6 +94,9 @@ export class JiraTicketPanel {
             break;
           case "loadAllBranches":
             await this.handleLoadAllBranches();
+            break;
+          case "openInRepository":
+            await this.handleOpenInRepository(message.ticketKey, message.repositoryPath);
             break;
         }
       },
@@ -417,9 +420,36 @@ export class JiraTicketPanel {
   private async handleLoadBranchInfo(ticketKey: string): Promise<void> {
     const branchName = this._branchManager.getBranchForTicket(ticketKey);
     let exists = false;
+    let isInDifferentRepo = false;
+    let repositoryName: string | undefined;
+    let repositoryPath: string | undefined;
+
+    logger.debug(`[BranchManager] Loading branch info for ${ticketKey}, found: ${branchName}`);
 
     if (branchName) {
-      exists = await this._branchManager.verifyBranchExists(branchName);
+      // Check if the branch is in a different repository
+      const globalAssoc = this._branchManager.getGlobalAssociationForTicket(ticketKey);
+      logger.debug(`[BranchManager] Global association: ${JSON.stringify(globalAssoc)}`);
+      
+      if (globalAssoc && globalAssoc.repositoryPath) {
+        const isCurrentRepo = this._branchManager.isTicketInCurrentRepo(ticketKey);
+        isInDifferentRepo = !isCurrentRepo;
+        repositoryName = globalAssoc.repository;
+        repositoryPath = globalAssoc.repositoryPath;
+        
+        logger.debug(`[BranchManager] isCurrentRepo: ${isCurrentRepo}, isInDifferentRepo: ${isInDifferentRepo}`);
+        
+        // Only check if branch exists in current repo if not in different repo
+        if (!isInDifferentRepo) {
+          exists = await this._branchManager.verifyBranchExists(branchName);
+        } else {
+          // Branch is in different repo, mark as existing (we trust global storage)
+          exists = true;
+        }
+      } else {
+        // No global association, just check locally
+        exists = await this._branchManager.verifyBranchExists(branchName);
+      }
     }
 
     // Send branch info back to webview
@@ -427,6 +457,9 @@ export class JiraTicketPanel {
       command: "branchInfo",
       branchName,
       exists,
+      isInDifferentRepo,
+      repositoryName,
+      repositoryPath,
     });
   }
 
@@ -458,6 +491,17 @@ export class JiraTicketPanel {
         suggestions: [],
       });
     }
+  }
+
+  /**
+   * Handle open in different repository
+   */
+  private async handleOpenInRepository(ticketKey: string, repositoryPath: string): Promise<void> {
+    // Use the devBuddy.openInWorkspace command
+    await vscode.commands.executeCommand("devBuddy.openInWorkspace", {
+      ticketId: ticketKey,
+      repositoryPath,
+    });
   }
 
   public dispose(): void {

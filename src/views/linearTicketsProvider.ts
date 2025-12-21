@@ -162,7 +162,7 @@ export class LinearTicketsProvider
 
   constructor(context?: vscode.ExtensionContext) {
     this.branchManager = context
-      ? new BranchAssociationManager(context)
+      ? new BranchAssociationManager(context, "both")
       : (null as any);
     this.initializeClient();
     this.startAutoRefresh();

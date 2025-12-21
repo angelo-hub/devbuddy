@@ -154,6 +154,26 @@
         "icon": "$(clear-all)"
       },
       {
+        "command": "devBuddy.openInWorkspace",
+        "title": "DevBuddy: Open Ticket in Repository",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "devBuddy.discoverRepositories",
+        "title": "DevBuddy: Discover Related Repositories",
+        "icon": "$(search)"
+      },
+      {
+        "command": "devBuddy.registerRepository",
+        "title": "DevBuddy: Register Repository",
+        "icon": "$(repo)"
+      },
+      {
+        "command": "devBuddy.migrateToGlobalStorage",
+        "title": "DevBuddy: Migrate Branch Associations to Global Storage",
+        "icon": "$(cloud-upload)"
+      },
+      {
         "command": "devBuddy.createTicket",
         "title": "DevBuddy: Create New Ticket",
         "icon": "$(add)",
@@ -460,6 +480,11 @@
           "group": "branch@1"
         },
         {
+          "command": "devBuddy.openInWorkspace",
+          "when": "view == myTickets && viewItem =~ /linearTicket.*/",
+          "group": "repo@1"
+        },
+        {
           "command": "devBuddy.startWork",
           "when": "view == myTickets && viewItem == linearTicket",
           "group": "inline@3"
@@ -498,6 +523,11 @@
           "command": "devBuddy.jira.copyIssueUrl",
           "when": "view == myTickets && viewItem =~ /jira(Ticket|Issue).*/",
           "group": "copy@2"
+        },
+        {
+          "command": "devBuddy.openInWorkspace",
+          "when": "view == myTickets && viewItem =~ /jira(Ticket|Issue).*/",
+          "group": "repo@1"
         }
       ]
     },
@@ -927,6 +957,11 @@
           "default": false,
           "markdownDescription": "**Enable debug logging** for troubleshooting.\n\n✅ **When enabled:**\n- Shows detailed logs in the \"DevBuddy\" Output channel\n- Automatically opens the Output panel\n- Logs all API calls, AI operations, and git commands\n\n💡 **Use this when:**\n- Reporting bugs or issues\n- Understanding what the extension is doing\n- Debugging AI summarization\n- Troubleshooting platform API issues (Linear, Jira)"
         },
+        "devBuddy.experimental.esmWebviews": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "**Experimental:** Enable ESM modules for webviews with code splitting.\n\n⚡ **Benefits:**\n- ~77% smaller total bundle size\n- Shared dependencies loaded once\n- Faster subsequent webview loads\n\n⚠️ **Note:** This is experimental. If webviews don't load properly, disable this setting."
+        },
         "devBuddy.firstTimeSetupComplete": {
           "type": "boolean",
           "default": false,
@@ -1057,6 +1092,26 @@
           "type": "boolean",
           "default": true,
           "description": "Open Jira issues in browser (false to open in VS Code webview)"
+        },
+        "devBuddy.multiRepo.enabled": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "**Enable multi-repository support**\n\n✅ **When enabled:**\n- Track branch associations across multiple repositories\n- Open tickets in their correct repository window\n- Auto-discover related repositories in parent directory\n- Show repository indicators in the sidebar\n\n💡 **Use this when:**\n- Working with microservices architecture\n- Managing tickets across multiple repos\n- Using a monorepo with separate ticket prefixes per package"
+        },
+        "devBuddy.multiRepo.autoDiscover": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "**Auto-discover related repositories** in parent directory\n\n✅ **When enabled:**\n- Scans parent directory for other git repositories\n- Extracts ticket prefixes from existing branches\n- Suggests repository associations for tickets\n\n⚠️ **Requires:** `devBuddy.multiRepo.enabled` to be true"
+        },
+        "devBuddy.multiRepo.parentDir": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "**Parent directory** containing related repositories\n\n💡 **Examples:**\n- `/Users/dev/projects` - Absolute path\n- `..` - Relative to current workspace\n\n⚠️ If empty, uses the parent of the current workspace"
+        },
+        "devBuddy.repositories": {
+          "type": "object",
+          "default": {},
+          "markdownDescription": "**Manual repository configuration**\n\nDefine repositories and their ticket prefixes:\n\n```json\n{\n  \"frontend\": {\n    \"path\": \"/Users/dev/frontend\",\n    \"ticketPrefixes\": [\"FE\", \"UI\"]\n  },\n  \"backend\": {\n    \"path\": \"/Users/dev/backend\",\n    \"ticketPrefixes\": [\"BE\", \"API\"]\n  }\n}\n```\n\n💡 **Alternative:** Create `.devbuddy/repos.json` in a parent directory for team-wide configuration"
         }
       }
     }
@@ -1064,7 +1119,10 @@
   "scripts": {
     "vscode:prepublish": "npm run compile && npm run compile:webview",
     "compile": "tsc -p ./ && tsc-alias -p ./tsconfig.json",
-    "compile:webview": "node webview-ui/build.js",
+    "compile:webview": "node webview-ui/build.js --production",
+    "compile:webview:dev": "node webview-ui/build.js",
+    "compile:webview:esm": "node webview-ui/build.js --production --split",
+    "compile:webview:analyze": "node webview-ui/build.js --production --analyze",
     "watch": "tsc -watch -p ./",
     "watch:webview": "node webview-ui/build.js --watch",
     "pretest": "npm run compile",

@@ -69,6 +69,24 @@
       }
     },
     {
+      "name": "Run Extension (Multi-Repo Dev Mode)",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/out/**/*.js"
+      ],
+      "preLaunchTask": "${defaultBuildTask}",
+      "envFile": "${workspaceFolder}/.env.local",
+      "env": {
+        "DEV_MODE": "true",
+        "DEV_DEBUG_MODE": "true",
+        "DEV_PROVIDER": "linear"
+      }
+    },
+    {
       "name": "Run Extension (Fresh Install Test)",
       "type": "extensionHost",
       "request": "launch",

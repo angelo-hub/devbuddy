@@ -44,7 +44,7 @@ export async function initializeCoreServices(context: vscode.ExtensionContext): 
   }
   
   // Initialize Branch Association Manager
-  const branchManager = new BranchAssociationManager(context);
+  const branchManager = new BranchAssociationManager(context, "both");
   
   return { branchManager, telemetryManager };
 }
