@@ -1,16 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { useVSCode } from "@shared/hooks/useVSCode";
-import {
-  TicketPanelMessageFromWebview,
-  TicketPanelMessageFromExtension,
-  LinearIssue,
-  WorkflowState,
-  LinearUser,
-  LinearLabel,
-  LinearCycle,
-  LinearIssueSearchResult,
-  LinearIssueRelationType,
-} from "../../shared/types/messages";
+import React, { useEffect } from "react";
 import { TicketHeader } from "./components/TicketHeader";
 import { TicketMetadata } from "./components/TicketMetadata";
 import { TicketDescription } from "./components/TicketDescription";
@@ -25,21 +13,27 @@ import { SubIssues } from "./components/SubIssues";
 import { Comments } from "./components/Comments";
 import { BranchManager } from "./components/BranchManager";
 import { IssueRelationsSection } from "./components/IssueRelationsSection";
+import {
+  useLinearIssue,
+  useLinearWorkflowStates,
+  useLinearUsers,
+  useLinearAvailableLabels,
+  useLinearAvailableCycles,
+  useLinearBranchInfo,
+  useLinearAllBranches,
+  useLinearIssueSearchResults,
+  useLinearTicketActions,
+  LinearLabel,
+} from "./store";
 import styles from "./App.module.css";
 
-// Get initial state from window object (passed from extension)
-declare global {
-  interface Window {
-    __LINEAR_INITIAL_STATE__?: {
-      issue: LinearIssue;
-      workflowStates: WorkflowState[];
-      users?: LinearUser[];
-    };
-  }
-}
-
 // Helper to extract labels from either array or { nodes: [] } format
-function extractLabels(labels: LinearIssue["labels"]): LinearLabel[] {
+function extractLabels(
+  labels:
+    | LinearLabel[]
+    | { nodes: LinearLabel[] }
+    | undefined
+): LinearLabel[] {
   if (!labels) {
     return [];
   }
@@ -53,189 +47,48 @@ function extractLabels(labels: LinearIssue["labels"]): LinearLabel[] {
 }
 
 function App() {
-  const { postMessage, onMessage } = useVSCode<
-    TicketPanelMessageFromExtension,
-    TicketPanelMessageFromWebview
-  >();
+  // State from store (each selector only re-renders when its specific state changes)
+  const issue = useLinearIssue();
+  const workflowStates = useLinearWorkflowStates();
+  const users = useLinearUsers();
+  const availableLabels = useLinearAvailableLabels();
+  const availableCycles = useLinearAvailableCycles();
+  const branchInfo = useLinearBranchInfo();
+  const allBranches = useLinearAllBranches();
+  const issueSearchResults = useLinearIssueSearchResults();
 
-  const [issue, setIssue] = useState<LinearIssue | null>(
-    window.__LINEAR_INITIAL_STATE__?.issue || null
-  );
-  const [workflowStates, setWorkflowStates] = useState<WorkflowState[]>(
-    window.__LINEAR_INITIAL_STATE__?.workflowStates || []
-  );
-  const [users, setUsers] = useState<LinearUser[]>(
-    window.__LINEAR_INITIAL_STATE__?.users || []
-  );
-  const [availableLabels, setAvailableLabels] = useState<LinearLabel[]>([]);
-  const [availableCycles, setAvailableCycles] = useState<LinearCycle[]>([]);
-  const [branchInfo, setBranchInfo] = useState<{
-    branchName: string | null;
-    exists: boolean;
-    isInDifferentRepo?: boolean;
-    repositoryName?: string;
-    repositoryPath?: string;
-  } | null>(null);
-  const [allBranches, setAllBranches] = useState<{
-    branches: string[];
-    currentBranch: string | null;
-    suggestions: string[];
-  } | null>(null);
-  const [issueSearchResults, setIssueSearchResults] = useState<LinearIssueSearchResult[]>([]);
+  // Actions from store (stable references)
+  const {
+    init,
+    updateStatus,
+    addComment,
+    updateTitle,
+    updateDescription,
+    updateAssignee,
+    updateLabels,
+    updateCycle,
+    loadUsers,
+    searchUsers,
+    openInLinear,
+    refresh,
+    openIssue,
+    checkoutBranch,
+    associateBranch,
+    removeAssociation,
+    loadBranchInfo,
+    loadAllBranches,
+    openInRepository,
+    loadLabels,
+    loadCycles,
+    searchIssues,
+    createRelation,
+    deleteRelation,
+  } = useLinearTicketActions();
 
-  // Handle messages from extension
+  // Initialize store and set up message listener
   useEffect(() => {
-    return onMessage((message) => {
-      switch (message.command) {
-        case "updateIssue":
-          setIssue(message.issue);
-          break;
-
-        case "workflowStates":
-          setWorkflowStates(message.states);
-          break;
-
-        case "usersLoaded":
-          setUsers(message.users);
-          break;
-
-        case "branchInfo":
-          setBranchInfo({
-            branchName: message.branchName,
-            exists: message.exists,
-            isInDifferentRepo: message.isInDifferentRepo,
-            repositoryName: message.repositoryName,
-            repositoryPath: message.repositoryPath,
-          });
-          break;
-
-        case "allBranchesLoaded":
-          setAllBranches({
-            branches: message.branches,
-            currentBranch: message.currentBranch,
-            suggestions: message.suggestions,
-          });
-          break;
-
-        case "labelsLoaded":
-          setAvailableLabels(message.labels);
-          break;
-
-        case "cyclesLoaded":
-          setAvailableCycles(message.cycles);
-          break;
-
-        case "issueSearchResults":
-          setIssueSearchResults(message.issues);
-          break;
-
-        case "relationCreated":
-        case "relationDeleted":
-          // Issue will be refreshed automatically
-          break;
-      }
-    });
-  }, [onMessage]);
-
-  const handleUpdateStatus = (stateId: string) => {
-    postMessage({ command: "updateStatus", stateId });
-  };
-
-  const handleAddComment = (body: string) => {
-    postMessage({ command: "addComment", body });
-  };
-
-  const handleUpdateTitle = (title: string) => {
-    postMessage({ command: "updateTitle", title });
-  };
-
-  const handleUpdateDescription = (description: string) => {
-    postMessage({ command: "updateDescription", description });
-  };
-
-  const handleUpdateAssignee = (assigneeId: string | null) => {
-    postMessage({ command: "updateAssignee", assigneeId });
-  };
-
-  const handleLoadUsers = (teamId?: string) => {
-    postMessage({ command: "loadUsers", teamId });
-  };
-
-  const handleSearchUsers = (searchTerm: string) => {
-    postMessage({ command: "searchUsers", searchTerm });
-  };
-
-  const handleOpenInLinear = () => {
-    postMessage({ command: "openInLinear" });
-  };
-
-  const handleRefresh = () => {
-    postMessage({ command: "refresh" });
-  };
-
-  const handleOpenIssue = (issueId: string) => {
-    postMessage({ command: "openIssue", issueId });
-  };
-
-  const handleCheckoutBranch = (ticketId: string) => {
-    postMessage({ command: "checkoutBranch", ticketId });
-  };
-
-  const handleAssociateBranch = (ticketId: string, branchName: string) => {
-    postMessage({ command: "associateBranch", ticketId, branchName });
-    // Refresh branch info after associating
-    setTimeout(() => {
-      handleLoadBranchInfo(ticketId);
-    }, 100);
-  };
-
-  const handleRemoveAssociation = (ticketId: string) => {
-    postMessage({ command: "removeAssociation", ticketId });
-    // Refresh branch info after removing
-    setTimeout(() => {
-      handleLoadBranchInfo(ticketId);
-    }, 100);
-  };
-
-  const handleLoadBranchInfo = (ticketId: string) => {
-    postMessage({ command: "loadBranchInfo", ticketId });
-  };
-
-  const handleLoadAllBranches = () => {
-    postMessage({ command: "loadAllBranches" });
-  };
-
-  const handleOpenInRepository = (ticketId: string, repositoryPath: string) => {
-    postMessage({ command: "openInRepository", ticketId, repositoryPath });
-  };
-
-  const handleLoadLabels = (teamId: string) => {
-    postMessage({ command: "loadLabels", teamId });
-  };
-
-  const handleUpdateLabels = (labelIds: string[]) => {
-    postMessage({ command: "updateLabels", labelIds });
-  };
-
-  const handleLoadCycles = (teamId: string) => {
-    postMessage({ command: "loadCycles", teamId });
-  };
-
-  const handleUpdateCycle = (cycleId: string | null) => {
-    postMessage({ command: "updateCycle", cycleId });
-  };
-
-  const handleSearchIssues = (searchTerm: string) => {
-    postMessage({ command: "searchIssues", searchTerm });
-  };
-
-  const handleCreateRelation = (relatedIssueId: string, type: LinearIssueRelationType) => {
-    postMessage({ command: "createRelation", relatedIssueId, type });
-  };
-
-  const handleDeleteRelation = (relationId: string) => {
-    postMessage({ command: "deleteRelation", relationId });
-  };
+    return init();
+  }, [init]);
 
   if (!issue) {
     return (
@@ -256,37 +109,34 @@ function App() {
         creator={issue.creator}
         assignee={issue.assignee}
         url={issue.url}
-        onUpdateTitle={handleUpdateTitle}
+        onUpdateTitle={updateTitle}
       />
 
       <StatusSelector
         states={workflowStates}
         currentStateId={issue.state.id}
-        onUpdate={handleUpdateStatus}
+        onUpdate={updateStatus}
       />
 
       <AssigneeSelector
         currentAssignee={issue.assignee}
         users={users}
-        onUpdateAssignee={handleUpdateAssignee}
-        onLoadUsers={handleLoadUsers}
-        onSearchUsers={handleSearchUsers}
+        onUpdateAssignee={updateAssignee}
+        onLoadUsers={loadUsers}
+        onSearchUsers={searchUsers}
       />
 
-      <ActionButtons
-        onOpenInLinear={handleOpenInLinear}
-        onRefresh={handleRefresh}
-      />
+      <ActionButtons onOpenInLinear={openInLinear} onRefresh={refresh} />
 
       <BranchManager
         ticketId={issue.identifier}
         statusType={issue.state.type}
-        onCheckoutBranch={handleCheckoutBranch}
-        onAssociateBranch={handleAssociateBranch}
-        onRemoveAssociation={handleRemoveAssociation}
-        onLoadBranchInfo={handleLoadBranchInfo}
-        onLoadAllBranches={handleLoadAllBranches}
-        onOpenInRepository={handleOpenInRepository}
+        onCheckoutBranch={checkoutBranch}
+        onAssociateBranch={associateBranch}
+        onRemoveAssociation={removeAssociation}
+        onLoadBranchInfo={loadBranchInfo}
+        onLoadAllBranches={loadAllBranches}
+        onOpenInRepository={openInRepository}
         branchInfo={branchInfo || undefined}
         allBranches={allBranches || undefined}
       />
@@ -300,16 +150,16 @@ function App() {
       <LabelSelector
         currentLabels={extractLabels(issue.labels)}
         availableLabels={availableLabels}
-        onUpdateLabels={handleUpdateLabels}
-        onLoadLabels={handleLoadLabels}
+        onUpdateLabels={updateLabels}
+        onLoadLabels={loadLabels}
         teamId={issue.team?.id}
       />
 
       <CycleSelector
         currentCycle={issue.cycle}
         availableCycles={availableCycles}
-        onUpdateCycle={handleUpdateCycle}
-        onLoadCycles={handleLoadCycles}
+        onUpdateCycle={updateCycle}
+        onLoadCycles={loadCycles}
         teamId={issue.team?.id}
       />
 
@@ -321,10 +171,10 @@ function App() {
         <div className={styles.divider} />
       )}
 
-      <SubIssues 
-        childrenIssues={issue.children} 
-        parent={issue.parent} 
-        onOpenIssue={handleOpenIssue}
+      <SubIssues
+        childrenIssues={issue.children}
+        parent={issue.parent}
+        onOpenIssue={openIssue}
       />
 
       {((issue.children && issue.children.nodes.length > 0) || issue.parent) && (
@@ -336,30 +186,29 @@ function App() {
         inverseRelations={issue.inverseRelations}
         currentIssueId={issue.id}
         searchResults={issueSearchResults}
-        onOpenIssue={handleOpenIssue}
-        onSearchIssues={handleSearchIssues}
-        onCreateRelation={handleCreateRelation}
-        onDeleteRelation={handleDeleteRelation}
+        onOpenIssue={openIssue}
+        onSearchIssues={searchIssues}
+        onCreateRelation={createRelation}
+        onDeleteRelation={deleteRelation}
       />
 
       <div className={styles.divider} />
 
-      <TicketDescription 
-        description={issue.description} 
-        onUpdateDescription={handleUpdateDescription}
-        onTicketClick={handleOpenIssue}
+      <TicketDescription
+        description={issue.description}
+        onUpdateDescription={updateDescription}
+        onTicketClick={openIssue}
       />
 
       <div className={styles.divider} />
 
-      <Comments comments={issue.comments} onTicketClick={handleOpenIssue} />
+      <Comments comments={issue.comments} onTicketClick={openIssue} />
 
       <div className={styles.divider} />
 
-      <CommentForm onSubmit={handleAddComment} />
+      <CommentForm onSubmit={addComment} />
     </div>
   );
 }
 
 export default App;
-

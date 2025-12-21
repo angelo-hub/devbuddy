@@ -1,141 +1,60 @@
-import React, { useState, useEffect } from "react";
-import { useVSCode } from "@shared/hooks/useVSCode";
+import React, { useEffect } from "react";
 import { MarkdownEditor } from "@shared/components";
 import { markdownToAdf } from "@shared/utils/adfConverter";
+import {
+  useJiraProjects,
+  useJiraIssueTypes,
+  useJiraPriorities,
+  useJiraUsers,
+  useSelectedProject,
+  useSummary,
+  useDescription,
+  useIssueTypeId,
+  usePriorityId,
+  useAssigneeId,
+  useLabelsInput,
+  useIsCreating,
+  useJiraCreateTicketActions,
+} from "./store";
 import styles from "./App.module.css";
 
-interface JiraProject {
-  key: string;
-  name: string;
-}
-
-interface JiraIssueType {
-  id: string;
-  name: string;
-  subtask: boolean;
-}
-
-interface JiraPriority {
-  id: string;
-  name: string;
-}
-
-interface JiraUser {
-  accountId: string;
-  displayName: string;
-}
-
-type MessageFromExtension =
-  | { command: "projectsLoaded"; projects: JiraProject[] }
-  | { command: "projectMetaLoaded"; issueTypes: JiraIssueType[]; priorities: JiraPriority[] }
-  | { command: "usersLoaded"; users: JiraUser[] }
-  | { 
-      command: "populateDraft"; 
-      data: {
-        title?: string;
-        description?: string;
-        priority?: string;
-        labels?: string[];
-        projectKey?: string;
-      };
-    };
-
-type MessageFromWebview =
-  | { command: "loadProjects" }
-  | { command: "loadProjectMeta"; projectKey: string }
-  | { command: "loadUsers" }
-  | {
-      command: "createIssue";
-      input: {
-        projectKey: string;
-        summary: string;
-        description: string;
-        issueTypeId: string;
-        priorityId?: string;
-        assigneeId?: string;
-        labels?: string[];
-      };
-    };
-
 function App() {
-  const { postMessage, onMessage } = useVSCode<
-    MessageFromExtension,
-    MessageFromWebview
-  >();
+  // State from store
+  const projects = useJiraProjects();
+  const issueTypes = useJiraIssueTypes();
+  const priorities = useJiraPriorities();
+  const users = useJiraUsers();
+  const selectedProject = useSelectedProject();
+  const summary = useSummary();
+  const description = useDescription();
+  const issueTypeId = useIssueTypeId();
+  const priorityId = usePriorityId();
+  const assigneeId = useAssigneeId();
+  const labelsInput = useLabelsInput();
+  const isCreating = useIsCreating();
 
-  const [projects, setProjects] = useState<JiraProject[]>([]);
-  const [issueTypes, setIssueTypes] = useState<JiraIssueType[]>([]);
-  const [priorities, setPriorities] = useState<JiraPriority[]>([]);
-  const [users, setUsers] = useState<JiraUser[]>([]);
+  // Actions from store
+  const {
+    init,
+    setSelectedProject,
+    setSummary,
+    setDescription,
+    setIssueTypeId,
+    setPriorityId,
+    setAssigneeId,
+    setLabelsInput,
+    createIssue,
+  } = useJiraCreateTicketActions();
 
-  const [selectedProject, setSelectedProject] = useState("");
-  const [summary, setSummary] = useState("");
-  const [description, setDescription] = useState("");
-  const [issueTypeId, setIssueTypeId] = useState("");
-  const [priorityId, setPriorityId] = useState("");
-  const [assigneeId, setAssigneeId] = useState("");
-  const [labelsInput, setLabelsInput] = useState("");
-
-  const [isCreating, setIsCreating] = useState(false);
-
-  // Load projects and users on mount
+  // Initialize store
   useEffect(() => {
-    postMessage({ command: "loadProjects" });
-    postMessage({ command: "loadUsers" });
-  }, []);
-
-  // Handle messages from extension
-  useEffect(() => {
-    return onMessage((message) => {
-      switch (message.command) {
-        case "projectsLoaded":
-          setProjects(message.projects);
-          break;
-
-        case "projectMetaLoaded":
-          setIssueTypes(message.issueTypes.filter((t) => !t.subtask));
-          setPriorities(message.priorities);
-          break;
-
-        case "usersLoaded":
-          setUsers(message.users);
-          break;
-
-        case "populateDraft":
-          if (message.data) {
-            if (message.data.title) setSummary(message.data.title);
-            if (message.data.description) setDescription(message.data.description);
-            if (message.data.projectKey) setSelectedProject(message.data.projectKey);
-            if (message.data.labels) setLabelsInput(message.data.labels.join(", "));
-            // Priority will be matched after project metadata loads
-            if (message.data.priority) {
-              // Store for later when priorities are available
-              setTimeout(() => {
-                const matchedPriority = priorities.find(
-                  (p) => p.name.toLowerCase() === message.data.priority?.toLowerCase()
-                );
-                if (matchedPriority) setPriorityId(matchedPriority.id);
-              }, 500);
-            }
-          }
-          break;
-      }
-    });
-  }, [onMessage, priorities]);
-
-  // Load project metadata when project changes
-  useEffect(() => {
-    if (selectedProject) {
-      postMessage({ command: "loadProjectMeta", projectKey: selectedProject });
-    }
-  }, [selectedProject]);
+    return init();
+  }, [init]);
 
   const handleCreate = () => {
     if (!selectedProject || !summary.trim() || !issueTypeId) {
       return;
     }
-
-    setIsCreating(true);
 
     const labels = labelsInput
       .split(",")
@@ -143,21 +62,18 @@ function App() {
       .filter((l) => l.length > 0);
 
     // Convert markdown description to ADF for Jira
-    const adfDescription = description.trim() 
+    const adfDescription = description.trim()
       ? JSON.stringify(markdownToAdf(description.trim()))
       : "";
 
-    postMessage({
-      command: "createIssue",
-      input: {
-        projectKey: selectedProject,
-        summary: summary.trim(),
-        description: adfDescription,
-        issueTypeId,
-        priorityId: priorityId || undefined,
-        assigneeId: assigneeId || undefined,
-        labels: labels.length > 0 ? labels : undefined,
-      },
+    createIssue({
+      projectKey: selectedProject,
+      summary: summary.trim(),
+      description: adfDescription,
+      issueTypeId,
+      priorityId: priorityId || undefined,
+      assigneeId: assigneeId || undefined,
+      labels: labels.length > 0 ? labels : undefined,
     });
   };
 
@@ -176,10 +92,7 @@ function App() {
           </label>
           <select
             value={selectedProject}
-            onChange={(e) => {
-              setSelectedProject(e.target.value);
-              setIssueTypeId("");
-            }}
+            onChange={(e) => setSelectedProject(e.target.value)}
             className={styles.select}
           >
             <option value="">Select a project</option>
@@ -301,4 +214,3 @@ function App() {
 }
 
 export default App;
-
