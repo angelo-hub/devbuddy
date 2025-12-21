@@ -10,6 +10,7 @@
 
 import { getLogger } from "@shared/utils/logger";
 import { getNetworkMonitor } from "./NetworkMonitor";
+import { getPerformanceMonitor } from "@shared/utils/performanceMonitor";
 
 const logger = getLogger();
 
@@ -284,6 +285,11 @@ export class RetryableHttpClient {
   ): Promise<HttpResponse<T>> {
     const retryConfig = { ...this.defaultConfig, ...options.retry };
     const networkMonitor = getNetworkMonitor();
+    const performanceMonitor = getPerformanceMonitor();
+    
+    // Extract API name from URL for performance tracking
+    const apiName = this.extractApiName(url);
+    const startTime = Date.now();
 
     let lastError: Error | null = null;
     let attempt = 0;
@@ -294,6 +300,10 @@ export class RetryableHttpClient {
         
         // Notify network monitor of success
         networkMonitor.recordSuccess();
+        
+        // Record API latency (lightweight - only tracks duration)
+        const durationMs = Date.now() - startTime;
+        performanceMonitor.recordApiLatency(apiName, durationMs);
         
         return response;
       } catch (error) {
@@ -307,6 +317,11 @@ export class RetryableHttpClient {
           if (isNetworkError(error)) {
             networkMonitor.recordFailure();
           }
+          
+          // Record failed API latency
+          const durationMs = Date.now() - startTime;
+          performanceMonitor.recordApiLatency(`${apiName}_error`, durationMs);
+          
           throw error;
         }
 
@@ -342,7 +357,36 @@ export class RetryableHttpClient {
 
     // All retries exhausted
     networkMonitor.recordFailure();
+    
+    // Record failed API latency
+    const durationMs = Date.now() - startTime;
+    performanceMonitor.recordApiLatency(`${apiName}_exhausted`, durationMs);
+    
     throw lastError || new Error("Request failed after all retries");
+  }
+  
+  /**
+   * Extract a short API name from URL for performance tracking
+   * Examples:
+   *   https://api.linear.app/graphql → linear_api
+   *   https://your-site.atlassian.net/rest/api/3/issue → jira_api
+   */
+  private extractApiName(url: string): string {
+    try {
+      const urlObj = new URL(url);
+      const host = urlObj.hostname;
+      
+      if (host.includes("linear.app")) {
+        return "linear_api";
+      }
+      if (host.includes("atlassian.net") || host.includes("jira")) {
+        return "jira_api";
+      }
+      // Generic fallback - use first part of hostname
+      return host.split(".")[0] + "_api";
+    } catch {
+      return "unknown_api";
+    }
   }
 
   /**

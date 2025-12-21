@@ -337,19 +337,27 @@ Currently DevBuddy uses Personal Access Tokens (PATs) for Linear authentication.
 - **Token refresh**: Automatic token refresh without user intervention
 - **Revocation**: Easy revocation via Linear settings
 
+**Token Lifetimes:**
+- Access tokens: Short-lived (~1 hour) with refresh tokens (new apps)
+- Refresh tokens: Long-lived, rotated on each refresh
+- Legacy mode: 10-year tokens without refresh (older apps)
+- User away for weeks/months → automatic refresh when they return
+
 **Implementation Requirements:**
 1. Register DevBuddy as an OAuth app in Linear
 2. Implement OAuth 2.0 PKCE flow (required for public clients)
 3. Use VS Code's `AuthenticationProvider` API for seamless integration
 4. Support both OAuth and PAT (fallback for enterprise users)
 5. Handle token refresh and expiration gracefully
+6. Graceful re-auth prompt if refresh token is revoked
 
 **Linear OAuth Scopes Needed:**
-- `read` - Read access to issues, projects, teams
+- `read` - Read access to issues, projects, teams (always included)
 - `write` - Create/update issues, comments
 - `issues:create` - Create new issues
+- `comments:create` - Add comments to issues
 
-**Reference:** https://developers.linear.app/docs/oauth/authentication
+**Reference:** https://linear.app/developers/oauth-2-0-authentication
 
 ---
 

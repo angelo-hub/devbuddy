@@ -8,6 +8,7 @@
 import * as vscode from "vscode";
 import { getLogger } from "@shared/utils/logger";
 import { disposeAllCaches, NetworkMonitor } from "@shared/http";
+import { getPerformanceMonitor } from "@shared/utils/performanceMonitor";
 
 // Activation modules
 import { registerUriHandler } from "./activation/uriHandler";
@@ -27,6 +28,10 @@ import { registerAllCommands } from "./commands";
  * Extension activation
  */
 export async function activate(context: vscode.ExtensionContext) {
+  // Start performance monitoring (first thing - minimal overhead)
+  const performanceMonitor = getPerformanceMonitor();
+  performanceMonitor.markActivationStart();
+
   // Initialize logger first (must succeed)
   const logger = getLogger();
   
@@ -115,6 +120,9 @@ export async function activate(context: vscode.ExtensionContext) {
     // ==================== Activation Complete ====================
     logger.success("All features registered successfully!");
     logger.info("DevBuddy is now ready to use");
+
+    // Mark activation complete and start periodic performance monitoring
+    await performanceMonitor.markActivationEnd();
     
   } catch (error) {
     logger.error("CRITICAL: Extension activation failed", error);
@@ -133,8 +141,18 @@ export async function activate(context: vscode.ExtensionContext) {
 /**
  * Extension deactivation
  */
-export function deactivate() {
+export async function deactivate() {
   const logger = getLogger();
+  
+  // Report performance summary before shutdown
+  try {
+    const performanceMonitor = getPerformanceMonitor();
+    await performanceMonitor.reportSessionSummary();
+    performanceMonitor.dispose();
+    logger.debug("Performance monitoring cleaned up");
+  } catch (error) {
+    logger.error("Failed to report performance summary", error);
+  }
   
   // Clean up HTTP infrastructure
   try {

@@ -1133,6 +1133,11 @@
           "default": false,
           "markdownDescription": "**Opt out of DevBuddy telemetry**\n\n⚙️ **How it works:**\n- DevBuddy follows VS Code's global telemetry setting by default\n- Enable this to opt out even if VS Code telemetry is enabled\n\n🔒 **Privacy:**\n- 100% anonymous (no personal data)\n- No code or file names tracked\n- No content collection\n\n💡 **What we collect when enabled:**\n- Feature usage patterns\n- Error types (not content)\n- Performance metrics\n- Extension version & platform\n\n📖 **Learn more:**\n- [Telemetry Guide](https://github.com/angelo-hub/devbuddy#telemetry)\n- [What data is collected](https://github.com/angelo-hub/devbuddy/blob/main/docs/features/telemetry/TELEMETRY_GUIDE.md)"
         },
+        "devBuddy.telemetry.performance": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "**Enable performance telemetry**\n\n📊 **What it tracks:**\n- Extension activation time\n- Memory usage snapshots (every 5 min)\n- API response times\n- Long-running operations\n\n⚡ **Impact:**\n- Minimal overhead (uses Node.js built-in APIs)\n- Infrequent sampling\n- Helps us optimize the extension\n\n🔒 **Privacy:**\n- No code or file content tracked\n- No PII collected\n- Fully anonymous"
+        },
         "devBuddy.provider": {
           "type": "string",
           "enum": [
