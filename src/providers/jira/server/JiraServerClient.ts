@@ -1259,7 +1259,7 @@ export class JiraServerClient extends BaseJiraClient {
           inward: link.type.inward,
           outward: link.type.outward,
         },
-        direction: isInward ? "inward" : "outward",
+        direction: isInward ? "inward" as const : "outward" as const,
         linkedIssue: {
           id: linkedIssue.id,
           key: linkedIssue.key,
