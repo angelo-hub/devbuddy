@@ -2,7 +2,7 @@
   "name": "dev-buddy",
   "displayName": "DevBuddy - Linear & Jira Workflow Manager",
   "description": "Linear + Jira workflows on steroids. AI-powered standups, PR summaries, and ticket management—all in VS Code.",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "publisher": "angelogirardi",
   "license": "SEE LICENSE IN LICENSE",
   "readme": "README.md",
