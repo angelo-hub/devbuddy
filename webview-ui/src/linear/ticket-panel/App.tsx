@@ -8,6 +8,8 @@ import {
   LinearUser,
   LinearLabel,
   LinearCycle,
+  LinearIssueSearchResult,
+  LinearIssueRelationType,
 } from "../../shared/types/messages";
 import { TicketHeader } from "./components/TicketHeader";
 import { TicketMetadata } from "./components/TicketMetadata";
@@ -22,6 +24,7 @@ import { AttachedPRs } from "./components/AttachedPRs";
 import { SubIssues } from "./components/SubIssues";
 import { Comments } from "./components/Comments";
 import { BranchManager } from "./components/BranchManager";
+import { IssueRelationsSection } from "./components/IssueRelationsSection";
 import styles from "./App.module.css";
 
 // Get initial state from window object (passed from extension)
@@ -78,6 +81,7 @@ function App() {
     currentBranch: string | null;
     suggestions: string[];
   } | null>(null);
+  const [issueSearchResults, setIssueSearchResults] = useState<LinearIssueSearchResult[]>([]);
 
   // Handle messages from extension
   useEffect(() => {
@@ -119,6 +123,15 @@ function App() {
 
         case "cyclesLoaded":
           setAvailableCycles(message.cycles);
+          break;
+
+        case "issueSearchResults":
+          setIssueSearchResults(message.issues);
+          break;
+
+        case "relationCreated":
+        case "relationDeleted":
+          // Issue will be refreshed automatically
           break;
       }
     });
@@ -210,6 +223,18 @@ function App() {
 
   const handleUpdateCycle = (cycleId: string | null) => {
     postMessage({ command: "updateCycle", cycleId });
+  };
+
+  const handleSearchIssues = (searchTerm: string) => {
+    postMessage({ command: "searchIssues", searchTerm });
+  };
+
+  const handleCreateRelation = (relatedIssueId: string, type: LinearIssueRelationType) => {
+    postMessage({ command: "createRelation", relatedIssueId, type });
+  };
+
+  const handleDeleteRelation = (relationId: string) => {
+    postMessage({ command: "deleteRelation", relationId });
   };
 
   if (!issue) {
@@ -305,6 +330,19 @@ function App() {
       {((issue.children && issue.children.nodes.length > 0) || issue.parent) && (
         <div className={styles.divider} />
       )}
+
+      <IssueRelationsSection
+        relations={issue.relations}
+        inverseRelations={issue.inverseRelations}
+        currentIssueId={issue.id}
+        searchResults={issueSearchResults}
+        onOpenIssue={handleOpenIssue}
+        onSearchIssues={handleSearchIssues}
+        onCreateRelation={handleCreateRelation}
+        onDeleteRelation={handleDeleteRelation}
+      />
+
+      <div className={styles.divider} />
 
       <TicketDescription 
         description={issue.description} 

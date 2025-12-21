@@ -1,8 +1,8 @@
-import React from "react";
-import { Link2, ArrowRight, Ban, GitMerge, Copy, AlertCircle } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { Link2, ArrowRight, Ban, GitMerge, Copy, AlertCircle, Plus, X, Search, Check } from "lucide-react";
 import styles from "./IssueLinksSection.module.css";
 
-interface IssueLink {
+export interface IssueLink {
   id: string;
   type: {
     id: string;
@@ -31,9 +31,35 @@ interface IssueLink {
   };
 }
 
+export interface IssueLinkType {
+  id: string;
+  name: string;
+  inward: string;
+  outward: string;
+}
+
+export interface IssueSearchResult {
+  id: string;
+  key: string;
+  summary: string;
+  status: {
+    name: string;
+    statusCategory?: {
+      key: string;
+    };
+  };
+}
+
 interface IssueLinksSectionProps {
   issueLinks: IssueLink[];
+  currentIssueKey: string;
+  linkTypes?: IssueLinkType[];
+  searchResults?: IssueSearchResult[];
   onOpenLinkedIssue?: (issueKey: string) => void;
+  onSearchIssues?: (searchTerm: string) => void;
+  onLoadLinkTypes?: () => void;
+  onCreateLink?: (targetIssueKey: string, linkTypeName: string, isOutward: boolean) => void;
+  onDeleteLink?: (linkId: string) => void;
 }
 
 // Get the relationship label based on direction
@@ -92,67 +118,264 @@ function groupLinksByType(links: IssueLink[]): Map<string, IssueLink[]> {
 
 export const IssueLinksSection: React.FC<IssueLinksSectionProps> = ({ 
   issueLinks, 
-  onOpenLinkedIssue 
+  currentIssueKey,
+  linkTypes,
+  searchResults,
+  onOpenLinkedIssue,
+  onSearchIssues,
+  onLoadLinkTypes,
+  onCreateLink,
+  onDeleteLink,
 }) => {
-  if (!issueLinks || issueLinks.length === 0) {
-    return null;
-  }
-
-  const groupedLinks = groupLinksByType(issueLinks);
+  const [isAddingLink, setIsAddingLink] = useState(false);
+  // Store user's explicit selection; null means use default (first link type)
+  const [userSelectedLinkTypeId, setUserSelectedLinkTypeId] = useState<string | null>(null);
+  const [isOutward, setIsOutward] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedIssue, setSelectedIssue] = useState<IssueSearchResult | null>(null);
   
-  const handleClick = (e: React.MouseEvent, issueKey: string) => {
-    e.preventDefault();
+  // Derive the effective link type: user selection or default to first
+  const selectedLinkType = userSelectedLinkTypeId
+    ? linkTypes?.find(t => t.id === userSelectedLinkTypeId) ?? linkTypes?.[0] ?? null
+    : linkTypes?.[0] ?? null;
+
+  // Load link types when opening add form
+  useEffect(() => {
+    if (isAddingLink && onLoadLinkTypes && (!linkTypes || linkTypes.length === 0)) {
+      onLoadLinkTypes();
+    }
+  }, [isAddingLink, onLoadLinkTypes, linkTypes]);
+
+  // Debounced search
+  useEffect(() => {
+    if (searchTerm.length >= 2 && onSearchIssues) {
+      const timeoutId = setTimeout(() => {
+        onSearchIssues(searchTerm);
+      }, 300);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [searchTerm, onSearchIssues]);
+
+  // Filter out current issue and already linked issues from search results
+  const linkedIssueKeys = new Set(issueLinks?.map(link => link.linkedIssue.key) || []);
+  const filteredSearchResults = (searchResults || []).filter(
+    issue => issue.key !== currentIssueKey && !linkedIssueKeys.has(issue.key)
+  );
+
+  const handleAddLink = useCallback(() => {
+    if (selectedIssue && selectedLinkType && onCreateLink) {
+      onCreateLink(selectedIssue.key, selectedLinkType.name, isOutward);
+      // Reset form
+      setSelectedIssue(null);
+      setSearchTerm("");
+      setIsAddingLink(false);
+      setUserSelectedLinkTypeId(null);
+    }
+  }, [selectedIssue, selectedLinkType, isOutward, onCreateLink]);
+
+  const handleCancelAdd = () => {
+    setIsAddingLink(false);
+    setSelectedIssue(null);
+    setSearchTerm("");
+    setUserSelectedLinkTypeId(null);
+  };
+
+  const groupedLinks = groupLinksByType(issueLinks || []);
+  
+  const handleClick = (_e: React.MouseEvent, issueKey: string) => {
     if (onOpenLinkedIssue) {
       onOpenLinkedIssue(issueKey);
     }
   };
 
+  const hasLinks = issueLinks && issueLinks.length > 0;
+  const canAddLinks = onSearchIssues && onCreateLink;
+
+  // Show section if there are links OR if we can add links
+  if (!hasLinks && !canAddLinks && !isAddingLink) {
+    return null;
+  }
+
   return (
     <div className={styles.container}>
       <h3 className={styles.heading}>
         <Link2 size={14} className={styles.headingIcon} />
-        Linked Issues ({issueLinks.length})
+        <span>Linked Issues {hasLinks && `(${issueLinks.length})`}</span>
+        {canAddLinks && !isAddingLink && (
+          <button
+            className={styles.addButton}
+            onClick={() => setIsAddingLink(true)}
+            title="Add issue link"
+          >
+            <Plus size={14} />
+          </button>
+        )}
       </h3>
       
-      <div className={styles.linkGroups}>
-        {Array.from(groupedLinks.entries()).map(([relationship, links]) => (
-          <div key={relationship} className={styles.linkGroup}>
-            <div className={styles.relationshipLabel}>
-              {getLinkIcon(links[0].type.name)}
-              <span>{relationship}</span>
-            </div>
-            
-            <div className={styles.linksList}>
-              {links.map((link) => (
-                <a
-                  key={link.id}
-                  href="#"
-                  onClick={(e) => handleClick(e, link.linkedIssue.key)}
-                  className={styles.linkItem}
-                >
-                  <div className={styles.linkItemHeader}>
-                    <div className={styles.issueInfo}>
-                      {link.linkedIssue.issueType.iconUrl && (
-                        <img 
-                          src={link.linkedIssue.issueType.iconUrl} 
-                          alt={link.linkedIssue.issueType.name}
-                          className={styles.issueTypeIcon}
-                        />
-                      )}
-                      <span className={styles.issueKey}>{link.linkedIssue.key}</span>
-                      <span className={`${styles.statusBadge} ${getStatusCategoryClass(link.linkedIssue.status.statusCategory)}`}>
-                        {link.linkedIssue.status.name}
-                      </span>
-                    </div>
-                    <ArrowRight size={14} className={styles.openArrow} />
+      {!hasLinks && !isAddingLink && (
+        <p className={styles.emptyState}>No linked issues</p>
+      )}
+
+      {hasLinks && (
+        <div className={styles.linkGroups}>
+          {Array.from(groupedLinks.entries()).map(([relationship, links]) => (
+            <div key={relationship} className={styles.linkGroup}>
+              <div className={styles.relationshipLabel}>
+                {getLinkIcon(links[0].type.name)}
+                <span>{relationship}</span>
+              </div>
+              
+              <div className={styles.linksList}>
+                {links.map((link) => (
+                  <div key={link.id} className={styles.linkItemWrapper}>
+                    <button
+                      type="button"
+                      onClick={(e) => handleClick(e, link.linkedIssue.key)}
+                      className={styles.linkItem}
+                    >
+                      <div className={styles.linkItemHeader}>
+                        <div className={styles.issueInfo}>
+                          {link.linkedIssue.issueType.iconUrl && (
+                            <img 
+                              src={link.linkedIssue.issueType.iconUrl} 
+                              alt={link.linkedIssue.issueType.name}
+                              className={styles.issueTypeIcon}
+                            />
+                          )}
+                          <span className={styles.issueKey}>{link.linkedIssue.key}</span>
+                          <span className={`${styles.statusBadge} ${getStatusCategoryClass(link.linkedIssue.status.statusCategory)}`}>
+                            {link.linkedIssue.status.name}
+                          </span>
+                        </div>
+                        <ArrowRight size={14} className={styles.openArrow} />
+                      </div>
+                      <div className={styles.issueSummary}>{link.linkedIssue.summary}</div>
+                    </button>
+                    {onDeleteLink && (
+                      <button
+                        className={styles.deleteButton}
+                        onClick={() => onDeleteLink(link.id)}
+                        title="Remove link"
+                      >
+                        <X size={12} />
+                      </button>
+                    )}
                   </div>
-                  <div className={styles.issueSummary}>{link.linkedIssue.summary}</div>
-                </a>
-              ))}
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add link form */}
+      {isAddingLink && (
+        <div className={styles.addForm}>
+          <div className={styles.formRow}>
+            <label>Link type:</label>
+            <div className={styles.linkTypeSelector}>
+              <select
+                value={selectedLinkType?.id || ""}
+                onChange={(e) => {
+                  setUserSelectedLinkTypeId(e.target.value || null);
+                }}
+                className={styles.typeSelect}
+              >
+                {linkTypes?.map((type) => (
+                  <option key={type.id} value={type.id}>
+                    {type.name}
+                  </option>
+                ))}
+              </select>
+              {selectedLinkType && (
+                <div className={styles.directionToggle}>
+                  <button
+                    className={`${styles.directionButton} ${isOutward ? styles.active : ""}`}
+                    onClick={() => setIsOutward(true)}
+                    title={selectedLinkType.outward}
+                  >
+                    {selectedLinkType.outward}
+                  </button>
+                  <button
+                    className={`${styles.directionButton} ${!isOutward ? styles.active : ""}`}
+                    onClick={() => setIsOutward(false)}
+                    title={selectedLinkType.inward}
+                  >
+                    {selectedLinkType.inward}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
-        ))}
-      </div>
+
+          <div className={styles.formRow}>
+            <label>Issue:</label>
+            {selectedIssue ? (
+              <div className={styles.selectedIssue}>
+                <span className={`${styles.statusDot} ${getStatusCategoryClass(selectedIssue.status.statusCategory)}`} />
+                <span className={styles.issueKey}>{selectedIssue.key}</span>
+                <span className={styles.issueSummary}>{selectedIssue.summary}</span>
+                <button
+                  className={styles.clearButton}
+                  onClick={() => {
+                    setSelectedIssue(null);
+                    setSearchTerm("");
+                  }}
+                  title="Clear selection"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            ) : (
+              <div className={styles.searchContainer}>
+                <div className={styles.searchInputWrapper}>
+                  <Search size={14} className={styles.searchIcon} />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search issues by key or summary..."
+                    className={styles.searchInput}
+                    autoFocus
+                  />
+                </div>
+                {filteredSearchResults.length > 0 && (
+                  <div className={styles.searchResults}>
+                    {filteredSearchResults.slice(0, 10).map((issue) => (
+                      <button
+                        key={issue.id}
+                        className={styles.searchResultItem}
+                        onClick={() => setSelectedIssue(issue)}
+                      >
+                        <span className={`${styles.statusDot} ${getStatusCategoryClass(issue.status.statusCategory)}`} />
+                        <span className={styles.issueKey}>{issue.key}</span>
+                        <span className={styles.issueSummary}>{issue.summary}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className={styles.formActions}>
+            <button
+              className={styles.cancelButton}
+              onClick={handleCancelAdd}
+            >
+              Cancel
+            </button>
+            <button
+              className={styles.submitButton}
+              onClick={handleAddLink}
+              disabled={!selectedIssue || !selectedLinkType}
+            >
+              <Check size={14} />
+              Add Link
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

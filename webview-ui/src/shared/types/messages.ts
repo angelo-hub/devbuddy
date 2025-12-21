@@ -158,6 +158,14 @@ export interface LinearIssue {
       };
     }>;
   };
+  /** Relations where this issue is the source (e.g., "blocks", "related") */
+  relations?: {
+    nodes: LinearIssueRelation[];
+  };
+  /** Inverse relations where this issue is the target (e.g., "is blocked by") */
+  inverseRelations?: {
+    nodes: LinearIssueRelation[];
+  };
 }
 
 export interface LinearLabel {
@@ -173,6 +181,33 @@ export interface LinearCycle {
   startsAt?: string;
   endsAt?: string;
   progress?: number;
+}
+
+/**
+ * Issue relation types supported by Linear
+ */
+export type LinearIssueRelationType =
+  | "blocks"
+  | "blocked_by"
+  | "related"
+  | "duplicate"
+  | "duplicate_of";
+
+/**
+ * A relation between two Linear issues
+ */
+export interface LinearIssueRelation {
+  id: string;
+  type: LinearIssueRelationType;
+  relatedIssue: {
+    id: string;
+    identifier: string;
+    title: string;
+    state: {
+      name: string;
+      type: string;
+    };
+  };
 }
 
 export type TicketPanelMessageFromWebview =
@@ -195,7 +230,21 @@ export type TicketPanelMessageFromWebview =
   | { command: "loadLabels"; teamId: string }
   | { command: "updateLabels"; labelIds: string[] }
   | { command: "loadCycles"; teamId: string }
-  | { command: "updateCycle"; cycleId: string | null };
+  | { command: "updateCycle"; cycleId: string | null }
+  | { command: "searchIssues"; searchTerm: string }
+  | { command: "createRelation"; relatedIssueId: string; type: LinearIssueRelationType }
+  | { command: "deleteRelation"; relationId: string };
+
+/** Search result for issues (used when creating relations) */
+export interface LinearIssueSearchResult {
+  id: string;
+  identifier: string;
+  title: string;
+  state: {
+    name: string;
+    type: string;
+  };
+}
 
 export type TicketPanelMessageFromExtension =
   | { command: "updateIssue"; issue: LinearIssue }
@@ -204,4 +253,7 @@ export type TicketPanelMessageFromExtension =
   | { command: "branchInfo"; branchName: string | null; exists: boolean; isInDifferentRepo?: boolean; repositoryName?: string; repositoryPath?: string }
   | { command: "allBranchesLoaded"; branches: string[]; currentBranch: string | null; suggestions: string[] }
   | { command: "labelsLoaded"; labels: LinearLabel[] }
-  | { command: "cyclesLoaded"; cycles: LinearCycle[] };
+  | { command: "cyclesLoaded"; cycles: LinearCycle[] }
+  | { command: "issueSearchResults"; issues: LinearIssueSearchResult[] }
+  | { command: "relationCreated"; success: boolean }
+  | { command: "relationDeleted"; success: boolean };

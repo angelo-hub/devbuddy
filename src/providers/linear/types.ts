@@ -95,6 +95,38 @@ export interface LinearIssue {
       };
     }>;
   };
+  /** Relations where this issue is the source (e.g., "blocks", "related") */
+  relations?: {
+    nodes: Array<{
+      id: string;
+      type: LinearIssueRelationType;
+      relatedIssue: {
+        id: string;
+        identifier: string;
+        title: string;
+        state: {
+          name: string;
+          type: string;
+        };
+      };
+    }>;
+  };
+  /** Inverse relations where this issue is the target (e.g., "is blocked by") */
+  inverseRelations?: {
+    nodes: Array<{
+      id: string;
+      type: LinearIssueRelationType;
+      relatedIssue: {
+        id: string;
+        identifier: string;
+        title: string;
+        state: {
+          name: string;
+          type: string;
+        };
+      };
+    }>;
+  };
   branchName?: string;
   gitBranchName?: string;
 }
@@ -130,6 +162,46 @@ export interface LinearTemplate {
     labelIds?: string[];
     projectId?: string;
     stateId?: string;
+  };
+}
+
+/**
+ * Issue relation types supported by Linear
+ */
+export type LinearIssueRelationType =
+  | "blocks"      // This issue blocks another
+  | "blocked_by"  // This issue is blocked by another (inverse of blocks)
+  | "related"     // Issues are related
+  | "duplicate"   // This issue is a duplicate of another
+  | "duplicate_of"; // This issue has a duplicate (inverse of duplicate)
+
+/**
+ * Issue relation (link between two issues)
+ */
+export interface LinearIssueRelation {
+  id: string;
+  type: LinearIssueRelationType;
+  issue: {
+    id: string;
+    identifier: string;
+    title: string;
+    url: string;
+    state: {
+      id: string;
+      name: string;
+      type: string;
+    };
+  };
+  relatedIssue: {
+    id: string;
+    identifier: string;
+    title: string;
+    url: string;
+    state: {
+      id: string;
+      name: string;
+      type: string;
+    };
   };
 }
 

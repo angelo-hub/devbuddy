@@ -27,6 +27,7 @@ import {
   JiraComment,
   JiraPaginatedResponse,
   JiraIssueLink,
+  JiraIssueLinkType,
 } from "../common/types";
 import {
   JiraApiIssueSchema,
@@ -1340,6 +1341,108 @@ export class JiraCloudClient extends BaseJiraClient {
     }
 
     return "";
+  }
+
+  // ==================== Issue Link Operations ====================
+
+  /**
+   * Get available issue link types
+   */
+  async getIssueLinkTypes(): Promise<JiraIssueLinkType[]> {
+    if (!this.isConfigured()) {
+      return [];
+    }
+
+    try {
+      const response = await this.request<{
+        issueLinkTypes: Array<{
+          id: string;
+          name: string;
+          inward: string;
+          outward: string;
+        }>;
+      }>("/issueLinkType", { ttl: TTL.LONG }); // Link types rarely change, cache for 15 min
+
+      return response.issueLinkTypes || [];
+    } catch (error) {
+      logger.error("[Jira Cloud] Failed to get issue link types:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Create a link between two issues
+   * @param sourceIssueKey The issue from which the link originates
+   * @param targetIssueKey The issue to which the link points
+   * @param linkTypeName The name of the link type (e.g., "Blocks", "Relates")
+   * @param isOutward Whether the sourceIssue is the outward side of the link
+   */
+  async createIssueLink(
+    sourceIssueKey: string,
+    targetIssueKey: string,
+    linkTypeName: string,
+    isOutward: boolean
+  ): Promise<boolean> {
+    if (!this.isConfigured()) {
+      return false;
+    }
+
+    try {
+      // For Jira, the link body specifies:
+      // - type: { name: "LinkTypeName" }
+      // - inwardIssue: The issue that "receives" the relation (e.g., is blocked by)
+      // - outwardIssue: The issue that "gives" the relation (e.g., blocks)
+      const body = isOutward
+        ? {
+            type: { name: linkTypeName },
+            outwardIssue: { key: sourceIssueKey },
+            inwardIssue: { key: targetIssueKey },
+          }
+        : {
+            type: { name: linkTypeName },
+            inwardIssue: { key: sourceIssueKey },
+            outwardIssue: { key: targetIssueKey },
+          };
+
+      await this.request("/issueLink", {
+        method: "POST",
+        body,
+        skipCache: true,
+      });
+
+      // Invalidate issue cache to refresh links
+      this.invalidateCache("issue");
+
+      return true;
+    } catch (error) {
+      logger.error(`[Jira Cloud] Failed to create issue link:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Delete an issue link
+   * @param linkId The ID of the link to delete
+   */
+  async deleteIssueLink(linkId: string): Promise<boolean> {
+    if (!this.isConfigured()) {
+      return false;
+    }
+
+    try {
+      await this.request(`/issueLink/${linkId}`, {
+        method: "DELETE",
+        skipCache: true,
+      });
+
+      // Invalidate issue cache to refresh links
+      this.invalidateCache("issue");
+
+      return true;
+    } catch (error) {
+      logger.error(`[Jira Cloud] Failed to delete issue link:`, error);
+      return false;
+    }
   }
 }
 
