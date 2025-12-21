@@ -380,6 +380,66 @@ BYOT allows users to use their own API keys for AI-powered features instead of r
 
 ---
 
+## 8.3 Smart Standup Builder with Ticket Activity ✅ Done
+
+### Overview
+
+The Standup Builder now automatically detects ticket activity in addition to git commits. This captures non-code work like:
+- **Spike/Investigation updates** - Description changes documenting research findings
+- **Comments added** - Notes and discoveries added to tickets
+- **Status transitions** - Moving tickets through workflow states
+- **Estimate changes** - Updating story points after investigation
+
+### Key Features
+
+| Feature | Description |
+|---------|-------------|
+| **Auto-Context Detection** | Automatically detects current branch, ticket IDs, commits, and ticket activity |
+| **Quick Generate** | One-click standup generation using auto-detected context |
+| **Ticket Activity Tracking** | Fetches recent updates you made to assigned tickets |
+| **Non-Code Work Support** | Includes description updates, comments, and status changes in summaries |
+| **AI Integration** | AI summarizer includes ticket activity context for better summaries |
+
+### How It Works
+
+1. **Auto-Detection**
+   - Scans current branch for ticket ID
+   - Fetches recent commits in time window
+   - Queries Linear/Jira API for recent activity on assigned tickets
+   - Identifies ticket updates made by the current user
+
+2. **Activity Types Tracked**
+   - `status_change` - Moving tickets through workflow
+   - `description_update` - Updating descriptions (spikes, investigations)
+   - `comment_added` - Adding comments with findings
+   - `priority_change` - Reprioritizing tickets
+   - `assignee_change` - Reassigning tickets
+   - `estimate_change` - Updating story points
+   - `label_change` - Adding/removing labels
+   - `attachment_added` - Attaching files
+
+3. **AI Context**
+   - Ticket activity is passed to AI summarizer as additional context
+   - Results in more accurate summaries that reflect non-code work
+   - Fallback mode also includes activity in generated text
+
+### API Implementation
+
+| Platform | Method | Data Source |
+|----------|--------|-------------|
+| **Linear** | `getMyRecentIssueActivity()` | GraphQL `history` + `comments` |
+| **Jira Cloud** | `getMyRecentIssueActivity()` | REST API `/issue/{key}?expand=changelog` |
+| **Jira Server** | `getMyRecentIssueActivity()` | REST API `/issue/{key}?expand=changelog` |
+
+### UI Display
+
+- **Auto-Context Summary** shows count of ticket updates
+- **Results Panel** includes "Ticket Updates (non-code work)" section
+- Each activity shows icon, ticket ID, description, and relative time
+- Comment previews shown for `comment_added` activities
+
+---
+
 ## 8.1 Pro Features Roadmap (Post-1.0)
 
 ### Developer Stats Dashboard 💎

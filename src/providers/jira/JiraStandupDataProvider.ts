@@ -1,4 +1,4 @@
-import { BaseStandupDataProvider, StandupTicket } from "@shared/base/BaseStandupDataProvider";
+import { BaseStandupDataProvider, StandupTicket, TicketActivity } from "@shared/base/BaseStandupDataProvider";
 import { BaseJiraClient } from "./common/BaseJiraClient";
 import { JiraCloudClient } from "./cloud/JiraCloudClient";
 import { JiraServerClient } from "./server/JiraServerClient";
@@ -118,6 +118,33 @@ export class JiraStandupDataProvider extends BaseStandupDataProvider {
       status: issue.status.name,
       priority: this.mapJiraPriorityToNumber(issue.priority?.name),
       url: issue.url,
+    }));
+  }
+
+  /**
+   * Get recent ticket activity from Jira
+   * This captures non-code work like updating descriptions, adding comments, status changes
+   */
+  async getRecentTicketActivity(timeWindow: string): Promise<TicketActivity[]> {
+    const client = await this.getClient();
+    const jiraActivities = await client.getMyRecentIssueActivity(timeWindow);
+
+    // Map Jira activities to generic TicketActivity format
+    return jiraActivities.map((activity) => ({
+      id: activity.id,
+      ticketId: activity.issueId,
+      ticketIdentifier: activity.issueKey,
+      ticketTitle: activity.issueSummary,
+      ticketUrl: activity.issueUrl,
+      activityType: activity.activityType,
+      description: activity.description,
+      timestamp: activity.timestamp,
+      actor: activity.actor,
+      fromStatus: activity.fromStatus,
+      toStatus: activity.toStatus,
+      oldValue: activity.oldValue,
+      newValue: activity.newValue,
+      commentBody: activity.commentBody,
     }));
   }
 

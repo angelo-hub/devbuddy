@@ -87,6 +87,7 @@ DevBuddy is a multi-platform ticket management extension for VS Code. This matri
 | **AI Model Selection** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 | **Privacy Mode (No AI)** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 | **Fallback Summarizer** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| **Ticket Activity in Standup** | ✅ | ✅ | ✅ | ⏳ | ⏳ |
 | **BYOT: OpenAI** | 🧪 Beta | 🧪 Beta | 🧪 Beta | 🧪 Beta | 🧪 Beta |
 | **BYOT: Anthropic** | 🧪 Beta | 🧪 Beta | 🧪 Beta | 🧪 Beta | 🧪 Beta |
 | **BYOT: Google AI** | 🧪 Beta | 🧪 Beta | 🧪 Beta | 🧪 Beta | 🧪 Beta |
@@ -262,6 +263,7 @@ DevBuddy supports working across multiple repositories, enabling seamless contex
 | **Jira PR Summaries** | Jira Cloud | Medium | ✅ Done |
 | **Multi-Repo Support** | All Platforms | High | ✅ Done |
 | **Jira Chat Participant** | Jira Cloud | Medium | 🚧 In Progress |
+| **Smart Standup with Ticket Activity** | All Platforms | High | ✅ Done |
 
 ### Medium-Term
 

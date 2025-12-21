@@ -904,7 +904,7 @@
         "devBuddy.standupTimeWindow": {
           "type": "string",
           "default": "24 hours ago",
-          "description": "Time window for standup commits (e.g., '24 hours ago', '2 days ago')"
+          "description": "Time window for standup commits and ticket activity. Supports: '24 hours ago', '48 hours ago', '2 days', '5 days', '1 week', '2 weeks', '1 month'. For testing/dev, use longer periods to capture more activity."
         },
         "devBuddy.enableAISummarization": {
           "type": "boolean",
