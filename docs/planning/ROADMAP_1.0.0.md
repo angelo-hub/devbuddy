@@ -321,6 +321,36 @@ Features from Linear/Jira web UIs that would add significant value.
 | **Performance audit** (large ticket lists) | 🟢 P2 | 🟡 | ⬜ Not Started |
 | **Migrate webview emojis to Lucide React icons** | 🟡 P1 | 🟢 | ✅ Done |
 
+### 7.1 Authentication Improvements (Post-1.0)
+
+| Task | Priority | Effort | Platform | Status |
+|------|----------|--------|----------|--------|
+| **Linear OAuth flow** (replace PAT) | 🟢 P2 | 🟡 | Linear | ⬜ Not Started |
+| **Jira OAuth 2.0 flow** | 🟢 P2 | 🟡 | Jira Cloud | ⬜ Not Started |
+
+#### Linear OAuth Notes
+
+Currently DevBuddy uses Personal Access Tokens (PATs) for Linear authentication. OAuth would provide:
+
+- **Better UX**: One-click authorization instead of manual token copy/paste
+- **Scoped permissions**: Request only the permissions needed
+- **Token refresh**: Automatic token refresh without user intervention
+- **Revocation**: Easy revocation via Linear settings
+
+**Implementation Requirements:**
+1. Register DevBuddy as an OAuth app in Linear
+2. Implement OAuth 2.0 PKCE flow (required for public clients)
+3. Use VS Code's `AuthenticationProvider` API for seamless integration
+4. Support both OAuth and PAT (fallback for enterprise users)
+5. Handle token refresh and expiration gracefully
+
+**Linear OAuth Scopes Needed:**
+- `read` - Read access to issues, projects, teams
+- `write` - Create/update issues, comments
+- `issues:create` - Create new issues
+
+**Reference:** https://developers.linear.app/docs/oauth/authentication
+
 ---
 
 ## 8. Pro Features (Stay Beta)
