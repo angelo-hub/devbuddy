@@ -71,6 +71,12 @@ export class HttpError extends Error {
 }
 
 /**
+ * Minimum delay in milliseconds for rate limit retries when no Retry-After header is present.
+ * This ensures we wait long enough to avoid immediately hitting the rate limit again.
+ */
+const MIN_RATE_LIMIT_DELAY_MS = 30000; // 30 seconds
+
+/**
  * Default retry configuration
  */
 const DEFAULT_RETRY_CONFIG: RetryConfig = {
@@ -325,8 +331,8 @@ export class RetryableHttpClient {
           if (retryAfter !== null) {
             delay = Math.min(retryAfter, retryConfig.maxDelay);
           } else {
-            // Default delay for rate limiting without Retry-After
-            delay = Math.max(delay, 30000); // At least 30 seconds
+            // When no Retry-After header, use minimum delay to avoid immediately re-triggering rate limit
+            delay = Math.max(delay, MIN_RATE_LIMIT_DELAY_MS);
           }
         }
 
