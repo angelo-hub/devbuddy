@@ -387,6 +387,36 @@
         "title": "DevBuddy Pro: Open Advanced Analytics (Beta) 💎",
         "icon": "$(graph)",
         "category": "DevBuddy Pro"
+      },
+      {
+        "command": "devBuddy.ai.setOpenAIKey",
+        "title": "DevBuddy: Set OpenAI API Key (Beta)",
+        "icon": "$(key)",
+        "category": "DevBuddy AI"
+      },
+      {
+        "command": "devBuddy.ai.setAnthropicKey",
+        "title": "DevBuddy: Set Anthropic API Key (Beta)",
+        "icon": "$(key)",
+        "category": "DevBuddy AI"
+      },
+      {
+        "command": "devBuddy.ai.setGoogleKey",
+        "title": "DevBuddy: Set Google AI API Key (Beta)",
+        "icon": "$(key)",
+        "category": "DevBuddy AI"
+      },
+      {
+        "command": "devBuddy.ai.removeApiKey",
+        "title": "DevBuddy: Remove AI API Key (Beta)",
+        "icon": "$(trash)",
+        "category": "DevBuddy AI"
+      },
+      {
+        "command": "devBuddy.ai.showProviderStatus",
+        "title": "DevBuddy: Show AI Provider Status (Beta)",
+        "icon": "$(info)",
+        "category": "DevBuddy AI"
       }
     ],
     "viewsContainers": {
@@ -886,6 +916,23 @@
           "default": false,
           "markdownDescription": "**Completely disable AI features** and use rule-based summarization instead.\n\n⚠️ **For sensitive organizations:** Enable this setting if you cannot use external AI services. The extension will use intelligent rule-based analysis instead.\n\n**When to enable:**\n- Working in a highly regulated environment\n- Security policies prohibit external AI\n- GitHub Copilot is not available"
         },
+        "devBuddy.ai.provider": {
+          "type": "string",
+          "enum": [
+            "copilot",
+            "openai",
+            "anthropic",
+            "google"
+          ],
+          "default": "copilot",
+          "enumDescriptions": [
+            "GitHub Copilot (VS Code Language Model API) - Default, no additional setup",
+            "OpenAI API (Beta) - Bring your own API key",
+            "Anthropic API (Beta) - Bring your own API key",
+            "Google AI/Gemini (Beta) - Bring your own API key"
+          ],
+          "markdownDescription": "**AI Provider for Standup & PR Summaries**\n\n🔹 **Copilot** (Default): Uses VS Code's Language Model API. Requires GitHub Copilot subscription.\n\n🔹 **OpenAI** (Beta): Use your own OpenAI API key. Run `DevBuddy: Set OpenAI API Key` to configure.\n\n🔹 **Anthropic** (Beta): Use your own Anthropic API key. Run `DevBuddy: Set Anthropic API Key` to configure.\n\n🔹 **Google** (Beta): Use your own Google AI API key. Run `DevBuddy: Set Google AI API Key` to configure.\n\n💡 **Tip:** BYOT (Bring Your Own Token) providers give you full control over costs and model selection.\n\n⚠️ **Beta:** BYOT providers are in beta. Please report any issues."
+        },
         "devBuddy.ai.model": {
           "type": "string",
           "enum": [
@@ -909,7 +956,66 @@
             "GitHub Copilot: GPT-3.5 Turbo (Most available)",
             "GitHub Copilot: Gemini 2.0 Flash (Google)"
           ],
-          "description": "AI model to use for summarization. Uses VS Code's Language Model API (GitHub Copilot)."
+          "markdownDescription": "AI model to use when **provider is set to Copilot**.\n\n💡 Uses VS Code's Language Model API (GitHub Copilot).\n\n⚠️ This setting only applies when `devBuddy.ai.provider` is `copilot`."
+        },
+        "devBuddy.ai.openai.model": {
+          "type": "string",
+          "enum": [
+            "gpt-4o",
+            "gpt-4o-mini",
+            "gpt-4-turbo",
+            "gpt-4",
+            "gpt-3.5-turbo",
+            "o1-preview",
+            "o1-mini"
+          ],
+          "default": "gpt-4o-mini",
+          "enumDescriptions": [
+            "GPT-4o - Best quality, higher cost",
+            "GPT-4o Mini - Great balance of quality and cost (recommended)",
+            "GPT-4 Turbo - Fast and powerful",
+            "GPT-4 - Classic GPT-4",
+            "GPT-3.5 Turbo - Fastest and cheapest",
+            "o1-preview - Advanced reasoning (slower)",
+            "o1-mini - Reasoning model, faster"
+          ],
+          "markdownDescription": "**🧪 Beta Feature**\n\nOpenAI model to use when **provider is set to OpenAI**.\n\n💡 **Recommended:** `gpt-4o-mini` for best balance of quality and cost.\n\n⚠️ Requires OpenAI API key. Run `DevBuddy: Set OpenAI API Key` to configure."
+        },
+        "devBuddy.ai.anthropic.model": {
+          "type": "string",
+          "enum": [
+            "claude-sonnet-4-20250514",
+            "claude-3-5-sonnet-20241022",
+            "claude-3-5-haiku-20241022",
+            "claude-3-opus-20240229",
+            "claude-3-haiku-20240307"
+          ],
+          "default": "claude-3-5-haiku-20241022",
+          "enumDescriptions": [
+            "Claude Sonnet 4 - Latest, best quality",
+            "Claude 3.5 Sonnet - Excellent quality (recommended)",
+            "Claude 3.5 Haiku - Fast and efficient",
+            "Claude 3 Opus - Most capable, higher cost",
+            "Claude 3 Haiku - Fastest, lowest cost"
+          ],
+          "markdownDescription": "**🧪 Beta Feature**\n\nAnthropic model to use when **provider is set to Anthropic**.\n\n💡 **Recommended:** `claude-3-5-haiku-20241022` for fast, efficient summaries.\n\n⚠️ Requires Anthropic API key. Run `DevBuddy: Set Anthropic API Key` to configure."
+        },
+        "devBuddy.ai.google.model": {
+          "type": "string",
+          "enum": [
+            "gemini-2.0-flash-exp",
+            "gemini-1.5-pro",
+            "gemini-1.5-flash",
+            "gemini-1.5-flash-8b"
+          ],
+          "default": "gemini-1.5-flash",
+          "enumDescriptions": [
+            "Gemini 2.0 Flash - Latest experimental model",
+            "Gemini 1.5 Pro - Most capable",
+            "Gemini 1.5 Flash - Fast and efficient (recommended)",
+            "Gemini 1.5 Flash 8B - Fastest, lowest cost"
+          ],
+          "markdownDescription": "**🧪 Beta Feature**\n\nGoogle AI model to use when **provider is set to Google**.\n\n💡 **Recommended:** `gemini-1.5-flash` for fast, efficient summaries.\n\n⚠️ Requires Google AI API key. Run `DevBuddy: Set Google AI API Key` to configure."
         },
         "devBuddy.aiModel": {
           "type": "string",
@@ -1182,6 +1288,7 @@
     "hast-util-to-html": "^9.0.5",
     "jira2md": "^3.0.1",
     "lowlight": "^3.3.0",
+    "lucide-react": "^0.562.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "simple-git": "^3.30.0",

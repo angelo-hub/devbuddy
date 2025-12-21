@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Pencil } from "lucide-react";
 import { Badge } from "@shared/components";
 import { ShareButton } from "./ShareButton";
 import styles from "./TicketHeader.module.css";
@@ -97,19 +98,7 @@ export const TicketHeader: React.FC<TicketHeaderProps> = ({
               className={styles.editButton}
               title="Edit title"
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-              </svg>
+              <Pencil size={14} />
             </button>
           )}
         </div>
@@ -121,7 +110,7 @@ export const TicketHeader: React.FC<TicketHeaderProps> = ({
           {statusName}
         </Badge>
         <Badge variant="priority">
-          <span>{priorityIcon}</span>
+          <span style={{ color: priorityIcon.color }}>{priorityIcon.symbol}</span>
           {priorityName}
         </Badge>
         {creator && (
@@ -182,18 +171,18 @@ function getStatusColor(statusType: string): string {
   }
 }
 
-function getPriorityIcon(priority: number): string {
+function getPriorityIcon(priority: number): { color: string; symbol: string } {
   switch (priority) {
     case 1:
-      return "🔴";
+      return { color: "#dc2626", symbol: "●" }; // Red - Urgent
     case 2:
-      return "🟠";
+      return { color: "#f97316", symbol: "●" }; // Orange - High
     case 3:
-      return "🟡";
+      return { color: "#eab308", symbol: "●" }; // Yellow - Medium
     case 4:
-      return "🟢";
+      return { color: "#22c55e", symbol: "●" }; // Green - Low
     default:
-      return "⚪";
+      return { color: "#6b7280", symbol: "○" }; // Gray - None
   }
 }
 

@@ -19,10 +19,12 @@ DevBuddy brings your tickets into a single sidebar so you can browse, create, up
 | Feature | Description | Platforms |
 |---------|-------------|-----------|
 | **Unified Issue Explorer** | View and manage all tickets from VS Code | Linear, Jira Cloud, Jira Server (beta) |
-| **AI Agents Know Your Tickets** | Let `@workspace` and Copilot help you with your work | Linear, Jira Cloud |
+| **Rich Text Editor** | WYSIWYG Markdown editor for tickets & comments with toolbar, shortcuts, and live preview | Linear, Jira Cloud |
+| **AI Tool Integration** | AI agents like `@workspace` and Copilot automatically access your tickets | Linear, Jira Cloud |
 | **TODO Converter** | Convert TODOs to tickets with automatic code permalinks | Linear, Jira Cloud |
 | **AI Workflows** | Generate PR summaries and standups automatically | Linear, Jira Cloud |
 | **Branch Integration** | Create and manage branches directly from tickets | Linear, Jira Cloud |
+| **Multi-Repo Support** | Track branch associations across multiple repositories | All platforms |
 | **Chat Participant** | Ask `@devbuddy` questions in natural language | Linear, Jira Cloud |
 | **Monorepo Support** | Intelligent package detection and validation | All platforms |
 
@@ -44,11 +46,15 @@ Write a TODO comment, right-click → "Convert TODO to Ticket". DevBuddy automat
 
 Right-click any ticket → "Start Branch for Ticket". DevBuddy creates a branch with smart naming (conventional, simple, or custom) and automatically associates it with the ticket.
 
-### Edit Tickets Directly in VS Code
+### Edit Tickets with Rich Text Editor
 
 ![Edit Ticket Demo](https://raw.githubusercontent.com/angelo-hub/devbuddy/main/media/walkthrough/videos/edit_ticket.gif)
 
-Click any ticket to view full details, update status, add comments, and manage all ticket properties without leaving your editor.
+Click any ticket to view full details. Edit descriptions and comments with our WYSIWYG Markdown editor featuring:
+- **Formatting toolbar** for quick text styling
+- **Keyboard shortcuts** (Cmd+B, Cmd+I, Cmd+K for links)
+- **Code blocks** with syntax highlighting
+- **Tables, lists, and headings**
 
 ### AI-Powered Standup Generator
 
@@ -97,12 +103,24 @@ Connect GitHub Copilot or another LLM provider to unlock:
 - ✅ Only Jira/Linear APIs you configure are contacted
 - ✅ Privacy-first: AI is completely optional
 
-## What's New in v0.8.0 🎉
+## What's New in v1.0.0 🎉
 
-### 🤖 AI Agents Now Understand Your Tickets
-**Teach VS Code's AI assistants about your work—automatically.**
+### ✏️ Rich Text WYSIWYG Editor
+**Professional-grade editing for tickets and comments.**
 
-DevBuddy extends `@workspace`, GitHub Copilot, and other AI agents with real-time access to your Linear and Jira tickets. No more hallucinations, no more guessing—your AI assistants finally know what you're working on.
+DevBuddy now includes a beautiful Markdown editor with:
+- **Formatting toolbar** - Bold, italic, code, links, lists, headings
+- **Keyboard shortcuts** - Cmd/Ctrl+B for bold, Cmd/Ctrl+I for italic, and more
+- **Live preview** - See your formatted text as you type
+- **Code blocks** - Syntax highlighting for 50+ languages
+- **Tables support** - Create and edit tables visually
+
+Works in ticket descriptions, comments, and ticket creation forms.
+
+### 🤖 AI Tool Integration (Language Model Tools)
+**Your AI assistants now understand your tickets—automatically.**
+
+DevBuddy extends `@workspace`, GitHub Copilot, and other AI agents with real-time access to your Linear and Jira tickets. No more hallucinations, no more guessing.
 
 **Just ask naturally:**
 ```
@@ -116,30 +134,35 @@ DevBuddy extends `@workspace`, GitHub Copilot, and other AI agents with real-tim
 → [AI generates implementation plan with full ticket context]
 ```
 
-**How it works:**
-- DevBuddy provides **3 powerful tools** that AI agents automatically discover
-- 🎫 **Get Ticket Details** - Fetch any ticket by ID
-- 📋 **List My Tickets** - See all your active work
-- 🌿 **Get Current Ticket** - Detect ticket from your branch name
-
-**The magic:** When you ask `@workspace` or Copilot questions about your tickets, they automatically invoke DevBuddy's tools to provide accurate, real-time information—no hallucinations, just facts from your Linear or Jira workspace.
-
-**You can also reference tools directly:**
-```
-@workspace #getCurrentTicket
-@workspace #listMyTickets
-@workspace #getTicket ENG-125
-```
+**Available Tools:**
+| Tool | Description |
+|------|-------------|
+| `#getTicket` | Fetch any ticket by ID (e.g., `#getTicket ENG-125`) |
+| `#listMyTickets` | List all your active tickets |
+| `#getCurrentTicket` | Detect ticket from your current branch |
+| `#createTicket` | Create tickets with AI assistance (Pro) |
 
 **Configure:** Settings → Search "language model tools" to enable/disable individual tools.
 
-[Learn more about AI agent integration →](https://github.com/angelo-hub/devbuddy/blob/main/docs/features/ai/LANGUAGE_MODEL_TOOLS.md)
+[Learn more about AI tool integration →](https://github.com/angelo-hub/devbuddy/blob/main/docs/features/ai/LANGUAGE_MODEL_TOOLS.md)
 
-### 🎯 Also in v0.8.0
+### 🔀 Multi-Repository Support
+**Track branches across all your repositories.**
+
+For teams working with microservices or multiple repos:
+- **Global branch associations** - Track which ticket belongs to which repo
+- **Auto-discovery** - Scans parent directory for related repositories  
+- **Cross-workspace navigation** - Click to open ticket in correct repo
+- **Repository indicators** - See which repo a branch lives in
+
+Enable in settings: `devBuddy.multiRepo.enabled`
+
+### 🎯 Also in v1.0.0
+- **Jira Sidebar Parity** - Recently completed, current sprint, project unassigned sections
+- **Jira Branch Manager** - Full branch association support in Jira ticket panels
+- **Lucide React Icons** - Modern, consistent iconography throughout
 - **Enhanced Chat Participant** - Natural language ticket planning with `@devbuddy`
 - **Smart Work Suggestions** - AI-powered recommendations on what to work on next
-- **Debug Logging** - Comprehensive diagnostics for troubleshooting
-- **Version Banner** - See your DevBuddy version and build type on startup
 
 ## Commands Overview
 
@@ -157,12 +180,15 @@ DevBuddy extends `@workspace`, GitHub Copilot, and other AI agents with real-tim
 ## Roadmap
 
 - ✅ Linear - Full support
-- ✅ Jira Cloud - Full support
+- ✅ Jira Cloud - Full support  
+- ✅ Multi-repository branch tracking
+- ✅ AI Tool Integration (LM Tools)
+- ✅ WYSIWYG Markdown Editor
 - 🚧 Jira Server/Data Center - Beta (editing coming soon)
 - ⏳ GitHub Issues integration
 - ⏳ YouTrack support
 - ⏳ Monday.com integration
-- ⏳ Enhanced multi-account workflows
+- ⏳ Developer Stats Dashboard (Pro)
 
 Track updates: [GitHub Repository](https://github.com/angelo-hub/devbuddy)
 
@@ -203,5 +229,5 @@ All current features are free to use. Future Pro features will require a subscri
 
 ---
 
-**Version 0.8.0** | Made with ❤️ for developers who hate context switching
+**Version 1.0.0** | Made with ❤️ for developers who hate context switching
 

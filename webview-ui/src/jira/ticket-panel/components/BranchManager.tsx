@@ -1,4 +1,14 @@
 import React, { useState, useEffect } from "react";
+import {
+  GitBranch,
+  Check,
+  Lightbulb,
+  AlertTriangle,
+  FolderOpen,
+  ExternalLink,
+  Trash2,
+  Plus,
+} from "lucide-react";
 import styles from "./BranchManager.module.css";
 
 interface BranchManagerProps {
@@ -122,13 +132,13 @@ export const BranchManager: React.FC<BranchManagerProps> = ({
   };
 
   const getBranchIcon = (branch: string) => {
-    if (!allBranches) return "⎇";
+    if (!allBranches) return <GitBranch size={14} />;
     
     const { currentBranch, suggestions } = allBranches;
     
-    if (branch === currentBranch) return "✓";
-    if (suggestions.includes(branch)) return "💡";
-    return "⎇";
+    if (branch === currentBranch) return <Check size={14} />;
+    if (suggestions.includes(branch)) return <Lightbulb size={14} />;
+    return <GitBranch size={14} />;
   };
 
   const getBranchLabel = (branch: string) => {
@@ -155,7 +165,7 @@ export const BranchManager: React.FC<BranchManagerProps> = ({
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.title}>
-          <span className={styles.icon}>🌿</span>
+          <GitBranch size={16} className={styles.icon} />
           Branch
         </div>
       </div>
@@ -163,14 +173,14 @@ export const BranchManager: React.FC<BranchManagerProps> = ({
       {branchInfo?.branchName ? (
         <div className={styles.branchInfo}>
           <div className={styles.branchName}>
-            <span className={styles.branchIcon}>⎇</span>
+            <GitBranch size={14} className={styles.branchIcon} />
             <span>{branchInfo.branchName}</span>
           </div>
 
           {/* Branch is in a different repository */}
           {branchInfo.isInDifferentRepo && branchInfo.repositoryName && (
             <div className={styles.differentRepo}>
-              <span className={styles.repoIcon}>📂</span>
+              <FolderOpen size={14} className={styles.repoIcon} />
               <span>Branch is in <strong>{branchInfo.repositoryName}</strong></span>
             </div>
           )}
@@ -178,7 +188,7 @@ export const BranchManager: React.FC<BranchManagerProps> = ({
           {/* Branch doesn't exist and is NOT in a different repo (truly deleted) */}
           {!branchInfo.exists && !branchInfo.isInDifferentRepo && (
             <div className={styles.warning}>
-              <span className={styles.warningIcon}>⚠️</span>
+              <AlertTriangle size={14} className={styles.warningIcon} />
               <span>Branch no longer exists in repository</span>
             </div>
           )}
@@ -190,7 +200,7 @@ export const BranchManager: React.FC<BranchManagerProps> = ({
                 className={styles.checkoutButton}
                 onClick={() => onOpenInRepository(ticketKey, branchInfo.repositoryPath!)}
               >
-                <span>📂</span>
+                <FolderOpen size={14} />
                 Open in {branchInfo.repositoryName}
               </button>
             )}
@@ -201,12 +211,12 @@ export const BranchManager: React.FC<BranchManagerProps> = ({
                 className={styles.checkoutButton}
                 onClick={handleCheckout}
               >
-                <span>↗️</span>
+                <ExternalLink size={14} />
                 Checkout Branch
               </button>
             )}
             <button className={styles.removeButton} onClick={handleRemove}>
-              <span>🗑️</span>
+              <Trash2 size={14} />
               Remove
             </button>
           </div>
@@ -222,7 +232,7 @@ export const BranchManager: React.FC<BranchManagerProps> = ({
                 className={styles.checkoutButton}
                 onClick={() => setIsEditing(true)}
               >
-                <span>+</span>
+                <Plus size={14} />
                 Associate Branch
               </button>
             </>

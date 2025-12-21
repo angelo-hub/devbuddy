@@ -316,6 +316,7 @@ Features from Linear/Jira web UIs that would add significant value.
 | **Keyboard navigation** | 🟢 P2 | 🟡 | ⬜ Not Started |
 | **Accessibility audit** | 🟢 P2 | 🟡 | ⬜ Not Started |
 | **Performance audit** (large ticket lists) | 🟢 P2 | 🟡 | ⬜ Not Started |
+| **Migrate webview emojis to Lucide React icons** | 🟡 P1 | 🟢 | ✅ Done |
 
 ---
 
@@ -330,6 +331,52 @@ These features will ship with 1.0 but remain marked as "Beta 💎":
 | **Advanced AI Prompts** | ⬜ Planned | Custom prompt templates |
 | **Standup Builder** | ✅ Done | Keep Beta label |
 | **PR Summary** | ✅ Done | Keep Beta label |
+| **BYOT AI Providers** | 🧪 Beta | OpenAI, Anthropic, Google |
+
+---
+
+## 8.2 BYOT (Bring Your Own Token) AI Feature 🧪 Beta
+
+### Overview
+
+BYOT allows users to use their own API keys for AI-powered features instead of relying on GitHub Copilot. This gives users full control over costs and model selection.
+
+### Supported Providers
+
+| Provider | Status | Models |
+|----------|--------|--------|
+| **Copilot** | ✅ Default | GPT-4o, GPT-4.1, GPT-4-Turbo, Gemini 2.0 |
+| **OpenAI** | ✅ Done | GPT-4o, GPT-4o-mini, o1-preview, o1-mini |
+| **Anthropic** | ✅ Done | Claude Sonnet 4, Claude 3.5 Sonnet/Haiku |
+| **Google** | ✅ Done | Gemini 2.0 Flash, Gemini 1.5 Pro/Flash |
+
+### Configuration
+
+```json
+{
+  "devBuddy.ai.provider": "openai",      // copilot, openai, anthropic, google
+  "devBuddy.ai.openai.model": "gpt-4o-mini",
+  "devBuddy.ai.anthropic.model": "claude-3-5-haiku-20241022",
+  "devBuddy.ai.google.model": "gemini-1.5-flash"
+}
+```
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `DevBuddy: Set OpenAI API Key` | Configure OpenAI API key |
+| `DevBuddy: Set Anthropic API Key` | Configure Anthropic API key |
+| `DevBuddy: Set Google AI API Key` | Configure Google AI API key |
+| `DevBuddy: Remove AI API Key` | Remove stored API keys |
+| `DevBuddy: Show AI Provider Status` | View all provider statuses |
+
+### Architecture
+
+- API keys stored securely via VS Code Secret Storage
+- Provider manager handles model selection and failover
+- Automatic fallback to rule-based summarization if AI fails
+- Each provider isolated in own module for easy extension
 
 ---
 

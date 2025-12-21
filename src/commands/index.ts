@@ -26,6 +26,15 @@ import { registerCommonCommands } from "./common";
 import { registerBranchCommands } from "./branch";
 import { registerMultiRepoCommands } from "./multiRepo";
 
+// AI Key Management commands
+import {
+  setOpenAIKeyCommand,
+  setAnthropicKeyCommand,
+  setGoogleKeyCommand,
+  removeApiKeyCommand,
+  showProviderStatusCommand,
+} from "./aiKeyManagement";
+
 /**
  * Register all commands for the extension
  * This is the central command registration point
@@ -177,6 +186,27 @@ export function registerAllCommands(
   if (ticketsProvider) {
     registerMultiRepoCommands(context, ticketsProvider);
   }
+
+  // ==================== AI KEY MANAGEMENT COMMANDS ====================
+  // BYOT (Bring Your Own Token) support for AI providers
+  
+  context.subscriptions.push(
+    vscode.commands.registerCommand("devBuddy.ai.setOpenAIKey", () =>
+      setOpenAIKeyCommand(context)
+    ),
+    vscode.commands.registerCommand("devBuddy.ai.setAnthropicKey", () =>
+      setAnthropicKeyCommand(context)
+    ),
+    vscode.commands.registerCommand("devBuddy.ai.setGoogleKey", () =>
+      setGoogleKeyCommand(context)
+    ),
+    vscode.commands.registerCommand("devBuddy.ai.removeApiKey", () =>
+      removeApiKeyCommand(context)
+    ),
+    vscode.commands.registerCommand("devBuddy.ai.showProviderStatus", () =>
+      showProviderStatusCommand()
+    )
+  );
 
   logger.success("All commands registered!");
 }

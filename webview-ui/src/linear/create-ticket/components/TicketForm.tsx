@@ -274,10 +274,10 @@ export const TicketForm: React.FC<TicketFormProps> = ({
               }
             >
               <option value="">No Priority</option>
-              <option value="1">🔴 Urgent</option>
-              <option value="2">🟠 High</option>
-              <option value="3">🟡 Medium</option>
-              <option value="4">🟢 Low</option>
+              <option value="1">● Urgent</option>
+              <option value="2">● High</option>
+              <option value="3">● Medium</option>
+              <option value="4">● Low</option>
             </Select>
           </div>
 
