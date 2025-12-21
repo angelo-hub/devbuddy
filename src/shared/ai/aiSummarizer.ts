@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { FallbackSummarizer } from "./fallbackSummarizer";
+import { AIProviderManager } from "./aiProviderManager";
 import { getLogger } from "@shared/utils/logger";
 
 export interface AISummaryRequest {
@@ -17,159 +18,38 @@ export interface AISummaryResponse {
 }
 
 export class AISummarizer {
-  private model: vscode.LanguageModelChat | null = null;
-  private modelFamily: string = "gpt-4o";
-  private writingTone: string = "professional";
-  private preferredModelSelector: string = "auto";
+  private providerManager: AIProviderManager;
   private fallbackSummarizer: FallbackSummarizer;
+  private writingTone: string = "professional";
   private aiDisabled: boolean = false;
 
   constructor() {
     this.fallbackSummarizer = new FallbackSummarizer();
+    this.providerManager = AIProviderManager.getInstance();
     this.loadConfiguration();
-    this.initializeModel();
   }
 
   private loadConfiguration() {
     const config = vscode.workspace.getConfiguration("devBuddy");
-    
-    // Check if AI is completely disabled (for sensitive organizations)
     this.aiDisabled = config.get<boolean>("ai.disabled", false);
-    
-    // Get the preferred model selector (new setting)
-    this.preferredModelSelector = config.get<string>("ai.model", "auto");
     this.writingTone = config.get<string>("writingTone", "professional");
-
-    // Extract model family from selector
-    if (this.preferredModelSelector === "auto") {
-      this.modelFamily = ""; // Will select best available
-    } else {
-      // Remove "copilot:" prefix if present
-      const modelPart = this.preferredModelSelector.replace(/^copilot:/, "");
-      
-      // Map to model family names used by VS Code Language Model API
-      switch (modelPart) {
-        case "gpt-4o":
-          this.modelFamily = "gpt-4o";
-          break;
-        case "gpt-4.1":
-          this.modelFamily = "gpt-4.1";
-          break;
-        case "gpt-4-turbo":
-          this.modelFamily = "gpt-4-turbo";
-          break;
-        case "gpt-4":
-          this.modelFamily = "gpt-4";
-          break;
-        case "gpt-4o-mini":
-          this.modelFamily = "gpt-4o-mini";
-          break;
-        case "gpt-3.5-turbo":
-          this.modelFamily = "gpt-3.5-turbo";
-          break;
-        case "gemini-2.0-flash":
-          this.modelFamily = "gemini-2.0-flash-exp";
-          break;
-        default: {
-          // Try legacy setting as fallback
-          const legacyModel = config.get<string>("aiModel", "gpt-4o");
-          this.modelFamily = legacyModel === "gemini-2.0-flash" 
-            ? "gemini-2.0-flash-exp" 
-            : legacyModel;
-        }
-      }
-    }
-  }
-
-  private async initializeModel() {
-    const logger = getLogger();
-    
-    // Skip AI initialization if disabled
-    if (this.aiDisabled) {
-      logger.info("AI features disabled by user preference, using rule-based fallback");
-      this.model = null;
-      return;
-    }
-    
-    try {
-      logger.debug(
-        `Requested model: ${this.preferredModelSelector}, Family: ${this.modelFamily || "auto"}`
-      );
-
-      // Get ALL available language models
-      logger.debug("Fetching all available models...");
-      const allModels = await vscode.lm.selectChatModels();
-
-      if (!allModels || allModels.length === 0) {
-        logger.warn("No AI models available, falling back to rule-based summarization");
-        this.model = null;
-        return;
-      }
-
-      // Log all available models
-      logger.debug(`Found ${allModels.length} available models:`);
-      allModels.forEach((m, index) => {
-        logger.debug(`  ${index + 1}. ${m.id} (vendor: ${m.vendor}, family: ${m.family}, name: ${m.name})`);
-      });
-
-      // If auto mode, select the best available model
-      if (this.preferredModelSelector === "auto" || !this.modelFamily) {
-        // Try models in preference order (verified working models, best quality first)
-        const preferredFamilies = [
-          "gpt-4o", // Best: OpenAI's latest flagship
-          "gpt-4.1", // Excellent: Proven and reliable
-          "gpt-4-turbo", // Great: Fast and powerful
-          "gpt-4", // Good: Classic GPT-4
-          "gemini-2.0-flash-exp", // Alternative: Google's model
-          "gpt-4o-mini", // Faster: When speed matters
-          "gpt-3.5-turbo", // Fallback: Most widely available
-        ];
-
-        for (const family of preferredFamilies) {
-          const match = allModels.find((m) => m.family === family);
-          if (match) {
-            this.model = match;
-            logger.success(
-              `Auto-selected model: ${match.id} (vendor: ${match.vendor}, family: ${match.family})`
-            );
-            return;
-          }
-        }
-
-        // Use first available as last resort
-        this.model = allModels[0];
-        logger.info(`Using first available model: ${this.model.id}`);
-        return;
-      }
-
-      // Try to find a model matching the requested family
-      const matchingModel = allModels.find((m) =>
-        m.family?.toLowerCase().includes(this.modelFamily.toLowerCase())
-      );
-
-      if (matchingModel) {
-        this.model = matchingModel;
-        logger.success(
-          `Using matching model: ${matchingModel.id} (vendor: ${matchingModel.vendor}, family: ${matchingModel.family}, maxInputTokens: ${matchingModel.maxInputTokens})`
-        );
-      } else {
-        // Use first available model as fallback
-        this.model = allModels[0];
-        logger.warn(
-          `Model family "${this.modelFamily}" not found, using fallback: ${this.model.id} (vendor: ${this.model.vendor}, family: ${this.model.family})`
-        );
-      }
-    } catch (error) {
-      logger.error("AI model initialization failed", error);
-      this.model = null;
-    }
   }
 
   async isAvailable(): Promise<boolean> {
-    if (!this.model) {
-      await this.initializeModel();
+    if (this.aiDisabled) {
+      return false;
     }
-    return this.model !== null;
+    return this.providerManager.isAvailable();
+  }
+
+  /**
+   * Get current provider info for logging/display
+   */
+  getProviderInfo(): { provider: string; model: string } {
+    return {
+      provider: this.providerManager.getProviderType() || "fallback",
+      model: this.providerManager.getModelName(),
+    };
   }
 
   /**
@@ -179,46 +59,34 @@ export class AISummarizer {
     request: AISummaryRequest
   ): Promise<string | null> {
     const logger = getLogger();
-    
-    // Use fallback summarizer if no AI model available
-    if (!this.model) {
+
+    // Use fallback summarizer if AI is disabled or unavailable
+    if (this.aiDisabled || !(await this.providerManager.isAvailable())) {
       logger.debug("Using rule-based PR summary");
       return this.fallbackSummarizer.generatePRSummary(request);
     }
 
     try {
       const prompt = this.buildPRSummaryPrompt(request);
-      const messages = [vscode.LanguageModelChatMessage.User(prompt)];
+      const { provider, model } = this.getProviderInfo();
+      logger.debug(`Sending PR request to ${provider}:${model}`);
 
-      logger.debug(`Sending PR request to model: ${this.model.id}`);
+      const response = await this.providerManager.sendRequest({
+        prompt,
+        maxTokens: 2048,
+        temperature: 0.7,
+      });
 
-      const response = await this.model.sendRequest(
-        messages,
-        {},
-        new vscode.CancellationTokenSource().token
+      logger.success(
+        `Successfully generated PR summary using ${response.provider}`
       );
-
-      let summary = "";
-      for await (const fragment of response.text) {
-        summary += fragment;
-      }
-
-      logger.success("Successfully generated PR summary");
-      return summary.trim();
+      return response.content;
     } catch (error) {
       logger.error("Error generating PR summary", error);
 
-      // Try fallback to a different model
-      logger.debug("Attempting to use fallback model...");
-      const fallbackResult = await this.tryFallbackModel(request, "pr");
-      
-      // If all AI attempts fail, use rule-based fallback
-      if (!fallbackResult) {
-        logger.info("All AI models failed, using rule-based fallback");
-        return this.fallbackSummarizer.generatePRSummary(request);
-      }
-      
-      return fallbackResult;
+      // Fall back to rule-based
+      logger.info("AI failed, using rule-based fallback");
+      return this.fallbackSummarizer.generatePRSummary(request);
     }
   }
 
@@ -229,116 +97,34 @@ export class AISummarizer {
     request: AISummaryRequest
   ): Promise<string | null> {
     const logger = getLogger();
-    
-    // Use fallback summarizer if no AI model available
-    if (!this.model) {
+
+    // Use fallback summarizer if AI is disabled or unavailable
+    if (this.aiDisabled || !(await this.providerManager.isAvailable())) {
       logger.debug("Using rule-based standup summary");
       return this.fallbackSummarizer.generateStandupSummary(request);
     }
 
     try {
       const prompt = this.buildStandupSummaryPrompt(request);
-      const messages = [vscode.LanguageModelChatMessage.User(prompt)];
+      const { provider, model } = this.getProviderInfo();
+      logger.debug(`Sending standup request to ${provider}:${model}`);
 
-      logger.debug(`Sending request to model: ${this.model.id}`);
+      const response = await this.providerManager.sendRequest({
+        prompt,
+        maxTokens: 1024,
+        temperature: 0.7,
+      });
 
-      const response = await this.model.sendRequest(
-        messages,
-        {},
-        new vscode.CancellationTokenSource().token
+      logger.success(
+        `Successfully generated standup summary using ${response.provider}`
       );
-
-      let summary = "";
-      for await (const fragment of response.text) {
-        summary += fragment;
-      }
-
-      logger.success("Successfully generated standup summary");
-      return summary.trim();
+      return response.content;
     } catch (error) {
       logger.error("Error generating standup summary", error);
 
-      // Try fallback to a different model
-      logger.debug("Attempting to use fallback model...");
-      const fallbackResult = await this.tryFallbackModel(request, "standup");
-      
-      // If all AI attempts fail, use rule-based fallback
-      if (!fallbackResult) {
-        logger.info("All AI models failed, using rule-based fallback");
-        return this.fallbackSummarizer.generateStandupSummary(request);
-      }
-      
-      return fallbackResult;
-    }
-  }
-
-  /**
-   * Try using a fallback model if the primary fails
-   */
-  private async tryFallbackModel(
-    request: AISummaryRequest,
-    type: "standup" | "pr"
-  ): Promise<string | null> {
-    const logger = getLogger();
-    
-    try {
-      // Get all models again and try first available
-      const allModels = await vscode.lm.selectChatModels();
-
-      if (!allModels || allModels.length === 0) {
-        logger.debug("No fallback models available");
-        return null;
-      }
-
-      // Try models in preference order (verified working models, best quality first)
-      const preferredFamilies = [
-        "gpt-4o", // Best: OpenAI's latest flagship
-        "gpt-4.1", // Excellent: Proven and reliable
-        "gpt-4-turbo", // Great: Fast and powerful
-        "gpt-4", // Good: Classic GPT-4
-        "gemini-2.0-flash-exp", // Alternative: Google's model
-        "gpt-4o-mini", // Faster: When speed matters
-        "gpt-3.5-turbo", // Fallback: Most widely available
-      ];
-      let fallbackModel = null;
-
-      for (const family of preferredFamilies) {
-        fallbackModel = allModels.find((m) => m.family === family);
-        if (fallbackModel) break;
-      }
-
-      if (!fallbackModel) {
-        fallbackModel = allModels[0];
-      }
-
-      logger.debug(`Trying fallback model: ${fallbackModel.id} (${fallbackModel.family})`);
-
-      const prompt =
-        type === "standup"
-          ? this.buildStandupSummaryPrompt(request)
-          : this.buildPRSummaryPrompt(request);
-      const messages = [vscode.LanguageModelChatMessage.User(prompt)];
-
-      const response = await fallbackModel.sendRequest(
-        messages,
-        {},
-        new vscode.CancellationTokenSource().token
-      );
-
-      let summary = "";
-      for await (const fragment of response.text) {
-        summary += fragment;
-      }
-
-      logger.success(`Fallback model succeeded: ${fallbackModel.family}`);
-
-      // Update the model for future use
-      this.model = fallbackModel;
-
-      return summary.trim();
-    } catch (error) {
-      logger.error("Fallback model also failed", error);
-      return null;
+      // Fall back to rule-based
+      logger.info("AI failed, using rule-based fallback");
+      return this.fallbackSummarizer.generateStandupSummary(request);
     }
   }
 
@@ -347,9 +133,9 @@ export class AISummarizer {
    */
   async suggestNextSteps(request: AISummaryRequest): Promise<string | null> {
     const logger = getLogger();
-    
-    // Use fallback summarizer if no AI model available
-    if (!this.model) {
+
+    // Use fallback summarizer if AI is disabled or unavailable
+    if (this.aiDisabled || !(await this.providerManager.isAvailable())) {
       logger.debug("Using rule-based next steps suggestion");
       return this.fallbackSummarizer.suggestNextSteps(request);
     }
@@ -362,25 +148,53 @@ ${request.commits.map((c) => `- ${c.message}`).join("\n")}
 
 Provide only the next steps, no explanations.`;
 
-      const messages = [vscode.LanguageModelChatMessage.User(prompt)];
+      const response = await this.providerManager.sendRequest({
+        prompt,
+        maxTokens: 256,
+        temperature: 0.7,
+      });
 
-      const response = await this.model.sendRequest(
-        messages,
-        {},
-        new vscode.CancellationTokenSource().token
-      );
-
-      let suggestion = "";
-      for await (const fragment of response.text) {
-        suggestion += fragment;
-      }
-
-      return suggestion.trim();
+      return response.content;
     } catch (error) {
       logger.error("Error suggesting next steps", error);
-      // Fall back to rule-based suggestions
-      logger.debug("Using rule-based next steps suggestion");
       return this.fallbackSummarizer.suggestNextSteps(request);
+    }
+  }
+
+  /**
+   * Analyze if commits indicate any potential blockers or risks
+   */
+  async detectBlockersFromCommits(
+    commits: Array<{ message: string }>
+  ): Promise<string | null> {
+    const logger = getLogger();
+
+    // Use fallback summarizer if AI is disabled or unavailable
+    if (this.aiDisabled || !(await this.providerManager.isAvailable())) {
+      logger.debug("Using rule-based blocker detection");
+      return this.fallbackSummarizer.detectBlockers(commits);
+    }
+
+    try {
+      const commitMessages = commits.map((c) => c.message).join("\n");
+
+      const prompt = `Based on these commit messages, identify any potential blockers, risks, or issues that might need attention. If everything looks normal, respond with "None detected".
+
+Commits:
+${commitMessages}
+
+Respond with either "None detected" or a brief description of the concern.`;
+
+      const response = await this.providerManager.sendRequest({
+        prompt,
+        maxTokens: 256,
+        temperature: 0.3,
+      });
+
+      return response.content;
+    } catch (error) {
+      logger.error("Error detecting blockers", error);
+      return this.fallbackSummarizer.detectBlockers(commits);
     }
   }
 
@@ -495,52 +309,6 @@ Output ONLY the summary text in first person, no introduction or headers.`;
         return `Write in an extremely concise tone. Use the fewest words possible while maintaining clarity. No fluff.`;
       default:
         return `Write in a clear, professional tone appropriate for a ${context}.`;
-    }
-  }
-
-  /**
-   * Analyze if commits indicate any potential blockers or risks
-   */
-  async detectBlockersFromCommits(
-    commits: Array<{ message: string }>
-  ): Promise<string | null> {
-    const logger = getLogger();
-    
-    // Use fallback summarizer if no AI model available
-    if (!this.model) {
-      logger.debug("Using rule-based blocker detection");
-      return this.fallbackSummarizer.detectBlockers(commits);
-    }
-
-    try {
-      const commitMessages = commits.map((c) => c.message).join("\n");
-
-      const prompt = `Based on these commit messages, identify any potential blockers, risks, or issues that might need attention. If everything looks normal, respond with "None detected".
-
-Commits:
-${commitMessages}
-
-Respond with either "None detected" or a brief description of the concern.`;
-
-      const messages = [vscode.LanguageModelChatMessage.User(prompt)];
-
-      const response = await this.model.sendRequest(
-        messages,
-        {},
-        new vscode.CancellationTokenSource().token
-      );
-
-      let result = "";
-      for await (const fragment of response.text) {
-        result += fragment;
-      }
-
-      return result.trim();
-    } catch (error) {
-      logger.error("Error detecting blockers", error);
-      // Fall back to rule-based detection
-      logger.debug("Using rule-based blocker detection");
-      return this.fallbackSummarizer.detectBlockers(commits);
     }
   }
 
@@ -669,9 +437,7 @@ Respond with either "None detected" or a brief description of the concern.`;
   /**
    * Format categorized files for AI prompt
    */
-  private formatCategorizedFiles(
-    categories: Map<string, string[]>
-  ): string {
+  private formatCategorizedFiles(categories: Map<string, string[]>): string {
     let output = "";
     const topCategories = Array.from(categories.entries())
       .sort((a, b) => b[1].length - a[1].length)

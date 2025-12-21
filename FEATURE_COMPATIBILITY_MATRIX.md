@@ -87,6 +87,11 @@ DevBuddy is a multi-platform ticket management extension for VS Code. This matri
 | **AI Model Selection** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 | **Privacy Mode (No AI)** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 | **Fallback Summarizer** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| **BYOT: OpenAI** | 🧪 Beta | 🧪 Beta | 🧪 Beta | 🧪 Beta | 🧪 Beta |
+| **BYOT: Anthropic** | 🧪 Beta | 🧪 Beta | 🧪 Beta | 🧪 Beta | 🧪 Beta |
+| **BYOT: Google AI** | 🧪 Beta | 🧪 Beta | 🧪 Beta | 🧪 Beta | 🧪 Beta |
+
+> **🧪 BYOT (Bring Your Own Token) - Beta:** Use your own API keys for OpenAI, Anthropic, or Google AI instead of GitHub Copilot. This feature is in beta. See [BYOT AI Providers](docs/features/ai/BYOT_AI_PROVIDERS.md) for setup instructions.
 
 ### 5. Chat Participant
 
