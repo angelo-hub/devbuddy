@@ -6,17 +6,6 @@ on:
     - cron: "0 2 * * *"
   # Allow manual trigger
   workflow_dispatch:
-    inputs:
-      platforms:
-        description: "Platforms to test"
-        required: false
-        default: "all"
-        type: choice
-        options:
-          - all
-          - ubuntu-only
-          - macos-only
-          - windows-only
 
 jobs:
   # ============================================

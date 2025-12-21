@@ -21,6 +21,12 @@ test-env/**/.env
 
 # TypeScript
 *.tsbuildinfo
+*.js.map
+
+# Test output
+test/unit/**/*.js
+test/unit/**/*.js.map
+coverage/
 
 # Test environments (Docker-based testing)
 test-env/**/data/

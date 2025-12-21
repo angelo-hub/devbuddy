@@ -101,7 +101,7 @@ jobs:
 
   # ============================================
   # TESTS - Unit and integration tests
-  # (Placeholder - ready for when tests are added)
+  # (Uncomment when tests are added)
   # ============================================
   # tests:
   #   name: Tests
