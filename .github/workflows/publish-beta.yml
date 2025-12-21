@@ -1,30 +1,19 @@
-name: Publish Beta (Pre-release)
+name: Publish Pre-release
 
 on:
   workflow_dispatch:
     inputs:
-      betaType:
-        description: "Beta version type"
-        required: true
-        default: "auto"
-        type: choice
-        options:
-          - auto
-          - beta
-          - alpha
-          - rc
       bump:
-        description: "Version bump type (for base version)"
+        description: "Version bump type (within pre-release track)"
         required: false
-        default: "minor"
+        default: "patch"
         type: choice
         options:
-          - major
-          - minor
           - patch
+          - minor
 
 jobs:
-  beta-release:
+  prerelease:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -63,36 +52,44 @@ jobs:
       - name: Compile webviews
         run: npm run compile:webview
 
-      - name: Determine beta version
+      - name: Determine pre-release version
         id: version
         run: |
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           echo "Current version: $CURRENT_VERSION"
           
-          # Determine beta type
-          if [ "${{ github.event.inputs.betaType }}" = "auto" ]; then
-            BETA_TYPE="beta"
-          else
-            BETA_TYPE="${{ github.event.inputs.betaType }}"
-          fi
+          # Parse version components
+          MAJOR=$(echo $CURRENT_VERSION | cut -d. -f1)
+          MINOR=$(echo $CURRENT_VERSION | cut -d. -f2)
+          PATCH=$(echo $CURRENT_VERSION | cut -d. -f3 | cut -d- -f1)
           
-          # Check if current version is already a pre-release
-          if [[ $CURRENT_VERSION =~ -($BETA_TYPE)\.([0-9]+)$ ]]; then
-            # Increment pre-release number
-            PRE_NUM="${BASH_REMATCH[2]}"
-            NEW_PRE_NUM=$((PRE_NUM + 1))
-            BASE_VERSION="${CURRENT_VERSION%-*}"
-            NEW_VERSION="${BASE_VERSION}-${BETA_TYPE}.${NEW_PRE_NUM}"
+          echo "Parsed: major=$MAJOR, minor=$MINOR, patch=$PATCH"
+          
+          # VS Code pre-release convention: odd minor versions are pre-releases
+          # Even minor versions (0, 2, 4, 6, 8...) = stable
+          # Odd minor versions (1, 3, 5, 7, 9...) = pre-release
+          
+          if [ $((MINOR % 2)) -eq 0 ]; then
+            # Current is stable (even minor), move to next odd minor for pre-release
+            NEW_MINOR=$((MINOR + 1))
+            NEW_VERSION="${MAJOR}.${NEW_MINOR}.0"
+            echo "Moving from stable ($MINOR) to pre-release track ($NEW_MINOR)"
           else
-            # Create first pre-release version
-            # Bump base version according to input
-            npm version ${{ github.event.inputs.bump }} --no-git-tag-version
-            BASE_VERSION=$(node -p "require('./package.json').version")
-            NEW_VERSION="${BASE_VERSION}-${BETA_TYPE}.1"
+            # Already on pre-release track (odd minor)
+            if [ "${{ github.event.inputs.bump }}" = "minor" ]; then
+              # Jump to next odd minor (skip the even one)
+              NEW_MINOR=$((MINOR + 2))
+              NEW_VERSION="${MAJOR}.${NEW_MINOR}.0"
+              echo "Bumping to next pre-release minor ($NEW_MINOR)"
+            else
+              # Just increment patch
+              NEW_PATCH=$((PATCH + 1))
+              NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
+              echo "Incrementing patch to $NEW_PATCH"
+            fi
           fi
           
           echo "New version: $NEW_VERSION"
-          echo "beta_type=$BETA_TYPE" >> $GITHUB_OUTPUT
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
       - name: Update version in package.json
@@ -130,7 +127,7 @@ jobs:
       - name: Commit version change
         run: |
           git add package.json
-          git commit -m "chore: bump version to ${{ steps.version.outputs.new_version }} (pre-release)"
+          git commit -m "chore: release v${{ steps.version.outputs.new_version }} (pre-release)"
 
       - name: Create Git tag
         run: |
@@ -145,11 +142,15 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.version.outputs.new_version }}
-          name: DevBuddy v${{ steps.version.outputs.new_version }} (${{ steps.version.outputs.beta_type }})
+          name: DevBuddy v${{ steps.version.outputs.new_version }} (Pre-release)
           body: |
             ## 🧪 Pre-release Version
             
-            This is a **${{ steps.version.outputs.beta_type }}** pre-release of DevBuddy. It contains experimental features and may have bugs.
+            This is a **pre-release** of DevBuddy using VS Code's odd/even versioning:
+            - **Even minor versions** (0.8.x, 0.10.x) = Stable releases
+            - **Odd minor versions** (0.9.x, 0.11.x) = Pre-releases
+            
+            This version contains experimental features and may have bugs.
             
             ### ⚠️ Important Notes
             
@@ -163,7 +164,7 @@ jobs:
             1. Open VS Code/Cursor
             2. Go to Extensions view
             3. Search for "DevBuddy"
-            4. Click the dropdown next to "Install" and select **"Install Pre-Release Version"**
+            4. Click the dropdown next to "Install" and select **"Switch to Pre-Release Version"**
             
             **Option 2: Manual Installation**
             Download the `.vsix` file below and install it:
@@ -190,11 +191,15 @@ jobs:
 
       - name: Summary
         run: |
-          echo "## 🧪 Beta Release Successful!" >> $GITHUB_STEP_SUMMARY
+          echo "## 🧪 Pre-release Successful!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** v${{ steps.version.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Type:** ${{ steps.version.outputs.beta_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Channel:** Pre-release (odd minor version)" >> $GITHUB_STEP_SUMMARY
           echo "**VSIX:** ${{ steps.vsix.outputs.filename }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### VS Code Version Convention:" >> $GITHUB_STEP_SUMMARY
+          echo "- Even minor (0.8.x, 0.10.x) = Stable" >> $GITHUB_STEP_SUMMARY
+          echo "- Odd minor (0.9.x, 0.11.x) = Pre-release" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Published to:" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ VS Code Marketplace (Pre-release)" >> $GITHUB_STEP_SUMMARY
@@ -202,9 +207,8 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### How users can install:" >> $GITHUB_STEP_SUMMARY
           echo "1. In VS Code, search for DevBuddy in Extensions" >> $GITHUB_STEP_SUMMARY
-          echo "2. Click \"Install Pre-Release Version\"" >> $GITHUB_STEP_SUMMARY
+          echo "2. Click \"Switch to Pre-Release Version\"" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Links:" >> $GITHUB_STEP_SUMMARY
           echo "- [Release page](https://github.com/${{ github.repository }}/releases/tag/v${{ steps.version.outputs.new_version }})" >> $GITHUB_STEP_SUMMARY
           echo "- [Marketplace](https://marketplace.visualstudio.com/items?itemName=angelogirardi.dev-buddy)" >> $GITHUB_STEP_SUMMARY
-

@@ -1,77 +1,77 @@
-# Beta Channel Guide
+# Pre-release Channel Guide
 
-This guide explains how to manage and publish beta/pre-release versions of DevBuddy.
+This guide explains how to manage and publish pre-release versions of DevBuddy using VS Code's recommended versioning strategy.
 
 ## Overview
 
-DevBuddy supports VS Code's built-in pre-release system, allowing users to opt-in to beta versions directly from the marketplace. Pre-release versions are published alongside stable versions and are clearly marked as such.
+DevBuddy uses VS Code's **odd/even versioning** strategy for pre-releases:
 
-## Pre-release Types
+| Minor Version | Type | Example |
+|---------------|------|---------|
+| Even (0, 2, 4, 6, 8...) | **Stable** | `0.8.0`, `0.8.1`, `0.10.0` |
+| Odd (1, 3, 5, 7, 9...) | **Pre-release** | `0.9.0`, `0.9.1`, `0.11.0` |
 
-We support three types of pre-release versions:
+This is VS Code's recommended approach. Users who opt into pre-releases will automatically get odd minor versions, while stable users stay on even minor versions.
 
-- **alpha** (`X.Y.Z-alpha.N`) - Early development, experimental features, may be unstable
-- **beta** (`X.Y.Z-beta.N`) - Feature-complete but needs testing, relatively stable
-- **rc** (`X.Y.Z-rc.N`) - Release candidate, final testing before stable release
+## Version Tracks
 
-## Version Numbering
-
-Pre-release versions follow this format:
-
+### Stable Track (Even Minor)
 ```
-major.minor.patch-type.number
+0.8.0 → 0.8.1 → 0.8.2 → ... → 0.10.0 → 0.10.1 → ...
 ```
+- Published normally (no `--pre-release` flag)
+- Users get this by default
+- Bug fixes and stable features
 
-Examples:
-- `0.6.0-beta.1` - First beta of version 0.6.0
-- `0.6.0-beta.2` - Second beta of version 0.6.0
-- `1.0.0-rc.1` - Release candidate for version 1.0.0
+### Pre-release Track (Odd Minor)
+```
+0.9.0 → 0.9.1 → 0.9.2 → ... → 0.11.0 → 0.11.1 → ...
+```
+- Published with `--pre-release` flag
+- Users must opt-in via "Switch to Pre-Release Version"
+- Experimental features and early testing
 
-## Publishing Beta Versions
+## Publishing Pre-releases
 
 ### Option 1: GitHub Actions (Recommended)
 
 1. Go to **Actions** tab in GitHub
-2. Select **"Publish Beta (Pre-release)"** workflow
+2. Select **"Publish Pre-release"** workflow
 3. Click **"Run workflow"**
-4. Choose:
-   - **Beta Type**: alpha, beta, or rc
-   - **Bump Type**: major, minor, or patch (for base version bump)
+4. Choose bump type:
+   - **patch**: Increment patch (e.g., 0.9.0 → 0.9.1)
+   - **minor**: Jump to next odd minor (e.g., 0.9.x → 0.11.0)
 5. Click **"Run workflow"**
 
 The workflow will:
-- Determine the next pre-release version
+- Automatically determine the correct pre-release version
 - Build and test the extension
-- Publish to VS Code Marketplace as pre-release
+- Publish to VS Code Marketplace with `--pre-release` flag
 - Create a GitHub pre-release
 - Tag the version in git
 
 ### Option 2: Manual with Script
 
-Use the beta release script locally:
-
 ```bash
-# Increment current beta version (e.g., 0.5.0-beta.1 → 0.5.0-beta.2)
+# Move to pre-release track (from 0.8.x → 0.9.0)
+# Or increment patch if already on pre-release track
 npm run beta
 
-# Create first beta for next minor version (e.g., 0.5.0 → 0.6.0-beta.1)
-npm run beta -- beta minor
-
-# Create first alpha for next major version (e.g., 0.5.0 → 1.0.0-alpha.1)
-npm run beta -- alpha major
-
-# Create release candidate (e.g., 0.5.0-beta.2 → 0.5.0-rc.1)
-npm run beta -- rc
+# Bump to next pre-release minor (0.9.x → 0.11.0)
+npm run beta -- minor
 ```
 
-Then follow the instructions printed by the script to commit, tag, and push.
+Then follow the printed instructions to commit, tag, push, and publish.
 
 ### Option 3: Full Manual Process
 
-1. **Update version**:
+1. **Update version** (must be odd minor):
    ```bash
-   # Manually edit package.json version field
-   # Example: "0.5.0" → "0.6.0-beta.1"
+   # If on stable (0.8.0), move to pre-release
+   npm version 0.9.0 --no-git-tag-version
+   
+   # If already on pre-release (0.9.0), increment
+   npm version 0.9.1 --no-git-tag-version
    ```
 
 2. **Build**:
@@ -83,204 +83,135 @@ Then follow the instructions printed by the script to commit, tag, and push.
 3. **Package**:
    ```bash
    npm run beta:package
-   # Creates: dev-buddy-0.6.0-beta.1.vsix
    ```
 
-4. **Publish to marketplace**:
+4. **Publish with pre-release flag**:
    ```bash
    npm run beta:publish
-   # Uses VSCE_PAT from environment
+   # This runs: vsce publish --pre-release
    ```
 
 5. **Commit and tag**:
    ```bash
    git add package.json
-   git commit -m "chore: bump version to 0.6.0-beta.1 (pre-release)"
-   git tag v0.6.0-beta.1
+   git commit -m "chore: release v0.9.0 (pre-release)"
+   git tag v0.9.0
    git push origin HEAD --tags
    ```
 
-6. **Create GitHub pre-release**:
-   - Go to GitHub Releases
-   - Click "Draft a new release"
-   - Select the tag (v0.6.0-beta.1)
-   - Check "Set as a pre-release"
-   - Upload the .vsix file
-   - Publish
+## Example Release Cycle
 
-## Installing Beta Versions
+```
+0.8.0 (stable)
+  ↓ [user runs pre-release workflow]
+0.9.0 (pre-release) ← Testing new features
+  ↓ [bug found, fix pushed]
+0.9.1 (pre-release) ← Bug fix
+  ↓ [more fixes]
+0.9.2 (pre-release) ← More fixes
+  ↓ [ready for stable]
+0.10.0 (stable) ← Features graduate to stable
+  ↓ [start next cycle]
+0.11.0 (pre-release) ← Next batch of features
+```
+
+## Installing Pre-releases
 
 ### For End Users
 
-**Via VS Code/Cursor (Easiest)**:
+**Via VS Code/Cursor (Recommended)**:
 1. Open Extensions view
 2. Search for "DevBuddy"
-3. Click the dropdown next to "Install"
-4. Select **"Install Pre-Release Version"**
-
-**Via VSIX File**:
-1. Download .vsix from GitHub pre-release
-2. Run:
-   ```bash
-   code --install-extension dev-buddy-X.Y.Z-beta.N.vsix
-   ```
+3. Click the gear icon or dropdown
+4. Select **"Switch to Pre-Release Version"**
 
 **Switching Back to Stable**:
 1. In Extensions view, find DevBuddy
-2. Click the dropdown next to "Uninstall"
-3. Select **"Install Release Version"**
+2. Click the gear icon or dropdown
+3. Select **"Switch to Release Version"**
 
 ### For Developers
 
-When testing locally:
-
 ```bash
-# Build and package
+# Build and test locally
 npm run compile && npm run compile:webview
 npm run package
 
-# Install in VS Code
-code --install-extension dev-buddy-X.Y.Z-beta.N.vsix
-
-# Or use the reinstall script (may need updating for beta)
-./reinstall.sh
-```
-
-## Beta Release Workflow
-
-### When to Create a Beta
-
-Create a beta version when:
-- Introducing new experimental features
-- Making significant architectural changes
-- Testing with a subset of users before stable release
-- Need feedback before finalizing a release
-
-### Beta Release Process
-
-1. **Development**:
-   - Develop feature on a feature branch
-   - Merge to `main` (or `beta` branch if you prefer)
-
-2. **Create Beta**:
-   - Run beta release workflow or script
-   - Test the beta locally first
-
-3. **Announce**:
-   - Share in Discord/Slack/GitHub Discussions
-   - Ask for feedback from beta testers
-   - Document known issues
-
-4. **Iterate**:
-   - Fix bugs found in beta
-   - Increment beta version (beta.2, beta.3, etc.)
-   - Publish updated betas as needed
-
-5. **Promote to Stable**:
-   - When ready, publish as stable release
-   - Update version to remove pre-release tag
-   - Use standard release workflow
-
-### Example Beta Cycle
-
-```
-0.5.0 (current stable)
-  ↓
-0.6.0-beta.1 (initial beta)
-  ↓ (bug fixes)
-0.6.0-beta.2
-  ↓ (more fixes)
-0.6.0-beta.3
-  ↓ (final testing)
-0.6.0-rc.1 (release candidate)
-  ↓ (approved)
-0.6.0 (stable release)
+# Install the VSIX
+code --install-extension dev-buddy-0.9.0.vsix
 ```
 
 ## Best Practices
 
 ### Version Strategy
 
-- Use **alpha** for highly experimental features
-- Use **beta** for features that need community testing
-- Use **rc** (release candidate) for final validation before stable
-- Keep betas short-lived (1-2 weeks max)
+- **Stable releases (even minor)**: Only ship tested, stable features
+- **Pre-releases (odd minor)**: Ship experimental features for testing
+- Keep pre-release cycles short (1-2 weeks)
+- Graduate features to stable once validated
 
 ### Communication
 
-- Always announce beta releases in appropriate channels
+- Always announce pre-releases in appropriate channels
 - Include changelog/release notes
 - List known issues and limitations
 - Set expectations about stability
 
-### Testing
+### When to Create a Pre-release
 
-- Test beta versions thoroughly before publishing
-- Have a rollback plan (stable version available)
-- Monitor issues/feedback closely
-- Be responsive to beta tester reports
+Create a pre-release when:
+- Introducing new experimental features
+- Making significant architectural changes
+- Testing with a subset of users before stable release
+- Need feedback before finalizing a release
 
-### Transitioning to Stable
+### Graduating to Stable
 
-When promoting a beta to stable:
+When promoting pre-release features to stable:
 
-1. Create one final RC version if needed
-2. Test RC thoroughly
-3. If RC is good, remove pre-release tag
-4. Publish as stable using standard workflow
-5. Announce the stable release
-6. Update documentation
+1. Ensure all major bugs are fixed
+2. Update version to next even minor (0.9.x → 0.10.0)
+3. Publish without `--pre-release` flag
+4. Announce the stable release
+5. Update documentation
 
 ## Marketplace Behavior
 
 ### How Pre-releases Work
 
-- Users see a **"Switch to Pre-Release Version"** button
-- Pre-release versions auto-update to newer pre-releases
-- Users can switch back to stable anytime
-- Both versions can coexist on the marketplace
+- Pre-releases are published with `--pre-release` flag
+- Users see a "Switch to Pre-Release Version" button
+- Pre-release users auto-update to newer pre-releases
+- Stable users auto-update to newer stable versions
+- Both versions coexist on the marketplace
 
 ### Version Resolution
 
-VS Code handles version selection:
-- Stable users get: Latest stable version
-- Pre-release users get: Latest pre-release OR stable (whichever is newer)
-
-### Version Display
-
-In the marketplace:
-- Stable: "DevBuddy v0.5.0"
-- Pre-release: "DevBuddy v0.6.0-beta.1 (Pre-release)"
+- **Stable users**: Get latest even minor version (e.g., 0.8.2)
+- **Pre-release users**: Get latest odd minor version (e.g., 0.9.3)
 
 ## Troubleshooting
 
-### "Pre-release version is older than stable"
+### "My pre-release isn't showing up"
 
-This happens when stable version is newer than pre-release. Solutions:
-- Bump base version in beta (e.g., 0.6.0-beta.1 vs 0.5.0)
-- Publish a new beta with higher version number
+Ensure you:
+1. Used an odd minor version (0.9.x, 0.11.x, etc.)
+2. Published with `--pre-release` flag
+3. Version is higher than the last pre-release
 
-### "Users not seeing beta updates"
+### "Users aren't seeing pre-release updates"
 
 - Ensure they clicked "Switch to Pre-Release Version"
 - Check they have auto-updates enabled
 - Verify marketplace shows the pre-release
 
-### "Want to skip beta and go to stable"
+### "Want to skip pre-release and go to stable"
 
-- Just publish stable version with higher version number
-- The marketplace will show stable as latest
-
-### "Need to unpublish a beta"
-
-You cannot unpublish from marketplace, but you can:
-- Publish a newer beta with fixes
-- Wait for stable release to supersede it
-- Mark it as deprecated in release notes
+Just publish a stable version (even minor) with a higher version number. The marketplace will show stable as latest for stable-track users.
 
 ## GitHub Secrets Required
 
-For automated publishing, ensure these secrets are set:
+For automated publishing:
 
 - `VSCE_PAT` - VS Code Marketplace Personal Access Token
 - `OVSX_PAT` - Open VSX Token (optional)
@@ -290,17 +221,11 @@ For automated publishing, ensure these secrets are set:
 ## Useful Commands
 
 ```bash
-# Create/increment beta version
+# Move to pre-release track or increment patch
 npm run beta
 
-# Create alpha version
-npm run beta -- alpha
-
-# Create RC version
-npm run beta -- rc
-
-# Bump minor and create beta
-npm run beta -- beta minor
+# Bump to next pre-release minor
+npm run beta -- minor
 
 # Package pre-release
 npm run beta:package
@@ -317,18 +242,7 @@ node -p "require('./package.json').version"
 - [VS Code Extension Publishing](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)
 - [Pre-release Extensions](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#prerelease-extensions)
 - [vsce CLI Reference](https://github.com/microsoft/vscode-vsce)
-- [Semantic Versioning](https://semver.org/)
-
-## Support
-
-If you encounter issues with the beta release process:
-
-1. Check the GitHub Actions logs
-2. Verify all secrets are set correctly
-3. Test the beta locally before publishing
-4. Reach out in Discord/GitHub Discussions
 
 ---
 
-**Remember:** Beta releases are for testing. Always maintain a stable version that users can fall back to!
-
+**Remember:** Pre-releases use odd minor versions (0.9.x, 0.11.x). Stable releases use even minor versions (0.8.x, 0.10.x). Always maintain a stable version that users can fall back to!

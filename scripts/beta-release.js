@@ -1,43 +1,30 @@
 #!/usr/bin/env node
 
 /**
- * Beta Release Script for DevBuddy
+ * Pre-release Version Script for DevBuddy
  * 
- * This script helps manage beta/pre-release versions for the DevBuddy extension.
- * It handles version bumping with pre-release tags (beta, alpha, rc).
+ * Uses VS Code's recommended odd/even versioning strategy:
+ * - Even minor versions (0.8.x, 0.10.x) = Stable releases
+ * - Odd minor versions (0.9.x, 0.11.x) = Pre-releases
  * 
  * Usage:
- *   npm run beta -- [beta-type] [bump-type]
- * 
- * Examples:
- *   npm run beta                    # Creates/increments beta.X version
- *   npm run beta -- alpha           # Creates/increments alpha.X version
- *   npm run beta -- rc              # Creates/increments rc.X version
- *   npm run beta -- beta minor      # Bumps minor and creates beta.1
+ *   npm run beta                    # Move to pre-release track or increment patch
+ *   npm run beta -- minor           # Bump to next pre-release minor
+ *   npm run beta -- patch           # Increment patch within pre-release track
  */
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 // Parse command line arguments
 const args = process.argv.slice(2);
-const betaType = args[0] || 'beta'; // beta, alpha, rc
-const bumpType = args[1] || null;   // major, minor, patch, or null
-
-// Valid pre-release types
-const validTypes = ['beta', 'alpha', 'rc'];
-if (!validTypes.includes(betaType)) {
-  console.error(`❌ Invalid beta type: ${betaType}`);
-  console.error(`   Valid types: ${validTypes.join(', ')}`);
-  process.exit(1);
-}
+const bumpType = args[0] || 'patch'; // patch or minor
 
 // Valid bump types
-const validBumps = ['major', 'minor', 'patch', null];
+const validBumps = ['patch', 'minor'];
 if (!validBumps.includes(bumpType)) {
   console.error(`❌ Invalid bump type: ${bumpType}`);
-  console.error(`   Valid types: major, minor, patch`);
+  console.error(`   Valid types: ${validBumps.join(', ')}`);
   process.exit(1);
 }
 
@@ -48,8 +35,8 @@ const currentVersion = packageJson.version;
 
 console.log(`📦 Current version: ${currentVersion}`);
 
-// Parse version
-const versionRegex = /^(\d+)\.(\d+)\.(\d+)(?:-(alpha|beta|rc)\.(\d+))?$/;
+// Parse version (handle both regular and pre-release formats)
+const versionRegex = /^(\d+)\.(\d+)\.(\d+)(?:-.*)?$/;
 const match = currentVersion.match(versionRegex);
 
 if (!match) {
@@ -57,44 +44,45 @@ if (!match) {
   process.exit(1);
 }
 
-let [, major, minor, patch, currentPreType, currentPreNum] = match;
+let [, major, minor, patch] = match;
 major = parseInt(major);
 minor = parseInt(minor);
 patch = parseInt(patch);
-currentPreNum = currentPreNum ? parseInt(currentPreNum) : 0;
+
+console.log(`📊 Parsed: major=${major}, minor=${minor}, patch=${patch}`);
+console.log('');
+console.log('📚 VS Code Version Convention:');
+console.log('   Even minor (0.8.x, 0.10.x) = Stable');
+console.log('   Odd minor (0.9.x, 0.11.x) = Pre-release');
+console.log('');
 
 let newVersion;
 
-// Determine new version
-if (currentPreType === betaType && !bumpType) {
-  // Increment pre-release number
-  newVersion = `${major}.${minor}.${patch}-${betaType}.${currentPreNum + 1}`;
-  console.log(`🔼 Incrementing ${betaType} version`);
-} else if (bumpType) {
-  // Bump base version and start pre-release at .1
-  if (bumpType === 'major') {
-    major += 1;
-    minor = 0;
-    patch = 0;
-  } else if (bumpType === 'minor') {
-    minor += 1;
-    patch = 0;
-  } else if (bumpType === 'patch') {
-    patch += 1;
-  }
-  newVersion = `${major}.${minor}.${patch}-${betaType}.1`;
-  console.log(`🔼 Bumping ${bumpType} version and starting ${betaType}.1`);
-} else if (currentPreType && currentPreType !== betaType) {
-  // Switching pre-release type
-  newVersion = `${major}.${minor}.${patch}-${betaType}.1`;
-  console.log(`🔄 Switching from ${currentPreType} to ${betaType}`);
+// Check if current minor is even (stable) or odd (pre-release)
+const isEvenMinor = minor % 2 === 0;
+
+if (isEvenMinor) {
+  // Current is stable (even minor), move to next odd minor for pre-release
+  const newMinor = minor + 1;
+  newVersion = `${major}.${newMinor}.0`;
+  console.log(`🔄 Moving from stable track (${minor}) to pre-release track (${newMinor})`);
 } else {
-  // First pre-release for current version
-  newVersion = `${major}.${minor}.${patch}-${betaType}.1`;
-  console.log(`🆕 Creating first ${betaType} for version ${major}.${minor}.${patch}`);
+  // Already on pre-release track (odd minor)
+  if (bumpType === 'minor') {
+    // Jump to next odd minor (skip the even one)
+    const newMinor = minor + 2;
+    newVersion = `${major}.${newMinor}.0`;
+    console.log(`🔼 Bumping to next pre-release minor (${newMinor})`);
+  } else {
+    // Just increment patch
+    const newPatch = patch + 1;
+    newVersion = `${major}.${minor}.${newPatch}`;
+    console.log(`🔼 Incrementing patch to ${newPatch}`);
+  }
 }
 
 console.log(`✨ New version: ${newVersion}`);
+console.log('');
 
 // Update package.json
 packageJson.version = newVersion;
@@ -106,11 +94,12 @@ console.log('📝 Next steps:');
 console.log('   1. Review the version change');
 console.log('   2. Commit the change:');
 console.log(`      git add package.json`);
-console.log(`      git commit -m "chore: bump version to ${newVersion} (pre-release)"`);
+console.log(`      git commit -m "chore: release v${newVersion} (pre-release)"`);
 console.log('   3. Create a tag:');
 console.log(`      git tag v${newVersion}`);
 console.log('   4. Push:');
 console.log(`      git push origin HEAD --tags`);
-console.log('   5. Run the "Publish Beta (Pre-release)" GitHub Action');
+console.log('   5. Publish with pre-release flag:');
+console.log(`      npm run beta:publish`);
 console.log('');
-console.log('🚀 Or use the GitHub workflow to automate this process!');
+console.log('🚀 Or use the GitHub "Publish Pre-release" workflow to automate this!');
