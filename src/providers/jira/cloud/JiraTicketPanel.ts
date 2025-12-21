@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 import { JiraCloudClient } from "./JiraCloudClient";
 import { JiraIssue } from "../common/types";
+import { BranchAssociationManager } from "@shared/git/branchAssociationManager";
 import { getLogger } from "@shared/utils/logger";
 
 const logger = getLogger();
@@ -16,6 +17,7 @@ export class JiraTicketPanel {
   private _disposables: vscode.Disposable[] = [];
   private _issue: JiraIssue | null = null;
   private _jiraClient: JiraCloudClient | null = null;
+  private _branchManager: BranchAssociationManager;
 
   private constructor(
     panel: vscode.WebviewPanel,
@@ -24,6 +26,7 @@ export class JiraTicketPanel {
   ) {
     this._panel = panel;
     this._extensionUri = extensionUri;
+    this._branchManager = new BranchAssociationManager(context, "both");
     this.initializeClient();
 
     // Set up content and message handling
@@ -64,6 +67,36 @@ export class JiraTicketPanel {
             break;
           case "refresh":
             await this.refresh();
+            break;
+          case "copyKey":
+            if (this._issue?.key) {
+              await vscode.env.clipboard.writeText(this._issue.key);
+              vscode.window.showInformationMessage(`Copied ${this._issue.key} to clipboard`);
+            }
+            break;
+          case "copyUrl":
+            if (this._issue?.url) {
+              await vscode.env.clipboard.writeText(this._issue.url);
+              vscode.window.showInformationMessage("Copied issue URL to clipboard");
+            }
+            break;
+          case "checkoutBranch":
+            await this.handleCheckoutBranch(message.ticketKey);
+            break;
+          case "associateBranch":
+            await this.handleAssociateBranch(message.ticketKey, message.branchName);
+            break;
+          case "removeAssociation":
+            await this.handleRemoveAssociation(message.ticketKey);
+            break;
+          case "loadBranchInfo":
+            await this.handleLoadBranchInfo(message.ticketKey);
+            break;
+          case "loadAllBranches":
+            await this.handleLoadAllBranches();
+            break;
+          case "openInRepository":
+            await this.handleOpenInRepository(message.ticketKey, message.repositoryPath);
             break;
         }
       },
@@ -342,6 +375,133 @@ export class JiraTicketPanel {
     } catch (error) {
       logger.error("Failed to search users:", error);
     }
+  }
+
+  // ==================== BRANCH MANAGEMENT HANDLERS ====================
+
+  private async handleCheckoutBranch(ticketKey: string): Promise<void> {
+    const success = await this._branchManager.checkoutBranch(ticketKey);
+    if (success) {
+      // Refresh to show updated state
+      await this.handleLoadBranchInfo(ticketKey);
+    }
+  }
+
+  private async handleAssociateBranch(
+    ticketKey: string,
+    branchName: string
+  ): Promise<void> {
+    const success = await this._branchManager.associateBranch(
+      ticketKey,
+      branchName
+    );
+    if (success) {
+      vscode.window.showInformationMessage(
+        `Branch '${branchName}' associated with ${ticketKey}`
+      );
+      await this.handleLoadBranchInfo(ticketKey);
+    } else {
+      vscode.window.showErrorMessage("Failed to associate branch");
+    }
+  }
+
+  private async handleRemoveAssociation(ticketKey: string): Promise<void> {
+    const success = await this._branchManager.removeAssociation(ticketKey);
+    if (success) {
+      vscode.window.showInformationMessage(
+        `Branch association removed for ${ticketKey}`
+      );
+      await this.handleLoadBranchInfo(ticketKey);
+    } else {
+      vscode.window.showErrorMessage("Failed to remove association");
+    }
+  }
+
+  private async handleLoadBranchInfo(ticketKey: string): Promise<void> {
+    const branchName = this._branchManager.getBranchForTicket(ticketKey);
+    let exists = false;
+    let isInDifferentRepo = false;
+    let repositoryName: string | undefined;
+    let repositoryPath: string | undefined;
+
+    logger.debug(`[BranchManager] Loading branch info for ${ticketKey}, found: ${branchName}`);
+
+    if (branchName) {
+      // Check if the branch is in a different repository
+      const globalAssoc = this._branchManager.getGlobalAssociationForTicket(ticketKey);
+      logger.debug(`[BranchManager] Global association: ${JSON.stringify(globalAssoc)}`);
+      
+      if (globalAssoc && globalAssoc.repositoryPath) {
+        const isCurrentRepo = this._branchManager.isTicketInCurrentRepo(ticketKey);
+        isInDifferentRepo = !isCurrentRepo;
+        repositoryName = globalAssoc.repository;
+        repositoryPath = globalAssoc.repositoryPath;
+        
+        logger.debug(`[BranchManager] isCurrentRepo: ${isCurrentRepo}, isInDifferentRepo: ${isInDifferentRepo}`);
+        
+        // Only check if branch exists in current repo if not in different repo
+        if (!isInDifferentRepo) {
+          exists = await this._branchManager.verifyBranchExists(branchName);
+        } else {
+          // Branch is in different repo, mark as existing (we trust global storage)
+          exists = true;
+        }
+      } else {
+        // No global association, just check locally
+        exists = await this._branchManager.verifyBranchExists(branchName);
+      }
+    }
+
+    // Send branch info back to webview
+    this._panel.webview.postMessage({
+      command: "branchInfo",
+      branchName,
+      exists,
+      isInDifferentRepo,
+      repositoryName,
+      repositoryPath,
+    });
+  }
+
+  private async handleLoadAllBranches(): Promise<void> {
+    try {
+      const allBranches = await this._branchManager.getAllLocalBranches();
+      const currentBranch = await this._branchManager.getCurrentBranch();
+      
+      // Get suggestions if we have an issue loaded
+      let suggestions: string[] = [];
+      if (this._issue) {
+        suggestions = await this._branchManager.suggestAssociationsForTicket(
+          this._issue.key
+        );
+      }
+
+      this._panel.webview.postMessage({
+        command: "allBranchesLoaded",
+        branches: allBranches,
+        currentBranch,
+        suggestions,
+      });
+    } catch (error) {
+      logger.error("Failed to load branches:", error);
+      this._panel.webview.postMessage({
+        command: "allBranchesLoaded",
+        branches: [],
+        currentBranch: null,
+        suggestions: [],
+      });
+    }
+  }
+
+  /**
+   * Handle open in different repository
+   */
+  private async handleOpenInRepository(ticketKey: string, repositoryPath: string): Promise<void> {
+    // Use the devBuddy.openInWorkspace command
+    await vscode.commands.executeCommand("devBuddy.openInWorkspace", {
+      ticketId: ticketKey,
+      repositoryPath,
+    });
   }
 
   public dispose(): void {

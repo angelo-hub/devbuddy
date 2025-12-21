@@ -69,6 +69,10 @@ DevBuddy is a multi-platform ticket management extension for VS Code. This matri
 | **Checkout Branch** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 | **PR Detection** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 | **Commit Links** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| **Multi-Repo Associations** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| **Cross-Workspace Branches** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| **Open in Repository** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+| **IDE Fork Detection** | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 
 ### 4. AI Features
 
@@ -192,6 +196,53 @@ These features work the same across all platforms:
 | **Debug Logging** | ✅ | Centralized logging system |
 | **Telemetry** | ✅ | Privacy-respecting analytics |
 | **Model Selection** | ✅ | GPT-4o, Gemini, etc. |
+| **Multi-Repo Support** | ✅ | Cross-repository branch associations |
+| **IDE Fork Detection** | ✅ | VS Code, Cursor, VSCodium, Windsurf |
+| **Repository Registry** | ✅ | Map tickets to repositories |
+
+---
+
+## Multi-Repository Support
+
+DevBuddy supports working across multiple repositories, enabling seamless context-switching for developers who work on multiple codebases.
+
+### Features
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| **Global Branch Associations** | ✅ | Branch associations persist across workspaces |
+| **Repository Registry** | ✅ | Map ticket prefixes to repository paths |
+| **Cross-Workspace Visibility** | ✅ | See tickets from all repos in any workspace |
+| **Open in Repository** | ✅ | One-click to switch to the correct workspace |
+| **Repository Indicator** | ✅ | See which repo each ticket's branch lives in |
+| **IDE Fork Detection** | ✅ | Works with VS Code, Cursor, VSCodium, Windsurf |
+| **Auto-Discovery** | ✅ | Scan parent directories for related repos |
+| **Manual Registration** | ✅ | Register repositories via command |
+| **Config File Support** | ✅ | `.devbuddy/repos.json` for team configs |
+
+### Configuration Options
+
+```json
+{
+  "devBuddy.multiRepo.enabled": true,
+  "devBuddy.multiRepo.autoDiscover": true,
+  "devBuddy.multiRepo.parentDir": "~/projects",
+  "devBuddy.repositories": {
+    "frontend": { "path": "~/projects/frontend", "ticketPrefixes": ["FE"] },
+    "backend": { "path": "~/projects/backend", "ticketPrefixes": ["BE", "API"] }
+  }
+}
+```
+
+### Supported IDE Forks
+
+| IDE | CLI Command | Status |
+|-----|-------------|--------|
+| **VS Code** | `code` | ✅ |
+| **Cursor** | `cursor` | ✅ |
+| **VSCodium** | `codium` | ✅ |
+| **Windsurf** | `windsurf` | ✅ |
+| **Positron** | `positron` | ✅ |
 
 ---
 
@@ -199,12 +250,13 @@ These features work the same across all platforms:
 
 ### Short-Term (Next Release)
 
-| Feature | Target Platform | Priority |
-|---------|----------------|----------|
-| **Jira Standup Builder** | Jira Cloud | High |
-| **Jira Branch Integration** | Jira Cloud | High |
-| **Jira PR Summaries** | Jira Cloud | Medium |
-| **Jira Chat Participant** | Jira Cloud | Medium |
+| Feature | Target Platform | Priority | Status |
+|---------|----------------|----------|--------|
+| **Jira Standup Builder** | Jira Cloud | High | ✅ Done |
+| **Jira Branch Integration** | Jira Cloud | High | ✅ Done |
+| **Jira PR Summaries** | Jira Cloud | Medium | ✅ Done |
+| **Multi-Repo Support** | All Platforms | High | ✅ Done |
+| **Jira Chat Participant** | Jira Cloud | Medium | 🚧 In Progress |
 
 ### Medium-Term
 
@@ -230,9 +282,10 @@ These features work the same across all platforms:
 
 ## Development Status Summary
 
-### ✅ Production Ready (v0.2.0)
+### ✅ Production Ready (v0.8.0)
 - **Linear**: Full feature set with AI automation and git integration
 - **Jira Cloud**: Complete issue management, git integration, and AI features - no browser needed!
+- **Multi-Repo Support**: Cross-repository branch associations with IDE fork detection
 
 ### 🚧 In Development
 - Jira Cloud: Chat participant
@@ -356,6 +409,7 @@ These features work the same across all platforms:
 - ✅ **Git Integration (8 features)** - Branch creation, association, analytics - NOW COMPLETE!
 - ✅ **AI Features (6 features)** - PR summaries, standup generation, commit analysis - NOW COMPLETE!
 - ✅ **TODO Converter (3 features)** - TODO to ticket conversion, code permalinks, multi-TODO linking - NOW COMPLETE!
+- ✅ **Multi-Repo Support (9 features)** - Cross-repo associations, IDE fork detection, repository registry - NOW COMPLETE!
 
 ---
 
@@ -396,7 +450,7 @@ These features work the same across all platforms:
 
 ---
 
-**Last Updated**: November 19, 2025  
-**Extension Version**: 0.2.0  
+**Last Updated**: December 21, 2025  
+**Extension Version**: 0.8.0  
 **Supported Platforms**: Linear (full), Jira Cloud (full), Jira Server (beta - testing)
 

@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import styles from "./BranchManager.module.css";
 
 interface BranchManagerProps {
-  ticketId: string;
-  statusType: string;
-  onCheckoutBranch: (ticketId: string) => void;
-  onAssociateBranch: (ticketId: string, branchName: string) => void;
-  onRemoveAssociation: (ticketId: string) => void;
-  onLoadBranchInfo: (ticketId: string) => void;
+  ticketKey: string;
+  statusCategory: string; // Jira status category: "new", "indeterminate", "done"
+  onCheckoutBranch: (ticketKey: string) => void;
+  onAssociateBranch: (ticketKey: string, branchName: string) => void;
+  onRemoveAssociation: (ticketKey: string) => void;
+  onLoadBranchInfo: (ticketKey: string) => void;
   onLoadAllBranches: () => void;
-  onOpenInRepository?: (ticketId: string, repositoryPath: string) => void;
+  onOpenInRepository?: (ticketKey: string, repositoryPath: string) => void;
   branchInfo?: {
     branchName: string | null;
     exists: boolean;
@@ -28,8 +28,8 @@ interface BranchManagerProps {
 }
 
 export const BranchManager: React.FC<BranchManagerProps> = ({
-  ticketId,
-  statusType,
+  ticketKey,
+  statusCategory,
   onCheckoutBranch,
   onAssociateBranch,
   onRemoveAssociation,
@@ -44,12 +44,12 @@ export const BranchManager: React.FC<BranchManagerProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // Load branch info when component mounts or ticketId changes
+  // Load branch info when component mounts or ticketKey changes
   // Note: intentionally omitting callback from deps to avoid infinite loops
   useEffect(() => {
-    onLoadBranchInfo(ticketId);
+    onLoadBranchInfo(ticketKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ticketId]);
+  }, [ticketKey]);
 
   // Load all branches when entering edit mode
   // Note: intentionally omitting callback from deps to avoid infinite loops
@@ -62,7 +62,7 @@ export const BranchManager: React.FC<BranchManagerProps> = ({
 
   const handleAssociate = () => {
     if (selectedBranch.trim()) {
-      onAssociateBranch(ticketId, selectedBranch.trim());
+      onAssociateBranch(ticketKey, selectedBranch.trim());
       setSelectedBranch("");
       setFilterText("");
       setIsEditing(false);
@@ -71,11 +71,11 @@ export const BranchManager: React.FC<BranchManagerProps> = ({
   };
 
   const handleRemove = () => {
-    onRemoveAssociation(ticketId);
+    onRemoveAssociation(ticketKey);
   };
 
   const handleCheckout = () => {
-    onCheckoutBranch(ticketId);
+    onCheckoutBranch(ticketKey);
   };
 
   const handleBranchSelect = (branch: string) => {
@@ -141,10 +141,11 @@ export const BranchManager: React.FC<BranchManagerProps> = ({
     return "";
   };
 
-  // Only show for in-progress tickets
-  const isInProgress = statusType === "started";
+  // Show for "In Progress" tickets (Jira's "indeterminate" status category)
+  // Also show for "To Do" ("new") to allow early branch association
+  const isRelevant = statusCategory === "indeterminate" || statusCategory === "new";
 
-  if (!isInProgress) {
+  if (!isRelevant) {
     return null;
   }
 
@@ -187,13 +188,13 @@ export const BranchManager: React.FC<BranchManagerProps> = ({
             {branchInfo.isInDifferentRepo && branchInfo.repositoryPath && onOpenInRepository && (
               <button
                 className={styles.checkoutButton}
-                onClick={() => onOpenInRepository(ticketId, branchInfo.repositoryPath!)}
+                onClick={() => onOpenInRepository(ticketKey, branchInfo.repositoryPath!)}
               >
                 <span>📂</span>
                 Open in {branchInfo.repositoryName}
               </button>
             )}
-            
+
             {/* Show "Checkout Branch" only if branch exists in current repo */}
             {branchInfo.exists && !branchInfo.isInDifferentRepo && (
               <button
@@ -301,4 +302,3 @@ export const BranchManager: React.FC<BranchManagerProps> = ({
     </div>
   );
 };
-
