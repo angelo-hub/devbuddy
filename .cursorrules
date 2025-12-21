@@ -1,0 +1,146 @@
+# DevBuddy Cursor Rules
+
+## Package Dependency Management (CRITICAL)
+
+### Webview vs Extension Dependencies
+
+**Rule**: Dependencies used ONLY in webview code must be in `devDependencies`, NOT `dependencies`.
+
+**Why**: Webview code is bundled by esbuild. Including webview packages in `dependencies` bloats the VSIX by 50+ MB unnecessarily.
+
+### How to Categorize
+
+```typescript
+// ✅ devDependencies (webview only - bundled by esbuild)
+{
+  "devDependencies": {
+    // React ecosystem (webview UI)
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    
+    // UI libraries (webview only)
+    "@tiptap/*": "...",        // Rich text editor (webview)
+    "lucide-react": "...",      // Icons (webview)
+    "tippy.js": "...",          // Tooltips (webview)
+    "lowlight": "...",          // Syntax highlighting (webview)
+    
+    // Build tools
+    "esbuild": "...",
+    "typescript": "...",
+    "@types/*": "...",
+    
+    // Dev tools
+    "eslint": "...",
+    "prettier": "...",
+    "@vscode/vsce": "..."
+  }
+}
+
+// ✅ dependencies (extension runtime - NOT bundled)
+{
+  "dependencies": {
+    // Extension backend only
+    "axios": "...",                        // HTTP client (extension)
+    "simple-git": "...",                   // Git operations (extension)
+    "@vscode/extension-telemetry": "...",  // Telemetry (extension)
+    "zod": "...",                          // Runtime validation (extension)
+    
+    // Markdown processing (used at runtime by extension)
+    "jira2md": "...",                      // Jira conversion (extension)
+    "hast-util-to-html": "...",            // HTML rendering (extension)
+    "tiptap-markdown": "..."               // Markdown parsing (extension)
+  }
+}
+```
+
+### Decision Tree
+
+When adding a package, ask:
+
+1. **Where is it imported?**
+   - `webview-ui/src/**` → `devDependencies`
+   - `src/**` (extension code) → `dependencies`
+
+2. **Is it bundled?**
+   - Bundled by esbuild (webview) → `devDependencies`
+   - Used at runtime (extension) → `dependencies`
+
+3. **Is it a type definition?**
+   - `@types/*` → Always `devDependencies`
+
+4. **Is it a build tool?**
+   - `esbuild`, `typescript`, `webpack`, etc. → `devDependencies`
+
+### Common Mistakes to Avoid
+
+```typescript
+// ❌ WRONG - React in dependencies (bloats VSIX by 15+ MB)
+{
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
+
+// ✅ CORRECT - React in devDependencies (bundled by esbuild)
+{
+  "devDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
+
+// ❌ WRONG - axios in devDependencies (breaks extension at runtime)
+{
+  "devDependencies": {
+    "axios": "^1.13.2"
+  }
+}
+
+// ✅ CORRECT - axios in dependencies (used by extension)
+{
+  "dependencies": {
+    "axios": "^1.13.2"
+  }
+}
+```
+
+### Impact
+
+**Before following this rule:**
+- VSIX size: 65 MB
+- node_modules: 7,215 files
+
+**After following this rule:**
+- VSIX size: 8.8 MB (86% smaller!)
+- node_modules: 2,339 files
+
+### Verification
+
+After making changes:
+```bash
+# 1. Check package.json is correct
+npm run type-check  # Should pass
+
+# 2. Package and check size
+npm run package
+ls -lh *.vsix  # Should be ~8-10 MB
+
+# 3. Test the packaged extension
+# Use F5 → "Test Packaged Extension (Simulate VSIX)"
+```
+
+### References
+
+- Package optimization: `VSIX_SIZE_OPTIMIZATION_FINAL.md`
+- Build system: `webview-ui/build.js` (esbuild configuration)
+
+---
+
+## When in Doubt
+
+**Ask yourself**: "Will this package be needed when a user installs the extension?"
+
+- **No** (it's for building webviews) → `devDependencies`
+- **Yes** (extension uses it at runtime) → `dependencies`
+

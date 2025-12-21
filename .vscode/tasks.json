@@ -32,6 +32,16 @@
       ],
       "dependsOrder": "sequence",
       "problemMatcher": []
+    },
+    {
+      "label": "Build Production Version",
+      "type": "shell",
+      "command": "npm run compile && npm run compile:webview",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
     }
   ]
 }
