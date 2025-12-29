@@ -76,8 +76,13 @@ export const SubIssues: React.FC<SubIssuesProps> = ({ childrenIssues, parent, on
 
   const handleClick = (e: React.MouseEvent, issueId: string) => {
     e.preventDefault();
+    console.log('[SubIssues] Link clicked, issueId:', issueId);
+    console.log('[SubIssues] onOpenIssue callback exists?', !!onOpenIssue);
     if (onOpenIssue) {
+      console.log('[SubIssues] Calling onOpenIssue');
       onOpenIssue(issueId);
+    } else {
+      console.log('[SubIssues] No onOpenIssue callback!');
     }
   };
 
