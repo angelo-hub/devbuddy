@@ -221,7 +221,13 @@ export class LinearTicketPanel {
       if (issue) {
         this._issue = issue;
         this._panel.title = `${issue.identifier}: ${issue.title}`;
-        await this._update();
+        
+        // Send new issue data to webview without regenerating HTML
+        // This preserves Zustand state (including navigation history)
+        this._panel.webview.postMessage({
+          command: "updateIssue",
+          issue: issue,
+        });
       } else {
         vscode.window.showErrorMessage("Failed to load issue");
       }

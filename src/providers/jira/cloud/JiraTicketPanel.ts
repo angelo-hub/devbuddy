@@ -177,7 +177,13 @@ export class JiraTicketPanel {
   private updateIssue(issue: JiraIssue): void {
     this._issue = issue;
     this._panel.title = `${issue.key}: ${issue.summary}`;
-    this._updateWebview();
+    
+    // Send new issue data to webview without regenerating HTML
+    // This preserves Zustand state (including navigation history)
+    this._panel.webview.postMessage({
+      command: "updateIssue",
+      issue: issue,
+    });
   }
 
   private _updateWebview(): void {

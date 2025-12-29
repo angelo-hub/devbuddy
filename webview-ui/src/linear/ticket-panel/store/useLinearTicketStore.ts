@@ -42,6 +42,9 @@ interface LinearTicketState {
   // Core issue data
   issue: LinearIssue | null;
 
+  // Navigation history
+  navigationHistory: LinearIssue[];
+
   // Workflow data
   workflowStates: WorkflowState[];
 
@@ -89,6 +92,7 @@ interface LinearTicketActions {
   openInLinear: () => void;
   refresh: () => void;
   openIssue: (issueId: string) => void;
+  goBack: () => void;
 
   // Branch actions
   checkoutBranch: (ticketId: string) => void;
@@ -131,6 +135,7 @@ declare global {
 
 const getInitialState = (): LinearTicketState => ({
   issue: window.__LINEAR_INITIAL_STATE__?.issue || null,
+  navigationHistory: [],
   workflowStates: window.__LINEAR_INITIAL_STATE__?.workflowStates || [],
   users: window.__LINEAR_INITIAL_STATE__?.users || [],
   availableLabels: [],
@@ -271,7 +276,35 @@ export const useLinearTicketStore = create<LinearTicketStore>()((set, get) => ({
   },
 
   openIssue: (issueId) => {
+    const currentIssue = get().issue;
+    
+    // Add current issue to navigation history before navigating
+    if (currentIssue) {
+      set((state) => ({
+        navigationHistory: [...state.navigationHistory, currentIssue],
+      }));
+    }
+    
+    // Request new issue from extension
     postMessage<TicketPanelMessageFromWebview>({ command: "openIssue", issueId });
+  },
+
+  goBack: () => {
+    const history = get().navigationHistory;
+    
+    if (history.length === 0) {
+      return;
+    }
+    
+    // Get the previous issue
+    const previousIssue = history[history.length - 1];
+    const newHistory = history.slice(0, -1);
+    
+    // Update state with previous issue (no need to fetch from extension)
+    set({
+      issue: previousIssue,
+      navigationHistory: newHistory,
+    });
   },
 
   // --------------------------------------------------------------------------
@@ -361,6 +394,10 @@ export const useLinearBranchInfo = () => useLinearTicketStore((state) => state.b
 export const useLinearAllBranches = () => useLinearTicketStore((state) => state.allBranches);
 export const useLinearIssueSearchResults = () => useLinearTicketStore((state) => state.issueSearchResults);
 
+// Navigation selectors
+export const useCanGoBack = () => 
+  useLinearTicketStore((state) => state.navigationHistory.length > 0);
+
 // Action hooks (use shallow comparison to prevent infinite re-renders)
 export const useLinearTicketActions = () =>
   useLinearTicketStore(
@@ -378,6 +415,7 @@ export const useLinearTicketActions = () =>
       openInLinear: state.openInLinear,
       refresh: state.refresh,
       openIssue: state.openIssue,
+      goBack: state.goBack,
       checkoutBranch: state.checkoutBranch,
       associateBranch: state.associateBranch,
       removeAssociation: state.removeAssociation,

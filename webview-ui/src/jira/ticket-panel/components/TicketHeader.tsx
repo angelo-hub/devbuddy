@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@shared/components/Button";
+import { useJiraCanGoBack, useJiraTicketActions } from "../store/useJiraTicketStore";
 import styles from "./TicketHeader.module.css";
 
 interface TicketHeaderProps {
@@ -45,6 +47,10 @@ export const TicketHeader: React.FC<TicketHeaderProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedSummary, setEditedSummary] = useState(summary);
+  
+  // Navigation state and actions from Zustand store
+  const canGoBack = useJiraCanGoBack();
+  const { goBack } = useJiraTicketActions();
 
   const handleSave = () => {
     if (editedSummary.trim() && editedSummary !== summary) {
@@ -69,6 +75,15 @@ export const TicketHeader: React.FC<TicketHeaderProps> = ({
     <div className={styles.header}>
       <div className={styles.headerTop}>
         <div className={styles.issueKey}>
+          {canGoBack && (
+            <button 
+              onClick={goBack} 
+              className={styles.backButton}
+              title="Go back to previous issue"
+            >
+              <ArrowLeft size={16} />
+            </button>
+          )}
           {issueTypeIcon && <img src={issueTypeIcon} alt={issueType} className={styles.typeIcon} />}
           <span>{issueKey}</span>
         </div>

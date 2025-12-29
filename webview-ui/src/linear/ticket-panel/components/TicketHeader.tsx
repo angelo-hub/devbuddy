@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Pencil } from "lucide-react";
+import { Pencil, ArrowLeft } from "lucide-react";
 import { Badge } from "@shared/components";
 import { ShareButton } from "./ShareButton";
+import { useCanGoBack, useLinearTicketActions } from "../store/useLinearTicketStore";
 import styles from "./TicketHeader.module.css";
 
 interface TicketHeaderProps {
@@ -37,6 +38,10 @@ export const TicketHeader: React.FC<TicketHeaderProps> = ({
 }) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(title);
+  
+  // Navigation state and actions from Zustand store
+  const canGoBack = useCanGoBack();
+  const { goBack } = useLinearTicketActions();
 
   const statusColor = getStatusColor(statusType);
   const priorityIcon = getPriorityIcon(priority);
@@ -66,6 +71,15 @@ export const TicketHeader: React.FC<TicketHeaderProps> = ({
   return (
     <div className={styles.header}>
       <div className={styles.ticketIdContainer}>
+        {canGoBack && (
+          <button 
+            onClick={goBack} 
+            className={styles.backButton}
+            title="Go back to previous issue"
+          >
+            <ArrowLeft size={16} />
+          </button>
+        )}
         <div className={styles.ticketId}>{identifier}</div>
         <ShareButton identifier={identifier} url={url} />
       </div>
