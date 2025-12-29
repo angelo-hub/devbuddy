@@ -171,7 +171,8 @@ type MessageFromExtension =
   | { command: "linkTypesLoaded"; linkTypes: JiraIssueLinkType[] }
   | { command: "issueSearchResults"; issues: JiraIssueSearchResult[] }
   | { command: "linkCreated"; success: boolean }
-  | { command: "linkDeleted"; success: boolean };
+  | { command: "linkDeleted"; success: boolean }
+  | { command: "navigationState"; canGoBack: boolean };
 
 type MessageFromWebview =
   | { command: "updateStatus"; transitionId: string }
@@ -196,7 +197,8 @@ type MessageFromWebview =
   | { command: "loadLinkTypes" }
   | { command: "searchIssues"; searchTerm: string }
   | { command: "createLink"; targetIssueKey: string; linkTypeName: string; isOutward: boolean }
-  | { command: "deleteLink"; linkId: string };
+  | { command: "deleteLink"; linkId: string }
+  | { command: "goBack" };
 
 // Get initial state from window object (passed from extension)
 declare global {
