@@ -9,10 +9,32 @@ name: Publish Beta (Pre-release)
 on:
   workflow_dispatch:
     inputs:
+      branch:
+        description: "Branch to release from"
+        required: true
+        default: "main"
+        type: string
+      prereleaseType:
+        description: "Pre-release type (alpha for experimental, beta for staging, rc for release candidate)"
+        required: true
+        default: "beta"
+        type: choice
+        options:
+          - "alpha"
+          - "beta"
+          - "rc"
       incrementPatch:
         description: "Increment patch version? (No = first pre-release for this minor)"
         required: true
         default: "yes"
+        type: choice
+        options:
+          - "yes"
+          - "no"
+      skipMarketplace:
+        description: "Skip publishing to marketplace (just build and create GitHub release)"
+        required: false
+        default: "no"
         type: choice
         options:
           - "yes"
@@ -29,8 +51,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.inputs.branch }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate branch exists
+        run: |
+          if ! git rev-parse --verify origin/${{ github.event.inputs.branch }} >/dev/null 2>&1; then
+            echo "❌ Branch '${{ github.event.inputs.branch }}' does not exist!"
+            exit 1
+          fi
+          echo "✅ Branch '${{ github.event.inputs.branch }}' exists"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -62,26 +93,54 @@ jobs:
         id: version
         run: |
           CURRENT_VERSION=$(node -p "require('./package.json').version")
+          BRANCH="${{ github.event.inputs.branch }}"
+          PRERELEASE_TYPE="${{ github.event.inputs.prereleaseType }}"
           echo "Current version: $CURRENT_VERSION"
+          echo "Branch: $BRANCH"
+          echo "Pre-release type: $PRERELEASE_TYPE"
 
-          # Extract major, minor, patch
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+          # Extract base version (strip any existing prerelease tag)
+          BASE_VERSION=$(echo "$CURRENT_VERSION" | sed -E 's/(-[a-z]+\.[0-9]+)?$//')
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$BASE_VERSION"
 
-          # Check if we're already on an even minor (pre-release track)
-          if [ $((MINOR % 2)) -eq 0 ]; then
-            # Already on pre-release track, just increment patch
-            if [ "${{ github.event.inputs.incrementPatch }}" = "yes" ]; then
-              PATCH=$((PATCH + 1))
+          # Check if there's an existing prerelease number to increment
+          EXISTING_PRENUM=$(echo "$CURRENT_VERSION" | grep -oP '(?<=-'"$PRERELEASE_TYPE"'\.)\d+' || echo "0")
+
+          # For non-main branches, include a short branch identifier in the version
+          if [ "$BRANCH" != "main" ]; then
+            # Sanitize branch name (keep only alphanumeric, convert to lowercase)
+            BRANCH_ID=$(echo "$BRANCH" | sed 's/[^a-zA-Z0-9]//g' | tr '[:upper:]' '[:lower:]' | cut -c1-10)
+            
+            # Check if incrementing or starting fresh
+            if echo "$CURRENT_VERSION" | grep -q "$PRERELEASE_TYPE"; then
+              if [ "${{ github.event.inputs.incrementPatch }}" = "yes" ]; then
+                NEW_PRENUM=$((EXISTING_PRENUM + 1))
+              else
+                NEW_PRENUM=$EXISTING_PRENUM
+              fi
+            else
+              NEW_PRENUM=1
             fi
-            NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+            
+            NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}-${PRERELEASE_TYPE}.${NEW_PRENUM}+${BRANCH_ID}"
           else
-            # On stable track (odd minor), move to next even minor for pre-release
-            NEXT_MINOR=$((MINOR + 1))
-            NEW_VERSION="${MAJOR}.${NEXT_MINOR}.0"
+            # Main branch: use standard even/odd versioning
+            if [ $((MINOR % 2)) -eq 0 ]; then
+              # Already on pre-release track, just increment patch
+              if [ "${{ github.event.inputs.incrementPatch }}" = "yes" ]; then
+                PATCH=$((PATCH + 1))
+              fi
+              NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+            else
+              # On stable track (odd minor), move to next even minor for pre-release
+              NEXT_MINOR=$((MINOR + 1))
+              NEW_VERSION="${MAJOR}.${NEXT_MINOR}.0"
+            fi
           fi
 
           echo "New pre-release version: $NEW_VERSION"
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "branch_id=${BRANCH_ID:-main}" >> $GITHUB_OUTPUT
 
       - name: Update version in package.json
         run: |
@@ -104,12 +163,13 @@ jobs:
           echo "VSIX file: $VSIX_FILE"
 
       - name: Publish to VS Code Marketplace (Pre-release)
+        if: github.event.inputs.skipMarketplace != 'yes'
         run: npx @vscode/vsce publish --pre-release -p ${{ secrets.VSCE_PAT }}
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
 
       - name: Publish to Open VSX (Pre-release)
-        if: env.OVSX_PAT != ''
+        if: github.event.inputs.skipMarketplace != 'yes' && env.OVSX_PAT != ''
         run: npx ovsx publish ${{ steps.vsix.outputs.filename }} --pre-release -p ${{ secrets.OVSX_PAT }}
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
@@ -118,7 +178,7 @@ jobs:
       - name: Commit version change
         run: |
           git add package.json
-          git commit -m "chore(release): pre-release ${{ steps.version.outputs.new_version }}"
+          git commit -m "chore(release): pre-release ${{ steps.version.outputs.new_version }} from ${{ github.event.inputs.branch }}"
 
       - name: Create Git tag
         run: |
@@ -126,7 +186,7 @@ jobs:
 
       - name: Push changes and tags
         run: |
-          git push origin HEAD:${{ github.ref_name }}
+          git push origin HEAD:${{ github.event.inputs.branch }}
           git push origin v${{ steps.version.outputs.new_version }}
 
       - name: Create GitHub Pre-release
@@ -137,13 +197,16 @@ jobs:
           body: |
             ## 🧪 Pre-release Version
 
-            This is a **pre-release** version of DevBuddy. It contains experimental features and may have bugs.
+            This is a **${{ github.event.inputs.prereleaseType }}** pre-release of DevBuddy from the `${{ github.event.inputs.branch }}` branch.
 
-            > **Note:** Pre-releases use even minor versions (0.10.x, 0.12.x). Stable releases use odd minor versions (0.9.x, 0.11.x).
+            > **Branch:** `${{ github.event.inputs.branch }}`
+            > **Type:** ${{ github.event.inputs.prereleaseType }}
+            > **Published to Marketplace:** ${{ github.event.inputs.skipMarketplace == 'yes' && 'No (GitHub only)' || 'Yes' }}
 
             ### ⚠️ Important Notes
 
             - This version is for testing purposes only
+            - ${{ github.event.inputs.branch != 'main' && 'This is an **experimental** build from a non-main branch' || 'This is a standard pre-release from main' }}
             - Use at your own risk in production environments
             - Report any issues on [GitHub Issues](https://github.com/${{ github.repository }}/issues)
 
@@ -155,7 +218,7 @@ jobs:
             3. Search for "DevBuddy"
             4. Click the dropdown next to "Install" and select **"Install Pre-Release Version"**
 
-            **Option 2: Manual Installation**
+            **Option 2: Manual Installation (Download below)**
             Download the `.vsix` file below and install it:
 
             ```bash
@@ -167,6 +230,7 @@ jobs:
             Please report any bugs or issues you encounter:
             - [Create an issue](https://github.com/${{ github.repository }}/issues/new)
             - Include the version number: `${{ steps.version.outputs.new_version }}`
+            - Include the branch: `${{ github.event.inputs.branch }}`
             - Describe what you were doing when the issue occurred
 
             ---
@@ -183,19 +247,31 @@ jobs:
           echo "## 🧪 Pre-release Published!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** v${{ steps.version.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.event.inputs.branch }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Type:** ${{ github.event.inputs.prereleaseType }}" >> $GITHUB_STEP_SUMMARY
           echo "**VSIX:** ${{ steps.vsix.outputs.filename }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Versioning Strategy:" >> $GITHUB_STEP_SUMMARY
-          echo "- Pre-releases: even minor versions (0.10.x, 0.12.x)" >> $GITHUB_STEP_SUMMARY
-          echo "- Stable releases: odd minor versions (0.9.x, 0.11.x)" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event.inputs.branch }}" = "main" ]; then
+            echo "- Pre-releases from main: even minor versions (0.10.x, 0.12.x)" >> $GITHUB_STEP_SUMMARY
+            echo "- Stable releases: odd minor versions (0.9.x, 0.11.x)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Experimental pre-releases include branch identifier in version" >> $GITHUB_STEP_SUMMARY
+            echo "- Format: X.Y.Z-${{ github.event.inputs.prereleaseType }}.N+branchid" >> $GITHUB_STEP_SUMMARY
+          fi
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Published to:" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ VS Code Marketplace (Pre-release channel)" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event.inputs.skipMarketplace }}" = "yes" ]; then
+            echo "- ⏭️ VS Code Marketplace (Skipped)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ✅ VS Code Marketplace (Pre-release channel)" >> $GITHUB_STEP_SUMMARY
+          fi
           echo "- ✅ GitHub Releases (Pre-release)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### How users can install:" >> $GITHUB_STEP_SUMMARY
           echo "1. In VS Code, search for DevBuddy in Extensions" >> $GITHUB_STEP_SUMMARY
           echo "2. Click \"Install Pre-Release Version\"" >> $GITHUB_STEP_SUMMARY
+          echo "3. Or download the .vsix from the GitHub release" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Links:" >> $GITHUB_STEP_SUMMARY
           echo "- [Release page](https://github.com/${{ github.repository }}/releases/tag/v${{ steps.version.outputs.new_version }})" >> $GITHUB_STEP_SUMMARY
