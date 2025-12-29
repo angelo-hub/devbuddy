@@ -28,6 +28,8 @@ export class LinearTicketPanel {
   private _issue: LinearIssue | null = null;
   private _linearClient: LinearClient | null = null;
   private _branchManager: BranchAssociationManager;
+  private _navigationHistory: string[] = []; // Stack of issue IDs
+  private _currentHistoryIndex: number = -1;
 
   private constructor(
     panel: vscode.WebviewPanel,
@@ -120,6 +122,9 @@ export class LinearTicketPanel {
             break;
           case "deleteRelation":
             await this.handleDeleteRelation(message.relationId);
+            break;
+          case "goBack":
+            await this.handleGoBack();
             break;
         }
       },
@@ -219,6 +224,15 @@ export class LinearTicketPanel {
       const client = await this.getClient();
       const issue = await client.getIssue(issueId);
       if (issue) {
+        // Add current issue to history before navigating
+        if (this._issue) {
+          // Truncate forward history if we're not at the end
+          this._navigationHistory = this._navigationHistory.slice(0, this._currentHistoryIndex + 1);
+          // Add current issue to history
+          this._navigationHistory.push(this._issue.id);
+          this._currentHistoryIndex++;
+        }
+        
         this._issue = issue;
         this._panel.title = `${issue.identifier}: ${issue.title}`;
         await this._update();
@@ -228,6 +242,38 @@ export class LinearTicketPanel {
     } catch (error) {
       console.error("[Linear Buddy] Failed to open issue:", error);
       vscode.window.showErrorMessage("Failed to open issue");
+    }
+  }
+
+  /**
+   * Go back to the previous issue in navigation history
+   */
+  private async handleGoBack(): Promise<void> {
+    if (this._currentHistoryIndex <= 0) {
+      return; // No history to go back to
+    }
+
+    try {
+      this._currentHistoryIndex--;
+      const previousIssueId = this._navigationHistory[this._currentHistoryIndex];
+      
+      const client = await this.getClient();
+      const issue = await client.getIssue(previousIssueId);
+      
+      if (issue) {
+        this._issue = issue;
+        this._panel.title = `${issue.identifier}: ${issue.title}`;
+        await this._update();
+      } else {
+        vscode.window.showErrorMessage("Failed to load previous issue");
+        // Restore index if load failed
+        this._currentHistoryIndex++;
+      }
+    } catch (error) {
+      console.error("[Linear Buddy] Failed to go back:", error);
+      vscode.window.showErrorMessage("Failed to go back");
+      // Restore index if load failed
+      this._currentHistoryIndex++;
     }
   }
 
@@ -735,6 +781,12 @@ export class LinearTicketPanel {
     // Note: Cannot dynamically update iconPath with ThemeIcon for webview panels
 
     this._panel.webview.html = await this._getHtmlForWebview(webview);
+    
+    // Send navigation state to webview
+    this._panel.webview.postMessage({
+      command: "navigationState",
+      canGoBack: this._currentHistoryIndex > 0,
+    });
   }
 
   /**

@@ -22,12 +22,21 @@
   background-color: var(--vscode-editor-background);
   border: 1px solid var(--vscode-panel-border);
   border-radius: 4px;
-  cursor: pointer;
   transition: background-color 0.2s;
+  width: 100%;
+  text-align: left;
 }
 
-.subtask:hover {
+.subtask.clickable {
+  cursor: pointer;
+}
+
+.subtask.clickable:hover {
   background-color: var(--vscode-list-hoverBackground);
+}
+
+.subtask.clickable:active {
+  transform: translateY(1px);
 }
 
 .subtaskHeader {

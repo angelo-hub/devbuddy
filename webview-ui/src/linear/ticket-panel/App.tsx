@@ -82,6 +82,7 @@ function App() {
     suggestions: string[];
   } | null>(null);
   const [issueSearchResults, setIssueSearchResults] = useState<LinearIssueSearchResult[]>([]);
+  const [canGoBack, setCanGoBack] = useState<boolean>(false);
 
   // Handle messages from extension
   useEffect(() => {
@@ -132,6 +133,10 @@ function App() {
         case "relationCreated":
         case "relationDeleted":
           // Issue will be refreshed automatically
+          break;
+        
+        case "navigationState":
+          setCanGoBack(message.canGoBack);
           break;
       }
     });
@@ -237,6 +242,10 @@ function App() {
     postMessage({ command: "deleteRelation", relationId });
   };
 
+  const handleGoBack = () => {
+    postMessage({ command: "goBack" });
+  };
+
   if (!issue) {
     return (
       <div className={styles.container}>
@@ -247,6 +256,16 @@ function App() {
 
   return (
     <div className={styles.container}>
+      {canGoBack && (
+        <button 
+          onClick={handleGoBack} 
+          className={styles.backButton}
+          title="Go back to previous issue"
+        >
+          ← Back
+        </button>
+      )}
+      
       <TicketHeader
         identifier={issue.identifier}
         title={issue.title}

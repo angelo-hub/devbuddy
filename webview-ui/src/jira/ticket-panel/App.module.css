@@ -3,6 +3,30 @@
   color: var(--vscode-foreground);
   min-height: 100vh;
   font-family: var(--vscode-font-family);
+  padding: 16px;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  margin-bottom: 16px;
+  background-color: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+  border: 1px solid var(--vscode-button-border, transparent);
+  border-radius: 3px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+
+.backButton:hover {
+  background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+.backButton:active {
+  transform: translateY(1px);
 }
 
 .emptyState {

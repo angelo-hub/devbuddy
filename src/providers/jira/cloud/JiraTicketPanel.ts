@@ -18,6 +18,8 @@ export class JiraTicketPanel {
   private _issue: JiraIssue | null = null;
   private _jiraClient: JiraCloudClient | null = null;
   private _branchManager: BranchAssociationManager;
+  private _navigationHistory: string[] = []; // Stack of issue keys
+  private _currentHistoryIndex: number = -1;
 
   private constructor(
     panel: vscode.WebviewPanel,
@@ -113,6 +115,9 @@ export class JiraTicketPanel {
           case "deleteLink":
             await this.handleDeleteLink(message.linkId);
             break;
+          case "goBack":
+            await this.handleGoBack();
+            break;
         }
       },
       null,
@@ -190,6 +195,12 @@ export class JiraTicketPanel {
         issue: this._issue,
       });
     }
+    
+    // Send navigation state to webview
+    this._panel.webview.postMessage({
+      command: "navigationState",
+      canGoBack: this._currentHistoryIndex > 0,
+    });
   }
 
   private _getHtmlForWebview(): string {
@@ -533,6 +544,15 @@ export class JiraTicketPanel {
       const linkedIssue = await this._jiraClient.getIssue(issueKey);
       
       if (linkedIssue) {
+        // Add current issue to history before navigating
+        if (this._issue) {
+          // Truncate forward history if we're not at the end
+          this._navigationHistory = this._navigationHistory.slice(0, this._currentHistoryIndex + 1);
+          // Add current issue to history
+          this._navigationHistory.push(this._issue.key);
+          this._currentHistoryIndex++;
+        }
+        
         // Update the panel with the new issue
         this.updateIssue(linkedIssue);
         vscode.window.showInformationMessage(`Opened ${issueKey}`);
@@ -542,6 +562,36 @@ export class JiraTicketPanel {
     } catch (error) {
       logger.error(`Failed to open linked issue ${issueKey}:`, error);
       vscode.window.showErrorMessage(`Failed to open issue ${issueKey}`);
+    }
+  }
+
+  /**
+   * Go back to the previous issue in navigation history
+   */
+  private async handleGoBack(): Promise<void> {
+    if (this._currentHistoryIndex <= 0 || !this._jiraClient) {
+      return; // No history to go back to
+    }
+
+    try {
+      this._currentHistoryIndex--;
+      const previousIssueKey = this._navigationHistory[this._currentHistoryIndex];
+      
+      logger.debug(`Going back to: ${previousIssueKey}`);
+      const issue = await this._jiraClient.getIssue(previousIssueKey);
+      
+      if (issue) {
+        this.updateIssue(issue);
+      } else {
+        vscode.window.showErrorMessage("Failed to load previous issue");
+        // Restore index if load failed
+        this._currentHistoryIndex++;
+      }
+    } catch (error) {
+      logger.error("Failed to go back:", error);
+      vscode.window.showErrorMessage("Failed to go back");
+      // Restore index if load failed
+      this._currentHistoryIndex++;
     }
   }
 

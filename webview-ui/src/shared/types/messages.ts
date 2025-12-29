@@ -233,7 +233,8 @@ export type TicketPanelMessageFromWebview =
   | { command: "updateCycle"; cycleId: string | null }
   | { command: "searchIssues"; searchTerm: string }
   | { command: "createRelation"; relatedIssueId: string; type: LinearIssueRelationType }
-  | { command: "deleteRelation"; relationId: string };
+  | { command: "deleteRelation"; relationId: string }
+  | { command: "goBack" };
 
 /** Search result for issues (used when creating relations) */
 export interface LinearIssueSearchResult {
@@ -256,4 +257,5 @@ export type TicketPanelMessageFromExtension =
   | { command: "cyclesLoaded"; cycles: LinearCycle[] }
   | { command: "issueSearchResults"; issues: LinearIssueSearchResult[] }
   | { command: "relationCreated"; success: boolean }
-  | { command: "relationDeleted"; success: boolean };
+  | { command: "relationDeleted"; success: boolean }
+  | { command: "navigationState"; canGoBack: boolean };

@@ -232,6 +232,7 @@ function App() {
   } | null>(null);
   const [linkTypes, setLinkTypes] = useState<JiraIssueLinkType[]>([]);
   const [issueSearchResults, setIssueSearchResults] = useState<JiraIssueSearchResult[]>([]);
+  const [canGoBack, setCanGoBack] = useState<boolean>(false);
 
   // Handle messages from extension
   useEffect(() => {
@@ -278,6 +279,10 @@ function App() {
         case "linkCreated":
         case "linkDeleted":
           // Issue will be refreshed automatically
+          break;
+        
+        case "navigationState":
+          setCanGoBack(message.canGoBack);
           break;
       }
     });
@@ -387,6 +392,10 @@ function App() {
     postMessage({ command: "deleteLink", linkId });
   };
 
+  const handleGoBack = () => {
+    postMessage({ command: "goBack" });
+  };
+
   if (!issue) {
     return (
       <div className={styles.container}>
@@ -397,6 +406,16 @@ function App() {
 
   return (
     <div className={styles.container}>
+      {canGoBack && (
+        <button 
+          onClick={handleGoBack} 
+          className={styles.backButton}
+          title="Go back to previous issue"
+        >
+          ← Back
+        </button>
+      )}
+      
       <TicketHeader
         issueKey={issue.key}
         summary={issue.summary}
@@ -457,7 +476,10 @@ function App() {
       {issue.subtasks && issue.subtasks.length > 0 && (
         <>
           <div className={styles.divider} />
-          <SubtasksSection subtasks={issue.subtasks} />
+          <SubtasksSection 
+            subtasks={issue.subtasks} 
+            onOpenSubtask={handleOpenLinkedIssue}
+          />
         </>
       )}
 
