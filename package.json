@@ -257,6 +257,42 @@
         "category": "Jira"
       },
       {
+        "command": "devBuddy.digitalai.setup",
+        "title": "DevBuddy: Setup Digital.ai Agility (Beta)",
+        "icon": "$(gear)",
+        "category": "Digital.ai"
+      },
+      {
+        "command": "devBuddy.digitalai.testConnection",
+        "title": "DevBuddy: Test Digital.ai Connection (Beta)",
+        "icon": "$(debug-disconnect)",
+        "category": "Digital.ai"
+      },
+      {
+        "command": "devBuddy.digitalai.resetConfig",
+        "title": "DevBuddy: Reset Digital.ai Configuration (Beta)",
+        "icon": "$(trash)",
+        "category": "Digital.ai"
+      },
+      {
+        "command": "devBuddy.digitalai.updateToken",
+        "title": "DevBuddy: Update Digital.ai Access Token (Beta)",
+        "icon": "$(key)",
+        "category": "Digital.ai"
+      },
+      {
+        "command": "devBuddy.digitalai.openStory",
+        "title": "DevBuddy: Open Digital.ai Story (Beta)",
+        "icon": "$(link-external)",
+        "category": "Digital.ai"
+      },
+      {
+        "command": "devBuddy.digitalai.refreshStories",
+        "title": "DevBuddy: Refresh Digital.ai Stories (Beta)",
+        "icon": "$(refresh)",
+        "category": "Digital.ai"
+      },
+      {
         "command": "devBuddy.jira.setupCloud",
         "title": "DevBuddy: Setup Jira Cloud",
         "icon": "$(cloud)",
@@ -1137,12 +1173,14 @@
           "type": "string",
           "enum": [
             "linear",
-            "jira"
+            "jira",
+            "digitalai"
           ],
           "default": "linear",
           "enumDescriptions": [
             "Linear - Modern issue tracking",
-            "Jira - Enterprise project management"
+            "Jira - Enterprise project management",
+            "Digital.ai Agility (Beta) - Enterprise agile planning"
           ],
           "description": "Choose your ticket management platform"
         },
@@ -1198,6 +1236,16 @@
           "type": "boolean",
           "default": true,
           "description": "Open Jira issues in browser (false to open in VS Code webview)"
+        },
+        "devBuddy.digitalai.instanceUrl": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "**Digital.ai Agility instance URL** (Beta)\n\n💡 **Examples:**\n- `https://www14.v1host.com/MyCompany`\n- `https://mycompany.saas.v1.digital.ai`\n\n📖 [Digital.ai API Documentation](https://docs.digital.ai/agility/docs/developerlibrary/002-getting-started-with-the-api)"
+        },
+        "devBuddy.digitalai.defaultProject": {
+          "type": "string",
+          "default": "",
+          "description": "Digital.ai Agility default project (Scope) ID"
         },
         "devBuddy.multiRepo.enabled": {
           "type": "boolean",

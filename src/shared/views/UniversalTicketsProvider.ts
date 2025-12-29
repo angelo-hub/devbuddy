@@ -13,6 +13,8 @@ import { JiraCloudClient } from "@providers/jira/cloud/JiraCloudClient";
 import { JiraServerClient } from "@providers/jira/server/JiraServerClient";
 import { JiraIssue } from "@providers/jira/common/types";
 import { BaseJiraClient } from "@providers/jira/common/BaseJiraClient";
+import { DigitalAIClient } from "@providers/digitalai/DigitalAIClient";
+import { DigitalAINormalizedStory } from "@providers/digitalai/types";
 import { getLogger } from "@shared/utils/logger";
 import { BranchAssociationManager } from "@shared/git/branchAssociationManager";
 import { getRepositoryRegistry } from "@shared/git/repositoryRegistry";
@@ -22,8 +24,8 @@ import { getUserFriendlyError, type UserFriendlyError } from "@shared/http";
 
 const logger = getLogger();
 
-export type TicketItem = LinearIssue | JiraIssue;
-type Platform = "linear" | "jira" | null;
+export type TicketItem = LinearIssue | JiraIssue | DigitalAINormalizedStory;
+type Platform = "linear" | "jira" | "digitalai" | null;
 
 /**
  * Tree item that can represent either Linear or Jira tickets
@@ -213,6 +215,8 @@ export class UniversalTicketsProvider
       return this.getLinearChildren(element);
     } else if (this.currentPlatform === "jira") {
       return this.getJiraChildren(element);
+    } else if (this.currentPlatform === "digitalai") {
+      return this.getDigitalAIChildren(element);
     }
 
     return [];
@@ -1505,6 +1509,494 @@ export class UniversalTicketsProvider
     parts.push(statusCategory);
 
     return parts.join(":");
+  }
+
+  // ==================== DIGITAL.AI IMPLEMENTATION ====================
+
+  private async getDigitalAIChildren(
+    element?: UniversalTicketTreeItem
+  ): Promise<UniversalTicketTreeItem[]> {
+    try {
+      const client = await DigitalAIClient.create();
+
+      if (!client.isConfigured()) {
+        return this.getDigitalAISetupInstructions();
+      }
+
+      // Root level - show sections with optional search indicator
+      if (!element) {
+        const items: UniversalTicketTreeItem[] = [];
+
+        // Show search indicator if there's an active search
+        if (this.searchQuery && this.searchQuery.length >= 3) {
+          const searchIndicator = new UniversalTicketTreeItem(
+            `🔍 "${this.searchQuery}"`,
+            vscode.TreeItemCollapsibleState.None,
+            "digitalai",
+            undefined,
+            "searchIndicator"
+          );
+          searchIndicator.iconPath = new vscode.ThemeIcon(
+            "filter",
+            new vscode.ThemeColor("charts.blue")
+          );
+          searchIndicator.description = "filtering";
+          searchIndicator.command = {
+            command: "devBuddy.clearSearch",
+            title: "Click to clear",
+          };
+          searchIndicator.tooltip = "Click to clear search filter";
+          items.push(searchIndicator);
+        }
+
+        const sections = this.getDigitalAIRootSections();
+        return [...items, ...sections];
+      }
+
+      // Handle section expansions
+      const contextValue = element.contextValue || "";
+
+      if (contextValue === "digitalaiSection:myStories") {
+        return this.getDigitalAIMyStories(client);
+      } else if (contextValue === "digitalaiSection:completed") {
+        return this.getDigitalAIRecentlyCompleted(client);
+      } else if (contextValue === "digitalaiSection:teams") {
+        return this.getDigitalAITeams(client);
+      } else if (contextValue === "digitalaiSection:projects") {
+        return this.getDigitalAIProjects(client);
+      } else if (contextValue.startsWith("digitalaiStatusGroup:")) {
+        const status = contextValue.split(":")[1];
+        return this.getDigitalAIStoriesByStatus(client, status);
+      } else if (contextValue.startsWith("digitalaiProject:")) {
+        const projectId = contextValue.split(":")[1];
+        return this.getDigitalAIProjectUnassigned(client, projectId);
+      }
+
+      return [];
+    } catch (error) {
+      logger.error("Failed to load Digital.ai stories:", error);
+      return [this.createErrorItemFromError(error, "Digital.ai")];
+    }
+  }
+
+  private getDigitalAISetupInstructions(): UniversalTicketTreeItem[] {
+    const setupItem = new UniversalTicketTreeItem(
+      "⚙️ Configure Digital.ai Agility (Beta)",
+      vscode.TreeItemCollapsibleState.None,
+      "digitalai"
+    );
+    setupItem.command = {
+      command: "devBuddy.digitalai.setup",
+      title: "Setup Digital.ai",
+    };
+    setupItem.tooltip = "Click to set up Digital.ai Agility integration";
+
+    return [setupItem];
+  }
+
+  private getDigitalAIRootSections(): UniversalTicketTreeItem[] {
+    return [
+      this.createSectionHeader(
+        "digitalaiSection:myStories",
+        "My Stories",
+        "folder-opened",
+        "charts.blue",
+        "digitalai"
+      ),
+      this.createSectionHeader(
+        "digitalaiSection:completed",
+        "Recently Completed",
+        "folder-opened",
+        "charts.green",
+        "digitalai"
+      ),
+      this.createSectionHeader(
+        "digitalaiSection:teams",
+        "Teams",
+        "folder-opened",
+        "charts.purple",
+        "digitalai"
+      ),
+      this.createSectionHeader(
+        "digitalaiSection:projects",
+        "Projects",
+        "folder-opened",
+        "charts.orange",
+        "digitalai"
+      ),
+    ];
+  }
+
+  private async getDigitalAIMyStories(
+    client: DigitalAIClient
+  ): Promise<UniversalTicketTreeItem[]> {
+    const stories = await client.getMyIssues();
+
+    // Cache stories
+    this.cachedIssues = stories;
+
+    // Apply search filter if active
+    const filteredStories = this.searchQuery
+      ? fuzzySearch(stories, this.searchQuery, [
+          (s) => (s as DigitalAINormalizedStory).identifier,
+          (s) => (s as DigitalAINormalizedStory).title,
+          (s) => (s as DigitalAINormalizedStory).description || "",
+        ])
+      : stories;
+
+    if (filteredStories.length === 0 && this.searchQuery) {
+      const item = new UniversalTicketTreeItem(
+        `No stories found for "${this.searchQuery}"`,
+        vscode.TreeItemCollapsibleState.None,
+        "digitalai"
+      );
+      item.iconPath = new vscode.ThemeIcon("search-stop");
+      return [item];
+    }
+
+    if (filteredStories.length === 0) {
+      const item = new UniversalTicketTreeItem(
+        "No active stories",
+        vscode.TreeItemCollapsibleState.None,
+        "digitalai"
+      );
+      item.iconPath = new vscode.ThemeIcon("info");
+      return [item];
+    }
+
+    // Group by status
+    const groups = this.groupDigitalAIStoriesByStatus(filteredStories as DigitalAINormalizedStory[]);
+    const items: UniversalTicketTreeItem[] = [];
+
+    // In Progress
+    if (groups.started.length > 0) {
+      const item = new UniversalTicketTreeItem(
+        `In Progress (${groups.started.length})`,
+        vscode.TreeItemCollapsibleState.Expanded,
+        "digitalai",
+        undefined,
+        "digitalaiStatusGroup:started"
+      );
+      item.iconPath = new vscode.ThemeIcon(
+        "play-circle",
+        new vscode.ThemeColor("charts.blue")
+      );
+      items.push(item);
+    }
+
+    // To Do
+    if (groups.unstarted.length > 0) {
+      const item = new UniversalTicketTreeItem(
+        `To Do (${groups.unstarted.length})`,
+        vscode.TreeItemCollapsibleState.Collapsed,
+        "digitalai",
+        undefined,
+        "digitalaiStatusGroup:unstarted"
+      );
+      item.iconPath = new vscode.ThemeIcon(
+        "circle-outline",
+        new vscode.ThemeColor("foreground")
+      );
+      items.push(item);
+    }
+
+    // Backlog
+    if (groups.backlog.length > 0) {
+      const item = new UniversalTicketTreeItem(
+        `Backlog (${groups.backlog.length})`,
+        vscode.TreeItemCollapsibleState.Collapsed,
+        "digitalai",
+        undefined,
+        "digitalaiStatusGroup:backlog"
+      );
+      item.iconPath = new vscode.ThemeIcon(
+        "archive",
+        new vscode.ThemeColor("charts.purple")
+      );
+      items.push(item);
+    }
+
+    return items;
+  }
+
+  private async getDigitalAIRecentlyCompleted(
+    client: DigitalAIClient
+  ): Promise<UniversalTicketTreeItem[]> {
+    const stories = await client.getRecentlyCompletedIssues(14);
+
+    if (stories.length === 0) {
+      const item = new UniversalTicketTreeItem(
+        "No completed stories in the last 14 days",
+        vscode.TreeItemCollapsibleState.None,
+        "digitalai"
+      );
+      item.iconPath = new vscode.ThemeIcon("info");
+      return [item];
+    }
+
+    return stories.slice(0, 10).map((story) => this.createDigitalAIStoryItem(story));
+  }
+
+  private async getDigitalAITeams(
+    client: DigitalAIClient
+  ): Promise<UniversalTicketTreeItem[]> {
+    const teams = await client.getTeams();
+
+    if (teams.length === 0) {
+      const item = new UniversalTicketTreeItem(
+        "No teams found",
+        vscode.TreeItemCollapsibleState.None,
+        "digitalai"
+      );
+      item.iconPath = new vscode.ThemeIcon("info");
+      return [item];
+    }
+
+    return teams.map((team) => {
+      const item = new UniversalTicketTreeItem(
+        team.name,
+        vscode.TreeItemCollapsibleState.None,
+        "digitalai",
+        undefined,
+        `digitalaiTeam:${team.id}`
+      );
+      item.iconPath = new vscode.ThemeIcon("organization");
+      item.tooltip = `${team.name} (${team.key})`;
+      return item;
+    });
+  }
+
+  private async getDigitalAIProjects(
+    client: DigitalAIClient
+  ): Promise<UniversalTicketTreeItem[]> {
+    const projects = await client.getProjects();
+
+    if (projects.length === 0) {
+      const item = new UniversalTicketTreeItem(
+        "No projects found",
+        vscode.TreeItemCollapsibleState.None,
+        "digitalai"
+      );
+      item.iconPath = new vscode.ThemeIcon("info");
+      return [item];
+    }
+
+    return projects.map((project) => {
+      const item = new UniversalTicketTreeItem(
+        project.name,
+        vscode.TreeItemCollapsibleState.Collapsed,
+        "digitalai",
+        undefined,
+        `digitalaiProject:${project.id}`
+      );
+      item.iconPath = new vscode.ThemeIcon("project");
+      item.tooltip = project.description || project.name;
+      return item;
+    });
+  }
+
+  private async getDigitalAIStoriesByStatus(
+    client: DigitalAIClient,
+    status: string
+  ): Promise<UniversalTicketTreeItem[]> {
+    // Use cached stories
+    const groups = this.groupDigitalAIStoriesByStatus(
+      this.cachedIssues.filter((s): s is DigitalAINormalizedStory => 
+        'identifier' in s && !('key' in s)
+      )
+    );
+    const stories = groups[status as keyof typeof groups] || [];
+    return stories.map((story) => this.createDigitalAIStoryItem(story));
+  }
+
+  private async getDigitalAIProjectUnassigned(
+    client: DigitalAIClient,
+    projectId: string
+  ): Promise<UniversalTicketTreeItem[]> {
+    const stories = await client.getProjectUnassignedIssues(projectId, 20);
+
+    if (stories.length === 0) {
+      const item = new UniversalTicketTreeItem(
+        "No unassigned stories",
+        vscode.TreeItemCollapsibleState.None,
+        "digitalai"
+      );
+      item.iconPath = new vscode.ThemeIcon(
+        "check",
+        new vscode.ThemeColor("charts.green")
+      );
+      return [item];
+    }
+
+    return stories.map((story) => this.createDigitalAIStoryItem(story));
+  }
+
+  private groupDigitalAIStoriesByStatus(stories: DigitalAINormalizedStory[]) {
+    return {
+      backlog: stories.filter((s) => s.state.type === "backlog"),
+      unstarted: stories.filter((s) => s.state.type === "unstarted"),
+      started: stories.filter((s) => s.state.type === "started"),
+      completed: stories.filter((s) => s.state.type === "completed"),
+      canceled: stories.filter((s) => s.state.type === "canceled"),
+    };
+  }
+
+  private createDigitalAIStoryItem(
+    story: DigitalAINormalizedStory
+  ): UniversalTicketTreeItem {
+    const item = new UniversalTicketTreeItem(
+      story.title,
+      vscode.TreeItemCollapsibleState.None,
+      "digitalai",
+      story,
+      this.getDigitalAIStoryContextValue(story)
+    );
+
+    // Description with identifier
+    let description = story.identifier;
+
+    // Add branch indicator if present
+    const repoInfo = this.getRepositoryInfoForTicket(story.identifier);
+    if (repoInfo.hasBranch && repoInfo.repoName) {
+      if (repoInfo.isDifferent) {
+        description += ` 📂 ${repoInfo.repoName}`;
+      } else {
+        description += ` ✓ ${repoInfo.repoName}`;
+      }
+    }
+    item.description = description;
+
+    // Icon based on status
+    item.iconPath = this.getDigitalAIStatusIcon(story.state.type, story.priority);
+
+    // Tooltip
+    item.tooltip = this.getDigitalAIStoryTooltip(story);
+
+    // Command to open story
+    item.command = {
+      command: "devBuddy.digitalai.openStory",
+      title: "Open Story",
+      arguments: [story],
+    };
+
+    return item;
+  }
+
+  private getDigitalAIStatusIcon(
+    statusType: string,
+    priority: number
+  ): vscode.ThemeIcon {
+    switch (statusType) {
+      case "started":
+        return new vscode.ThemeIcon(
+          "play-circle",
+          new vscode.ThemeColor("charts.blue")
+        );
+      case "completed":
+        return new vscode.ThemeIcon(
+          "check-all",
+          new vscode.ThemeColor("charts.green")
+        );
+      case "canceled":
+        return new vscode.ThemeIcon(
+          "circle-slash",
+          new vscode.ThemeColor("disabledForeground")
+        );
+      case "backlog":
+        return new vscode.ThemeIcon(
+          "circle-outline",
+          new vscode.ThemeColor("charts.purple")
+        );
+      case "unstarted":
+        return this.getDigitalAIPriorityIcon(priority);
+      default:
+        return new vscode.ThemeIcon("circle");
+    }
+  }
+
+  private getDigitalAIPriorityIcon(priority: number): vscode.ThemeIcon {
+    switch (priority) {
+      case 1: // Urgent
+        return new vscode.ThemeIcon(
+          "alert",
+          new vscode.ThemeColor("errorForeground")
+        );
+      case 2: // High
+        return new vscode.ThemeIcon(
+          "arrow-up",
+          new vscode.ThemeColor("editorWarning.foreground")
+        );
+      case 3: // Medium
+        return new vscode.ThemeIcon(
+          "circle-outline",
+          new vscode.ThemeColor("charts.yellow")
+        );
+      case 4: // Low
+        return new vscode.ThemeIcon(
+          "arrow-down",
+          new vscode.ThemeColor("descriptionForeground")
+        );
+      default:
+        return new vscode.ThemeIcon("dash");
+    }
+  }
+
+  private getDigitalAIStoryTooltip(story: DigitalAINormalizedStory): string {
+    const priorityLabels: Record<number, string> = {
+      0: "No priority",
+      1: "Urgent",
+      2: "High",
+      3: "Medium",
+      4: "Low",
+    };
+
+    const lines = [
+      `${story.identifier}: ${story.title}`,
+      ``,
+      `Status: ${story.state.name}`,
+      `Priority: ${priorityLabels[story.priority] || "No priority"}`,
+    ];
+
+    if (story.assignee) {
+      lines.push(`Assignee: ${story.assignee.name}`);
+    }
+
+    if (story.project) {
+      lines.push(`Project: ${story.project.name}`);
+    }
+
+    if (story.sprint) {
+      lines.push(`Sprint: ${story.sprint.name}`);
+    }
+
+    if (story.team) {
+      lines.push(`Team: ${story.team.name}`);
+    }
+
+    if (story.estimate) {
+      lines.push(`Estimate: ${story.estimate}`);
+    }
+
+    return lines.join("\n");
+  }
+
+  private getDigitalAIStoryContextValue(story: DigitalAINormalizedStory): string {
+    let contextValue = "digitalaiStory";
+
+    if (story.state.type === "unstarted") {
+      contextValue += ":unstarted";
+    } else if (story.state.type === "started") {
+      contextValue += ":started";
+
+      const branch = this.branchManager.getBranchForTicket(story.identifier);
+      if (branch) {
+        contextValue += ":withBranch";
+      }
+    } else if (story.state.type === "completed") {
+      contextValue += ":completed";
+    }
+
+    return contextValue;
   }
 
   // ==================== UTILITY METHODS ====================

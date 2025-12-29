@@ -22,6 +22,7 @@ import { JiraCloudClient } from "@providers/jira/cloud/JiraCloudClient";
 // Import command modules (these will gradually take over)
 import { registerLinearCommands } from "./linear";
 import { registerJiraCommands } from "./jira";
+import { registerDigitalAICommands } from "./digitalai";
 import { registerCommonCommands } from "./common";
 import { registerBranchCommands } from "./branch";
 import { registerMultiRepoCommands } from "./multiRepo";
@@ -181,6 +182,7 @@ export function registerAllCommands(
   // Register command modules (these will gradually take over)
   registerLinearCommands(context, ticketsProvider);
   registerJiraCommands(context, ticketsProvider);
+  registerDigitalAICommands(context, ticketsProvider);
   registerCommonCommands(context, ticketsProvider);
   registerBranchCommands(context, ticketsProvider);
   if (ticketsProvider) {
