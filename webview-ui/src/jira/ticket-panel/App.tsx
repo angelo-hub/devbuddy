@@ -4,6 +4,7 @@ import { TicketMetadata } from "./components/TicketMetadata";
 import { TicketDescription } from "./components/TicketDescription";
 import { StatusSelector } from "./components/StatusSelector";
 import { AssigneeSelector } from "./components/AssigneeSelector";
+import { PrioritySelector, EstimateSelector, DueDateSelector } from "@shared/components";
 import { Comments } from "./components/Comments";
 import { CommentForm } from "./components/CommentForm";
 import { ActionButtons } from "./components/ActionButtons";
@@ -40,6 +41,10 @@ function App() {
     updateSummary,
     updateDescription,
     updateAssignee,
+    updatePriority,
+    updateStoryPoints,
+    updateDueDate,
+    updateLabels,
     loadUsers,
     searchUsers,
     openInJira,
@@ -102,6 +107,34 @@ function App() {
         onLoadUsers={() => loadUsers(issue.project.key)}
         onSearchUsers={searchUsers}
       />
+
+      <PrioritySelector
+        currentPriority={issue.priority?.id || ""}
+        priorities={[
+          { value: "1", label: "Highest", icon: "⬆️", color: "#cd1316" },
+          { value: "2", label: "High", icon: "🔴", color: "#eb8c00" },
+          { value: "3", label: "Medium", icon: "🟡", color: "#e97f33" },
+          { value: "4", label: "Low", icon: "🟢", color: "#2a8735" },
+          { value: "5", label: "Lowest", icon: "⬇️", color: "#57a55a" },
+        ]}
+        onUpdate={(priorityId) => updatePriority(String(priorityId))}
+      />
+
+      <EstimateSelector
+        currentEstimate={issue.storyPoints ?? null}
+        onUpdate={updateStoryPoints}
+        label="Story Points"
+        placeholder="Enter story points..."
+        min={0}
+        step={0.5}
+      />
+
+      <DueDateSelector
+        currentDueDate={issue.dueDate ?? null}
+        onUpdate={updateDueDate}
+      />
+
+      {/* Labels can be edited inline in the TicketMetadata section - future enhancement could add a dedicated LabelSelector */}
 
       <ActionButtons
         onOpenInJira={openInJira}

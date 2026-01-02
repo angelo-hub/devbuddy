@@ -64,6 +64,10 @@ interface JiraTicketActions {
   updateSummary: (summary: string) => void;
   updateDescription: (description: string) => void;
   updateAssignee: (assigneeId: string | null) => void;
+  updatePriority: (priorityId: string) => void;
+  updateStoryPoints: (storyPoints: number | null) => void;
+  updateDueDate: (dueDate: string | null) => void;
+  updateLabels: (labels: string[]) => void;
 
   // User actions
   loadUsers: (projectKey: string) => void;
@@ -235,6 +239,22 @@ export const useJiraTicketStore = create<JiraTicketStore>()((set, get) => ({
     postMessage<MessageFromWebview>({ command: "updateAssignee", assigneeId });
   },
 
+  updatePriority: (priorityId) => {
+    postMessage<MessageFromWebview>({ command: "updatePriority", priorityId });
+  },
+
+  updateStoryPoints: (storyPoints) => {
+    postMessage<MessageFromWebview>({ command: "updateStoryPoints", storyPoints });
+  },
+
+  updateDueDate: (dueDate) => {
+    postMessage<MessageFromWebview>({ command: "updateDueDate", dueDate });
+  },
+
+  updateLabels: (labels) => {
+    postMessage<MessageFromWebview>({ command: "updateLabels", labels });
+  },
+
   // --------------------------------------------------------------------------
   // User Actions
   // --------------------------------------------------------------------------
@@ -404,6 +424,10 @@ export const useJiraTicketActions = () =>
       updateSummary: state.updateSummary,
       updateDescription: state.updateDescription,
       updateAssignee: state.updateAssignee,
+      updatePriority: state.updatePriority,
+      updateStoryPoints: state.updateStoryPoints,
+      updateDueDate: state.updateDueDate,
+      updateLabels: state.updateLabels,
       loadUsers: state.loadUsers,
       searchUsers: state.searchUsers,
       openInJira: state.openInJira,

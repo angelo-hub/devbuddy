@@ -151,6 +151,8 @@ export class LinearClient extends BaseTicketProvider<
               createdAt
               updatedAt
               priority
+              dueDate
+              estimate
               branchName
               state {
                 id
@@ -267,6 +269,8 @@ export class LinearClient extends BaseTicketProvider<
           createdAt
           updatedAt
           priority
+          dueDate
+          estimate
           branchName
           state {
             id
@@ -739,6 +743,126 @@ export class LinearClient extends BaseTicketProvider<
       return response.data.issueUpdate.success;
     } catch (error) {
       logger.error(`[Linear] Failed to update issue cycle:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Update issue priority
+   * @param issueId The issue ID
+   * @param priority Priority level: 0=None, 1=Urgent, 2=High, 3=Medium, 4=Low
+   */
+  async updateIssuePriority(
+    issueId: string,
+    priority: number
+  ): Promise<boolean> {
+    if (!this.isConfigured()) {
+      return false;
+    }
+
+    const mutation = `
+      mutation {
+        issueUpdate(
+          id: "${issueId}",
+          input: { priority: ${priority} }
+        ) {
+          success
+          issue {
+            id
+            priority
+          }
+        }
+      }
+    `;
+
+    try {
+      const response = await this.executeQuery(mutation, { skipCache: true });
+      if (response.data.issueUpdate.success) {
+        this.invalidateCache("issue");
+      }
+      return response.data.issueUpdate.success;
+    } catch (error) {
+      logger.error(`[Linear] Failed to update issue priority:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Update issue estimate (story points)
+   * @param issueId The issue ID
+   * @param estimate The estimate value, or null to remove
+   */
+  async updateIssueEstimate(
+    issueId: string,
+    estimate: number | null
+  ): Promise<boolean> {
+    if (!this.isConfigured()) {
+      return false;
+    }
+
+    const mutation = `
+      mutation {
+        issueUpdate(
+          id: "${issueId}",
+          input: { estimate: ${estimate !== null ? estimate : "null"} }
+        ) {
+          success
+          issue {
+            id
+            estimate
+          }
+        }
+      }
+    `;
+
+    try {
+      const response = await this.executeQuery(mutation, { skipCache: true });
+      if (response.data.issueUpdate.success) {
+        this.invalidateCache("issue");
+      }
+      return response.data.issueUpdate.success;
+    } catch (error) {
+      logger.error(`[Linear] Failed to update issue estimate:`, error);
+      return false;
+    }
+  }
+
+  /**
+   * Update issue due date
+   * @param issueId The issue ID
+   * @param dueDate ISO 8601 date string (YYYY-MM-DD), or null to remove
+   */
+  async updateIssueDueDate(
+    issueId: string,
+    dueDate: string | null
+  ): Promise<boolean> {
+    if (!this.isConfigured()) {
+      return false;
+    }
+
+    const mutation = `
+      mutation {
+        issueUpdate(
+          id: "${issueId}",
+          input: { dueDate: ${dueDate ? `"${dueDate}"` : "null"} }
+        ) {
+          success
+          issue {
+            id
+            dueDate
+          }
+        }
+      }
+    `;
+
+    try {
+      const response = await this.executeQuery(mutation, { skipCache: true });
+      if (response.data.issueUpdate.success) {
+        this.invalidateCache("issue");
+      }
+      return response.data.issueUpdate.success;
+    } catch (error) {
+      logger.error(`[Linear] Failed to update issue due date:`, error);
       return false;
     }
   }
@@ -1362,6 +1486,8 @@ export class LinearClient extends BaseTicketProvider<
               createdAt
               updatedAt
               priority
+              dueDate
+              estimate
               branchName
               state {
                 id
@@ -1474,6 +1600,8 @@ export class LinearClient extends BaseTicketProvider<
               createdAt
               updatedAt
               priority
+              dueDate
+              estimate
               branchName
               state {
                 id

@@ -33,6 +33,8 @@ export interface LinearIssue {
   url: string;
   createdAt: string;
   updatedAt: string;
+  dueDate?: string | null; // ISO 8601 date string (YYYY-MM-DD)
+  estimate?: number | null; // Story points or time estimate
   labels?: Array<{ id: string; name: string; color: string }>;
   project?: {
     id: string;

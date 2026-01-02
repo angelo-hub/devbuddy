@@ -1,0 +1,62 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--vscode-widget-border);
+}
+
+.label {
+  font-size: 13px;
+  color: var(--vscode-foreground);
+  opacity: 0.8;
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.valueContainer {
+  flex: 1;
+  min-width: 0;
+}
+
+.input {
+  width: 80px;
+  padding: 4px 8px;
+  font-size: 13px;
+  font-family: var(--vscode-font-family);
+  color: var(--vscode-input-foreground);
+  background-color: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border);
+  border-radius: 2px;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--vscode-focusBorder);
+  box-shadow: 0 0 0 1px var(--vscode-focusBorder);
+}
+
+.displayButton {
+  padding: 4px 8px;
+  font-size: 13px;
+  font-family: var(--vscode-font-family);
+  color: var(--vscode-foreground);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  min-width: 80px;
+}
+
+.displayButton:hover:not(:disabled) {
+  background-color: var(--vscode-list-hoverBackground);
+  border-color: var(--vscode-input-border);
+}
+
+.displayButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+

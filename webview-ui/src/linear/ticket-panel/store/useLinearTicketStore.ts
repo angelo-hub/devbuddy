@@ -83,6 +83,9 @@ interface LinearTicketActions {
   updateAssignee: (assigneeId: string | null) => void;
   updateLabels: (labelIds: string[]) => void;
   updateCycle: (cycleId: string | null) => void;
+  updatePriority: (priority: number) => void;
+  updateEstimate: (estimate: number | null) => void;
+  updateDueDate: (dueDate: string | null) => void;
 
   // User actions
   loadUsers: (teamId?: string) => void;
@@ -253,6 +256,18 @@ export const useLinearTicketStore = create<LinearTicketStore>()((set, get) => ({
     postMessage<TicketPanelMessageFromWebview>({ command: "updateCycle", cycleId });
   },
 
+  updatePriority: (priority) => {
+    postMessage<TicketPanelMessageFromWebview>({ command: "updatePriority", priority });
+  },
+
+  updateEstimate: (estimate) => {
+    postMessage<TicketPanelMessageFromWebview>({ command: "updateEstimate", estimate });
+  },
+
+  updateDueDate: (dueDate) => {
+    postMessage<TicketPanelMessageFromWebview>({ command: "updateDueDate", dueDate });
+  },
+
   // --------------------------------------------------------------------------
   // User Actions
   // --------------------------------------------------------------------------
@@ -410,6 +425,9 @@ export const useLinearTicketActions = () =>
       updateAssignee: state.updateAssignee,
       updateLabels: state.updateLabels,
       updateCycle: state.updateCycle,
+      updatePriority: state.updatePriority,
+      updateEstimate: state.updateEstimate,
+      updateDueDate: state.updateDueDate,
       loadUsers: state.loadUsers,
       searchUsers: state.searchUsers,
       openInLinear: state.openInLinear,

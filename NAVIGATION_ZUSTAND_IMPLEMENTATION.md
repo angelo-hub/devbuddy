@@ -1,8 +1,9 @@
 # Navigation History - Clean Zustand Implementation
 
 **Date:** December 29, 2025  
-**Status:** ✅ Complete  
-**Approach:** Client-side state management with Zustand
+**Status:** ✅ Complete & Tested  
+**Approach:** Client-side state management with Zustand  
+**Lines of Code:** ~40 (vs ~200 with old approach)
 
 ---
 
@@ -299,6 +300,40 @@ const { goBack } = useLinearTicketActions(); // Auto-stabilizes reference
 ```
 
 And optimizes it without any manual work!
+
+---
+
+## Critical Fixes Applied
+
+### Issue 1: HTML Regeneration Breaking State
+**Problem:** Extension was calling `await this._update()` which regenerated HTML and destroyed Zustand state.
+
+**Fix:**
+```typescript
+// Before (WRONG)
+private async handleOpenIssue(issueId: string) {
+  const issue = await client.getIssue(issueId);
+  this._issue = issue;
+  await this._update(); // ❌ Regenerates HTML, resets Zustand!
+}
+
+// After (CORRECT)
+private async handleOpenIssue(issueId: string) {
+  const issue = await client.getIssue(issueId);
+  this._issue = issue;
+  this._panel.title = `${issue.identifier}: ${issue.title}`;
+  // ✅ Just send message, preserve Zustand state!
+  this._panel.webview.postMessage({
+    command: "updateIssue",
+    issue: issue,
+  });
+}
+```
+
+### Issue 2: Production Build Stripping Logs
+**Problem:** `npm run compile:webview` (with `--production`) strips console.logs for debugging.
+
+**Solution:** Use `node webview-ui/build.js` (dev mode) for local development.
 
 ---
 

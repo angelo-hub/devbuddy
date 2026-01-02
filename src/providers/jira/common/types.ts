@@ -239,6 +239,7 @@ export interface UpdateJiraIssueInput {
   labels?: string[];
   sprintId?: number;
   dueDate?: string;
+  storyPoints?: number | null; // Story points estimate
   customFields?: Record<string, unknown>;
 }
 

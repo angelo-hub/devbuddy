@@ -112,6 +112,15 @@ export class LinearTicketPanel {
           case "updateCycle":
             await this.handleUpdateCycle(message.cycleId);
             break;
+          case "updatePriority":
+            await this.handleUpdatePriority(message.priority);
+            break;
+          case "updateEstimate":
+            await this.handleUpdateEstimate(message.estimate);
+            break;
+          case "updateDueDate":
+            await this.handleUpdateDueDate(message.dueDate);
+            break;
           case "searchIssues":
             await this.handleSearchIssues(message.searchTerm);
             break;
@@ -615,6 +624,66 @@ export class LinearTicketPanel {
       vscode.commands.executeCommand("devBuddy.refreshTickets");
     } else {
       vscode.window.showErrorMessage("Failed to update cycle");
+    }
+  }
+
+  private async handleUpdatePriority(priority: number): Promise<void> {
+    if (!this._issue) {
+      return;
+    }
+
+    const client = await this.getClient();
+    const success = await client.updateIssuePriority(
+      this._issue.id,
+      priority
+    );
+
+    if (success) {
+      vscode.window.showInformationMessage("Priority updated!");
+      await this.refresh();
+      vscode.commands.executeCommand("devBuddy.refreshTickets");
+    } else {
+      vscode.window.showErrorMessage("Failed to update priority");
+    }
+  }
+
+  private async handleUpdateEstimate(estimate: number | null): Promise<void> {
+    if (!this._issue) {
+      return;
+    }
+
+    const client = await this.getClient();
+    const success = await client.updateIssueEstimate(
+      this._issue.id,
+      estimate
+    );
+
+    if (success) {
+      vscode.window.showInformationMessage("Estimate updated!");
+      await this.refresh();
+      vscode.commands.executeCommand("devBuddy.refreshTickets");
+    } else {
+      vscode.window.showErrorMessage("Failed to update estimate");
+    }
+  }
+
+  private async handleUpdateDueDate(dueDate: string | null): Promise<void> {
+    if (!this._issue) {
+      return;
+    }
+
+    const client = await this.getClient();
+    const success = await client.updateIssueDueDate(
+      this._issue.id,
+      dueDate
+    );
+
+    if (success) {
+      vscode.window.showInformationMessage("Due date updated!");
+      await this.refresh();
+      vscode.commands.executeCommand("devBuddy.refreshTickets");
+    } else {
+      vscode.window.showErrorMessage("Failed to update due date");
     }
   }
 

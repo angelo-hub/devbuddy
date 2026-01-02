@@ -1,0 +1,79 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--vscode-widget-border);
+}
+
+.label {
+  font-size: 13px;
+  color: var(--vscode-foreground);
+  opacity: 0.8;
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.selectWrapper {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.select {
+  width: 100%;
+  padding: 4px 24px 4px 8px;
+  font-size: 13px;
+  font-family: var(--vscode-font-family);
+  color: transparent;
+  background-color: var(--vscode-dropdown-background);
+  border: 1px solid var(--vscode-dropdown-border);
+  border-radius: 2px;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M3 5L6 8L9 5' stroke='%23c5c5c5' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  transition: all 0.15s ease;
+}
+
+.select:hover:not(:disabled) {
+  background-color: var(--vscode-dropdown-listBackground);
+}
+
+.select:focus {
+  border-color: var(--vscode-focusBorder);
+  box-shadow: 0 0 0 1px var(--vscode-focusBorder);
+}
+
+.select option {
+  color: var(--vscode-dropdown-foreground);
+  background-color: var(--vscode-dropdown-background);
+}
+
+.select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.displayValue {
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+  font-size: 13px;
+  color: var(--vscode-dropdown-foreground);
+}
+
+.icon {
+  font-size: 14px;
+  line-height: 1;
+}
+

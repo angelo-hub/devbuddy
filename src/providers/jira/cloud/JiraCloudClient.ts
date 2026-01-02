@@ -526,6 +526,13 @@ export class JiraCloudClient extends BaseJiraClient {
         fields.duedate = input.dueDate;
       }
 
+      // Story points (Jira Cloud typically uses customfield_10016, but varies)
+      // Users can override via customFields if their instance uses a different field
+      if (input.storyPoints !== undefined) {
+        // Most common field ID for story points in Jira Cloud
+        fields["customfield_10016"] = input.storyPoints;
+      }
+
       if (input.customFields) {
         Object.assign(fields, input.customFields);
       }

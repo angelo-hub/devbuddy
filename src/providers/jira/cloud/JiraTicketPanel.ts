@@ -51,6 +51,18 @@ export class JiraTicketPanel {
           case "updateAssignee":
             await this.handleUpdateAssignee(message.assigneeId);
             break;
+          case "updatePriority":
+            await this.handleUpdatePriority(message.priorityId);
+            break;
+          case "updateStoryPoints":
+            await this.handleUpdateStoryPoints(message.storyPoints);
+            break;
+          case "updateDueDate":
+            await this.handleUpdateDueDate(message.dueDate);
+            break;
+          case "updateLabels":
+            await this.handleUpdateLabels(message.labels);
+            break;
           case "loadTransitions":
             await this.handleLoadTransitions();
             break;
@@ -347,6 +359,78 @@ export class JiraTicketPanel {
     } catch (error) {
       logger.error("Failed to update assignee:", error);
       vscode.window.showErrorMessage("Failed to update assignee");
+    }
+  }
+
+  private async handleUpdatePriority(priorityId: string): Promise<void> {
+    if (!this._jiraClient || !this._issue) {
+      return;
+    }
+
+    try {
+      await this._jiraClient.updateIssue(this._issue.key, {
+        priorityId,
+      });
+      await this.refresh();
+      vscode.window.showInformationMessage("Priority updated");
+      vscode.commands.executeCommand("devBuddy.refreshTickets");
+    } catch (error) {
+      logger.error("Failed to update priority:", error);
+      vscode.window.showErrorMessage("Failed to update priority");
+    }
+  }
+
+  private async handleUpdateStoryPoints(storyPoints: number | null): Promise<void> {
+    if (!this._jiraClient || !this._issue) {
+      return;
+    }
+
+    try {
+      await this._jiraClient.updateIssue(this._issue.key, {
+        storyPoints,
+      });
+      await this.refresh();
+      vscode.window.showInformationMessage("Story points updated");
+      vscode.commands.executeCommand("devBuddy.refreshTickets");
+    } catch (error) {
+      logger.error("Failed to update story points:", error);
+      vscode.window.showErrorMessage("Failed to update story points");
+    }
+  }
+
+  private async handleUpdateDueDate(dueDate: string | null): Promise<void> {
+    if (!this._jiraClient || !this._issue) {
+      return;
+    }
+
+    try {
+      await this._jiraClient.updateIssue(this._issue.key, {
+        dueDate: dueDate || undefined,
+      });
+      await this.refresh();
+      vscode.window.showInformationMessage("Due date updated");
+      vscode.commands.executeCommand("devBuddy.refreshTickets");
+    } catch (error) {
+      logger.error("Failed to update due date:", error);
+      vscode.window.showErrorMessage("Failed to update due date");
+    }
+  }
+
+  private async handleUpdateLabels(labels: string[]): Promise<void> {
+    if (!this._jiraClient || !this._issue) {
+      return;
+    }
+
+    try {
+      await this._jiraClient.updateIssue(this._issue.key, {
+        labels,
+      });
+      await this.refresh();
+      vscode.window.showInformationMessage("Labels updated");
+      vscode.commands.executeCommand("devBuddy.refreshTickets");
+    } catch (error) {
+      logger.error("Failed to update labels:", error);
+      vscode.window.showErrorMessage("Failed to update labels");
     }
   }
 

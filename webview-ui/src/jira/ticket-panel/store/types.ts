@@ -52,6 +52,7 @@ export interface JiraIssue {
   created: string;
   updated: string;
   dueDate: string | null;
+  storyPoints?: number | null;
   url: string;
   comments?: JiraComment[];
   subtasks?: JiraSubtask[];
@@ -213,6 +214,10 @@ export type MessageFromWebview =
   | { command: "updateSummary"; summary: string }
   | { command: "updateDescription"; description: string }
   | { command: "updateAssignee"; assigneeId: string | null }
+  | { command: "updatePriority"; priorityId: string }
+  | { command: "updateStoryPoints"; storyPoints: number | null }
+  | { command: "updateDueDate"; dueDate: string | null }
+  | { command: "updateLabels"; labels: string[] }
   | { command: "loadTransitions" }
   | { command: "loadUsers"; projectKey: string }
   | { command: "searchUsers"; searchTerm: string; projectKey?: string }

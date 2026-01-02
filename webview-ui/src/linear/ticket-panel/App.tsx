@@ -4,6 +4,7 @@ import { TicketMetadata } from "./components/TicketMetadata";
 import { TicketDescription } from "./components/TicketDescription";
 import { StatusSelector } from "./components/StatusSelector";
 import { AssigneeSelector } from "./components/AssigneeSelector";
+import { PrioritySelector, EstimateSelector, DueDateSelector } from "@shared/components";
 import { LabelSelector } from "./components/LabelSelector";
 import { CycleSelector } from "./components/CycleSelector";
 import { CommentForm } from "./components/CommentForm";
@@ -67,6 +68,9 @@ function App() {
     updateAssignee,
     updateLabels,
     updateCycle,
+    updatePriority,
+    updateEstimate,
+    updateDueDate,
     loadUsers,
     searchUsers,
     openInLinear,
@@ -124,6 +128,32 @@ function App() {
         onUpdateAssignee={updateAssignee}
         onLoadUsers={loadUsers}
         onSearchUsers={searchUsers}
+      />
+
+      <PrioritySelector
+        currentPriority={issue.priority}
+        priorities={[
+          { value: 0, label: "None", icon: "⚪", color: "#6b7280" },
+          { value: 1, label: "Urgent", icon: "🔴", color: "#dc2626" },
+          { value: 2, label: "High", icon: "🟠", color: "#f97316" },
+          { value: 3, label: "Medium", icon: "🟡", color: "#eab308" },
+          { value: 4, label: "Low", icon: "🟢", color: "#22c55e" },
+        ]}
+        onUpdate={(priority) => updatePriority(Number(priority))}
+      />
+
+      <EstimateSelector
+        currentEstimate={issue.estimate ?? null}
+        onUpdate={updateEstimate}
+        label="Estimate (points)"
+        placeholder="Enter estimate..."
+        min={0}
+        step={0.5}
+      />
+
+      <DueDateSelector
+        currentDueDate={issue.dueDate ?? null}
+        onUpdate={updateDueDate}
       />
 
       <ActionButtons onOpenInLinear={openInLinear} onRefresh={refresh} />

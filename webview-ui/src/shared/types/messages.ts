@@ -75,6 +75,8 @@ export interface LinearIssue {
   priority: number;
   createdAt: string;
   updatedAt: string;
+  dueDate?: string | null;
+  estimate?: number | null;
   url?: string;
   creator?: {
     id: string;
@@ -231,6 +233,9 @@ export type TicketPanelMessageFromWebview =
   | { command: "updateLabels"; labelIds: string[] }
   | { command: "loadCycles"; teamId: string }
   | { command: "updateCycle"; cycleId: string | null }
+  | { command: "updatePriority"; priority: number }
+  | { command: "updateEstimate"; estimate: number | null }
+  | { command: "updateDueDate"; dueDate: string | null }
   | { command: "searchIssues"; searchTerm: string }
   | { command: "createRelation"; relatedIssueId: string; type: LinearIssueRelationType }
   | { command: "deleteRelation"; relationId: string };

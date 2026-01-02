@@ -619,6 +619,11 @@ export class JiraServerClient extends BaseJiraClient {
         fields.duedate = input.dueDate;
       }
 
+      // Story points using detected field mapping
+      if (input.storyPoints !== undefined && this.fieldMapping?.storyPoints) {
+        fields[this.fieldMapping.storyPoints] = input.storyPoints;
+      }
+
       if (input.customFields) {
         Object.assign(fields, input.customFields);
       }
