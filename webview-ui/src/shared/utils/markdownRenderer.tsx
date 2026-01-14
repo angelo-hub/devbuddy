@@ -8,6 +8,7 @@
 import React from "react";
 import { common, createLowlight } from "lowlight";
 import { toHtml } from "hast-util-to-html";
+import type { EnrichedTicketMetadata } from "../types/messages";
 
 // Import highlight styles (shared with editor)
 import "../components/MarkdownEditor/highlight.css";
@@ -21,6 +22,8 @@ const lowlight = createLowlight(common);
 export interface MarkdownRenderOptions {
   /** Callback when a ticket link is clicked (e.g., Linear issue) */
   onTicketClick?: (ticketId: string) => void;
+  /** Enriched metadata for ticket links (title, status) */
+  enrichedMetadata?: Map<string, EnrichedTicketMetadata>;
 }
 
 /**
@@ -28,6 +31,48 @@ export interface MarkdownRenderOptions {
  * Matches: https://linear.app/{workspace}/issue/{identifier}/{optional-slug}
  */
 const LINEAR_ISSUE_URL_PATTERN = /^https?:\/\/linear\.app\/[^/]+\/issue\/([A-Z]+-\d+)(?:\/[^/]*)?$/i;
+
+/**
+ * Pattern to detect Jira issue URLs (Cloud and Server)
+ * Matches: https://{domain}/browse/{issue-key}
+ */
+const JIRA_ISSUE_URL_PATTERN = /^https?:\/\/[^/]+\/browse\/([A-Z]+-\d+)$/i;
+
+/**
+ * Get status indicator color based on status type/category
+ */
+function getStatusColor(statusType?: string): string {
+  if (!statusType) {
+    return 'var(--vscode-descriptionForeground)';
+  }
+
+  const type = statusType.toLowerCase();
+  
+  // Linear status types
+  if (type === 'completed' || type === 'done') {
+    return '#22c55e'; // Green
+  }
+  if (type === 'started' || type === 'in_progress') {
+    return '#3b82f6'; // Blue
+  }
+  if (type === 'canceled' || type === 'cancelled') {
+    return '#64748b'; // Gray
+  }
+  
+  // Jira status categories
+  if (type.includes('done')) {
+    return '#22c55e'; // Green
+  }
+  if (type.includes('progress') || type.includes('doing')) {
+    return '#3b82f6'; // Blue
+  }
+  if (type.includes('todo') || type.includes('to_do')) {
+    return '#64748b'; // Gray
+  }
+  
+  // Default
+  return 'var(--vscode-descriptionForeground)';
+}
 
 /**
  * Map language codes to lowlight language identifiers
@@ -162,14 +207,15 @@ function parseInlineMarkdown(text: string, options?: MarkdownRenderOptions): Rea
       const linkText = match[13];
       const url = match[14];
       
-      // Check if this is a Linear issue link
+      // Check if this is a Linear or Jira issue link
       const linearMatch = url.match(LINEAR_ISSUE_URL_PATTERN);
-      if (linearMatch && options?.onTicketClick) {
-        const ticketId = linearMatch[1].toUpperCase();
+      const jiraMatch = url.match(JIRA_ISSUE_URL_PATTERN);
+      
+      if ((linearMatch || jiraMatch) && options?.onTicketClick) {
+        const ticketId = (linearMatch?.[1] || jiraMatch?.[1] || "").toUpperCase();
+        const enrichedData = options.enrichedMetadata?.get(ticketId);
         
-        // Render as a clickable chip with just the ticket ID
-        // Note: URL slug title is static and can be stale, so we only show ID
-        // TODO: Implement metadata enrichment to show actual title/status
+        // Render as an enriched clickable chip with metadata
         elements.push(
           <span
             key={`ticket-link-${key++}`}
@@ -181,24 +227,47 @@ function parseInlineMarkdown(text: string, options?: MarkdownRenderOptions): Rea
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '2px 8px',
+              padding: '4px 10px',
               background: 'var(--vscode-badge-background)',
               borderRadius: '4px',
               cursor: 'pointer',
               fontSize: '0.9em',
               verticalAlign: 'middle',
+              maxWidth: '100%',
+              overflow: 'hidden',
             }}
-            title={`Open ${ticketId} in DevBuddy`}
+            title={enrichedData ? `${enrichedData.title} (${enrichedData.status})` : `Open ${ticketId} in DevBuddy`}
           >
+            {/* Status indicator dot */}
             <span style={{ 
-              width: '10px', 
-              height: '10px', 
+              width: '8px', 
+              height: '8px', 
               borderRadius: '50%', 
-              border: '2px solid var(--vscode-descriptionForeground)',
+              background: getStatusColor(enrichedData?.statusType || enrichedData?.statusCategory),
               display: 'inline-block',
               flexShrink: 0,
             }} />
-            <span style={{ fontWeight: 500 }}>{ticketId}</span>
+            
+            {/* Ticket ID */}
+            <span style={{ fontWeight: 500, flexShrink: 0 }}>{ticketId}</span>
+            
+            {/* Title (if enriched) */}
+            {enrichedData && (
+              <>
+                <span style={{ 
+                  color: 'var(--vscode-descriptionForeground)',
+                  opacity: 0.6,
+                }}>·</span>
+                <span style={{ 
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  color: 'var(--vscode-descriptionForeground)',
+                }}>
+                  {enrichedData.title}
+                </span>
+              </>
+            )}
           </span>
         );
       } else {

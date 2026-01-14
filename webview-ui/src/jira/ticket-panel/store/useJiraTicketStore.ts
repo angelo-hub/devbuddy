@@ -8,6 +8,7 @@
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import { postMessage, createMessageSubscription } from "@shared/stores";
+import type { EnrichedTicketMetadata } from "@shared/types/messages";
 import {
   JiraIssue,
   JiraTransition,
@@ -44,6 +45,9 @@ interface JiraTicketState {
   // Issue linking
   linkTypes: JiraIssueLinkType[];
   issueSearchResults: JiraIssueSearchResult[];
+
+  // Enriched ticket link metadata
+  enrichedMetadata: Map<string, EnrichedTicketMetadata>;
 }
 
 // ============================================================================
@@ -98,6 +102,12 @@ interface JiraTicketActions {
     isOutward: boolean
   ) => void;
   deleteLink: (linkId: string) => void;
+
+  // Ticket enrichment actions
+  enrichTicketLinks: (ticketIds: string[]) => void;
+  
+  // Navigation actions
+  openTicket: (ticketKey: string) => void;
 }
 
 // ============================================================================
@@ -128,6 +138,7 @@ const getInitialState = (): JiraTicketState => ({
   allBranches: null,
   linkTypes: [],
   issueSearchResults: [],
+  enrichedMetadata: new Map(),
 });
 
 // ============================================================================
@@ -189,6 +200,17 @@ export const useJiraTicketStore = create<JiraTicketStore>()((set, get) => ({
           case "linkCreated":
           case "linkDeleted":
             // Issue will be refreshed automatically by extension
+            break;
+
+          case "enrichedTicketMetadata":
+            // Update enriched metadata map
+            set((state) => {
+              const newMetadata = new Map(state.enrichedMetadata);
+              message.metadata.forEach((ticket) => {
+                newMetadata.set(ticket.identifier, ticket);
+              });
+              return { enrichedMetadata: newMetadata };
+            });
             break;
         }
       }
@@ -391,6 +413,22 @@ export const useJiraTicketStore = create<JiraTicketStore>()((set, get) => ({
   deleteLink: (linkId) => {
     postMessage<MessageFromWebview>({ command: "deleteLink", linkId });
   },
+
+  // --------------------------------------------------------------------------
+  // Ticket Enrichment Actions
+  // --------------------------------------------------------------------------
+  enrichTicketLinks: (ticketIds) => {
+    if (ticketIds.length === 0) return;
+    postMessage<MessageFromWebview>({ command: "enrichTicketLinks", ticketIds });
+  },
+  
+  // --------------------------------------------------------------------------
+  // Navigation Actions
+  // --------------------------------------------------------------------------
+  openTicket: (ticketKey) => {
+    if (!ticketKey) return;
+    postMessage<MessageFromWebview>({ command: "openTicket", ticketKey });
+  },
 }));
 
 // ============================================================================
@@ -409,6 +447,8 @@ export const useJiraLinkTypes = () =>
   useJiraTicketStore((state) => state.linkTypes);
 export const useJiraIssueSearchResults = () =>
   useJiraTicketStore((state) => state.issueSearchResults);
+export const useJiraEnrichedMetadata = () =>
+  useJiraTicketStore((state) => state.enrichedMetadata);
 
 // Navigation selectors
 export const useJiraCanGoBack = () => 
@@ -446,6 +486,8 @@ export const useJiraTicketActions = () =>
       searchIssues: state.searchIssues,
       createLink: state.createLink,
       deleteLink: state.deleteLink,
+      enrichTicketLinks: state.enrichTicketLinks,
+      openTicket: state.openTicket,
     }))
   );
 

@@ -37,7 +37,10 @@ export const DueDateSelector: React.FC<DueDateSelectorProps> = ({
     const value = inputValue.trim();
     
     if (value === "") {
-      onUpdate(null);
+      // Only update if the value actually changed
+      if (currentDueDate !== null) {
+        onUpdate(null);
+      }
       setIsEditing(false);
       return;
     }
@@ -49,12 +52,15 @@ export const DueDateSelector: React.FC<DueDateSelectorProps> = ({
     if (match) {
       const [, year, month, day] = match;
       const formattedDate = `${year}-${month}-${day}`;
-      onUpdate(formattedDate);
+      // Only update if the value actually changed
+      if (formattedDate !== currentDueDate) {
+        onUpdate(formattedDate);
+      }
       setIsEditing(false);
     } else {
       // Try to parse common formats
       const parsed = parseFlexibleDate(value);
-      if (parsed) {
+      if (parsed && parsed !== currentDueDate) {
         onUpdate(parsed);
         setIsEditing(false);
       } else {
@@ -65,12 +71,16 @@ export const DueDateSelector: React.FC<DueDateSelectorProps> = ({
     }
   };
 
+  const handleCancel = () => {
+    setInputValue(currentDueDate ? formatDateForInput(currentDueDate) : "");
+    setIsEditing(false);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleSave();
     } else if (e.key === "Escape") {
-      setInputValue(currentDueDate ? formatDateForInput(currentDueDate) : "");
-      setIsEditing(false);
+      handleCancel();
     }
   };
 

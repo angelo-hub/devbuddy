@@ -43,14 +43,20 @@ export const EstimateSelector: React.FC<EstimateSelectorProps> = ({
     const value = inputValue.trim();
     
     if (value === "") {
-      onUpdate(null);
+      // Only update if the value actually changed
+      if (currentEstimate !== null) {
+        onUpdate(null);
+      }
       setIsEditing(false);
       return;
     }
 
     const numValue = Number(value);
     if (!isNaN(numValue) && numValue >= min && (!max || numValue <= max)) {
-      onUpdate(numValue);
+      // Only update if the value actually changed
+      if (numValue !== currentEstimate) {
+        onUpdate(numValue);
+      }
       setIsEditing(false);
     } else {
       // Revert to current value if invalid
@@ -59,12 +65,16 @@ export const EstimateSelector: React.FC<EstimateSelectorProps> = ({
     }
   };
 
+  const handleCancel = () => {
+    setInputValue(currentEstimate?.toString() || "");
+    setIsEditing(false);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleSave();
     } else if (e.key === "Escape") {
-      setInputValue(currentEstimate?.toString() || "");
-      setIsEditing(false);
+      handleCancel();
     }
   };
 

@@ -1,5 +1,6 @@
 import React from "react";
 import { renderADF } from "@shared/utils/adfRenderer";
+import type { EnrichedTicketMetadata } from "@shared/types/messages";
 import styles from "./Comments.module.css";
 
 interface Comment {
@@ -18,9 +19,11 @@ interface Comment {
 
 interface CommentsProps {
   comments: Comment[];
+  onTicketClick?: (ticketId: string) => void;
+  enrichedMetadata?: Map<string, EnrichedTicketMetadata>;
 }
 
-export const Comments: React.FC<CommentsProps> = ({ comments }) => {
+export const Comments: React.FC<CommentsProps> = ({ comments, onTicketClick, enrichedMetadata }) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -46,7 +49,7 @@ export const Comments: React.FC<CommentsProps> = ({ comments }) => {
     try {
       const adf = JSON.parse(body);
       if (adf && adf.type === "doc") {
-        return renderADF(adf);
+        return renderADF(adf, { enrichedMetadata, onTicketClick });
       }
       return body;
     } catch {

@@ -3,6 +3,8 @@
   color: var(--vscode-foreground);
   min-height: 100vh;
   font-family: var(--vscode-font-family);
+  /* Prevent scroll jumping on updates */
+  overflow-anchor: auto;
 }
 
 .emptyState {

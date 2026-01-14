@@ -16,6 +16,7 @@ import {
   LinearCycle,
   LinearIssueSearchResult,
   LinearIssueRelationType,
+  EnrichedTicketMetadata,
   TicketPanelMessageFromExtension,
   TicketPanelMessageFromWebview,
 } from "../../../shared/types/messages";
@@ -61,6 +62,9 @@ interface LinearTicketState {
 
   // Issue relations
   issueSearchResults: LinearIssueSearchResult[];
+
+  // Enriched ticket link metadata
+  enrichedMetadata: Map<string, EnrichedTicketMetadata>;
 }
 
 // ============================================================================
@@ -113,6 +117,9 @@ interface LinearTicketActions {
   searchIssues: (searchTerm: string) => void;
   createRelation: (relatedIssueId: string, type: LinearIssueRelationType) => void;
   deleteRelation: (relationId: string) => void;
+
+  // Ticket enrichment actions
+  enrichTicketLinks: (ticketIds: string[]) => void;
 }
 
 // ============================================================================
@@ -146,6 +153,7 @@ const getInitialState = (): LinearTicketState => ({
   branchInfo: null,
   allBranches: null,
   issueSearchResults: [],
+  enrichedMetadata: new Map(),
 });
 
 // ============================================================================
@@ -211,6 +219,20 @@ export const useLinearTicketStore = create<LinearTicketStore>()((set, get) => ({
           case "relationCreated":
           case "relationDeleted":
             // Issue will be refreshed automatically by extension
+            break;
+
+          case "enrichedTicketMetadata":
+            // Update enriched metadata map
+            console.log('[Linear Store] Received enriched metadata:', message.metadata);
+            set((state) => {
+              const newMetadata = new Map(state.enrichedMetadata);
+              message.metadata.forEach((ticket) => {
+                console.log('[Linear Store] Adding to map:', ticket.identifier, ticket);
+                newMetadata.set(ticket.identifier, ticket);
+              });
+              console.log('[Linear Store] New metadata map size:', newMetadata.size);
+              return { enrichedMetadata: newMetadata };
+            });
             break;
         }
       }
@@ -394,6 +416,14 @@ export const useLinearTicketStore = create<LinearTicketStore>()((set, get) => ({
   deleteRelation: (relationId) => {
     postMessage<TicketPanelMessageFromWebview>({ command: "deleteRelation", relationId });
   },
+
+  // --------------------------------------------------------------------------
+  // Ticket Enrichment Actions
+  // --------------------------------------------------------------------------
+  enrichTicketLinks: (ticketIds) => {
+    if (ticketIds.length === 0) return;
+    postMessage<TicketPanelMessageFromWebview>({ command: "enrichTicketLinks", ticketIds });
+  },
 }));
 
 // ============================================================================
@@ -408,6 +438,7 @@ export const useLinearAvailableCycles = () => useLinearTicketStore((state) => st
 export const useLinearBranchInfo = () => useLinearTicketStore((state) => state.branchInfo);
 export const useLinearAllBranches = () => useLinearTicketStore((state) => state.allBranches);
 export const useLinearIssueSearchResults = () => useLinearTicketStore((state) => state.issueSearchResults);
+export const useLinearEnrichedMetadata = () => useLinearTicketStore((state) => state.enrichedMetadata);
 
 // Navigation selectors
 export const useCanGoBack = () => 
@@ -445,6 +476,7 @@ export const useLinearTicketActions = () =>
       searchIssues: state.searchIssues,
       createRelation: state.createRelation,
       deleteRelation: state.deleteRelation,
+      enrichTicketLinks: state.enrichTicketLinks,
     }))
   );
 

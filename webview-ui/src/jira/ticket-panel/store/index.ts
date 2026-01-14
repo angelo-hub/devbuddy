@@ -13,6 +13,7 @@ export {
   useJiraAllBranches,
   useJiraLinkTypes,
   useJiraIssueSearchResults,
+  useJiraEnrichedMetadata,
   useJiraCanGoBack,
   useJiraTicketActions,
   type JiraTicketStore,

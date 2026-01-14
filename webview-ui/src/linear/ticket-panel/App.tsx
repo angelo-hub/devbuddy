@@ -14,6 +14,7 @@ import { SubIssues } from "./components/SubIssues";
 import { Comments } from "./components/Comments";
 import { BranchManager } from "./components/BranchManager";
 import { IssueRelationsSection } from "./components/IssueRelationsSection";
+import { extractTicketIdsFromText } from "@shared/hooks/useTicketLinkEnrichment";
 import {
   useLinearIssue,
   useLinearWorkflowStates,
@@ -23,6 +24,7 @@ import {
   useLinearBranchInfo,
   useLinearAllBranches,
   useLinearIssueSearchResults,
+  useLinearEnrichedMetadata,
   useLinearTicketActions,
   LinearLabel,
 } from "./store";
@@ -57,6 +59,7 @@ function App() {
   const branchInfo = useLinearBranchInfo();
   const allBranches = useLinearAllBranches();
   const issueSearchResults = useLinearIssueSearchResults();
+  const enrichedMetadata = useLinearEnrichedMetadata();
 
   // Actions from store (stable references)
   const {
@@ -87,12 +90,47 @@ function App() {
     searchIssues,
     createRelation,
     deleteRelation,
+    enrichTicketLinks,
   } = useLinearTicketActions();
 
   // Initialize store and set up message listener
   useEffect(() => {
     return init();
   }, [init]);
+
+  // Enrich ticket links in description and comments
+  useEffect(() => {
+    if (!issue) return;
+
+    const ticketIds: string[] = [];
+
+    // Extract from description
+    if (issue.description) {
+      ticketIds.push(...extractTicketIdsFromText(issue.description));
+    }
+
+    // Extract from comments
+    if (issue.comments?.nodes) {
+      issue.comments.nodes.forEach((comment) => {
+        if (comment.body) {
+          ticketIds.push(...extractTicketIdsFromText(comment.body));
+        }
+      });
+    }
+
+    // Remove duplicates and current issue
+    const uniqueIds = Array.from(new Set(ticketIds)).filter(
+      (id) => id !== issue.identifier
+    );
+
+    console.log('[Linear Enrichment] Found ticket IDs:', uniqueIds);
+    console.log('[Linear Enrichment] Current enriched metadata:', enrichedMetadata);
+
+    if (uniqueIds.length > 0) {
+      console.log('[Linear Enrichment] Requesting enrichment for:', uniqueIds);
+      enrichTicketLinks(uniqueIds);
+    }
+  }, [issue, enrichTicketLinks]);
 
   if (!issue) {
     return (
@@ -228,11 +266,12 @@ function App() {
         description={issue.description}
         onUpdateDescription={updateDescription}
         onTicketClick={openIssue}
+        enrichedMetadata={enrichedMetadata}
       />
 
       <div className={styles.divider} />
 
-      <Comments comments={issue.comments} onTicketClick={openIssue} />
+      <Comments comments={issue.comments} onTicketClick={openIssue} enrichedMetadata={enrichedMetadata} />
 
       <div className={styles.divider} />
 

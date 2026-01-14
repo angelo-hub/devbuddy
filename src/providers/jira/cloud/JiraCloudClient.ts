@@ -1124,29 +1124,15 @@ export class JiraCloudClient extends BaseJiraClient {
 
   /**
    * Get issues in a specific sprint
+   * Uses REST API v3 with JQL instead of Agile API to get proper ADF format
    */
   async getSprintIssues(sprintId: number): Promise<JiraIssue[]> {
     try {
-      const agileBaseUrl = this.getApiBaseUrl().replace(
-        "/rest/api/3",
-        "/rest/agile/1.0"
-      );
-      const url = `${agileBaseUrl}/sprint/${sprintId}/issue?maxResults=100`;
-
-      const response = await fetch(url, {
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-          ...this.getAuthHeaders(),
-        },
+      // Use JQL search via REST API v3 to get ADF descriptions (not wiki markup)
+      return await this.searchIssues({
+        jql: `sprint = ${sprintId}`,
+        maxResults: 100,
       });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch sprint issues: ${response.statusText}`);
-      }
-
-      const data = await response.json() as { issues?: any[] };
-      return data.issues?.map((issue: any) => this.normalizeIssue(issue)) || [];
     } catch (error) {
       logger.error(`Failed to fetch issues for sprint ${sprintId}`, error);
       return [];

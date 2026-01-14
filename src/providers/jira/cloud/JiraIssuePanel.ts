@@ -76,6 +76,24 @@ export class JiraIssuePanel {
               vscode.window.showInformationMessage("Copied URL to clipboard");
             }
             break;
+          case "enrichTicketLinks":
+            await this.handleEnrichTicketLinks(message.ticketIds);
+            break;
+          case "openTicket":
+            await this.handleOpenTicket(message.ticketKey);
+            break;
+          case "updatePriority":
+            await this.handleUpdatePriority(message.priorityId);
+            break;
+          case "updateStoryPoints":
+            await this.handleUpdateStoryPoints(message.storyPoints);
+            break;
+          case "updateDueDate":
+            await this.handleUpdateDueDate(message.dueDate);
+            break;
+          case "updateLabels":
+            await this.handleUpdateLabels(message.labels);
+            break;
         }
       },
       null,
@@ -278,6 +296,94 @@ export class JiraIssuePanel {
   }
 
   /**
+   * Handle updating the priority
+   */
+  private async handleUpdatePriority(priorityId: string): Promise<void> {
+    if (!this._issue) {
+      return;
+    }
+
+    const client = await this.getClient();
+    const success = await client.updateIssue(this._issue.key, {
+      priorityId,
+    });
+
+    if (success) {
+      vscode.window.showInformationMessage("Priority updated!");
+      await this.refresh();
+      vscode.commands.executeCommand("devBuddy.jira.refreshIssues");
+    } else {
+      vscode.window.showErrorMessage("Failed to update priority");
+    }
+  }
+
+  /**
+   * Handle updating story points
+   */
+  private async handleUpdateStoryPoints(storyPoints: number | null): Promise<void> {
+    if (!this._issue) {
+      return;
+    }
+
+    const client = await this.getClient();
+    const success = await client.updateIssue(this._issue.key, {
+      storyPoints: storyPoints ?? undefined,
+    });
+
+    if (success) {
+      vscode.window.showInformationMessage("Story points updated!");
+      await this.refresh();
+      vscode.commands.executeCommand("devBuddy.jira.refreshIssues");
+    } else {
+      vscode.window.showErrorMessage("Failed to update story points");
+    }
+  }
+
+  /**
+   * Handle updating due date
+   */
+  private async handleUpdateDueDate(dueDate: string | null): Promise<void> {
+    if (!this._issue) {
+      return;
+    }
+
+    const client = await this.getClient();
+    const success = await client.updateIssue(this._issue.key, {
+      dueDate: dueDate || undefined,
+    });
+
+    if (success) {
+      vscode.window.showInformationMessage("Due date updated!");
+      await this.refresh();
+      vscode.commands.executeCommand("devBuddy.jira.refreshIssues");
+    } else {
+      vscode.window.showErrorMessage("Failed to update due date");
+    }
+  }
+
+  /**
+   * Handle updating labels
+   */
+  private async handleUpdateLabels(labels: string[]): Promise<void> {
+    if (!this._issue) {
+      return;
+    }
+
+    const client = await this.getClient();
+    const success = await client.updateIssue(this._issue.key, {
+      labels,
+    });
+
+    if (success) {
+      vscode.window.showInformationMessage("Labels updated!");
+      await this.refresh();
+      vscode.commands.executeCommand("devBuddy.jira.refreshIssues");
+    } else {
+      vscode.window.showErrorMessage("Failed to update labels");
+    }
+  }
+
+  /**
    * Handle loading transitions
    */
   private async handleLoadTransitions(): Promise<void> {
@@ -322,6 +428,88 @@ export class JiraIssuePanel {
       command: "usersLoaded",
       users,
     });
+  }
+
+  /**
+   * Handle enriching ticket links with metadata
+   */
+  private async handleEnrichTicketLinks(ticketIds: string[]): Promise<void> {
+    if (!ticketIds || ticketIds.length === 0) {
+      return;
+    }
+
+    try {
+      const client = await this.getClient();
+      const enrichedMetadata: Array<{
+        id: string;
+        identifier: string;
+        title: string;
+        status: string;
+        statusCategory?: string;
+        url: string;
+      }> = [];
+
+      // Fetch each ticket's metadata
+      for (const ticketId of ticketIds) {
+        try {
+          const issue = await client.getIssue(ticketId);
+          if (issue) {
+            enrichedMetadata.push({
+              id: issue.key,
+              identifier: issue.key,
+              title: issue.summary,
+              status: issue.status.name,
+              statusCategory: issue.status.statusCategory.key,
+              url: issue.url,
+            });
+          }
+        } catch (error) {
+          logger.error(`Failed to fetch issue ${ticketId}:`, error);
+          // Continue with other tickets
+        }
+      }
+
+      // Send enriched metadata back to webview
+      this._panel.webview.postMessage({
+        command: "enrichedTicketMetadata",
+        metadata: enrichedMetadata,
+      });
+    } catch (error) {
+      logger.error("Failed to enrich ticket links:", error);
+      // Send empty response to prevent hanging
+      this._panel.webview.postMessage({
+        command: "enrichedTicketMetadata",
+        metadata: [],
+      });
+    }
+  }
+
+  /**
+   * Handle opening a related ticket in the panel
+   */
+  private async handleOpenTicket(ticketKey: string): Promise<void> {
+    if (!ticketKey) {
+      return;
+    }
+
+    try {
+      const client = await this.getClient();
+      const issue = await client.getIssue(ticketKey);
+      
+      if (issue) {
+        // Update the current panel with the new issue
+        this._issue = issue;
+        await this._update();
+        
+        // Also reload transitions and users for the new issue
+        await this.handleLoadTransitions();
+      } else {
+        vscode.window.showErrorMessage(`Could not find issue ${ticketKey}`);
+      }
+    } catch (error) {
+      logger.error(`Failed to open ticket ${ticketKey}:`, error);
+      vscode.window.showErrorMessage(`Failed to open issue ${ticketKey}`);
+    }
   }
 
   /**

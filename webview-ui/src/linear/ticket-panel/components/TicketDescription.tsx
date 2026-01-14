@@ -1,18 +1,21 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { renderMarkdown } from "@shared/utils/markdownRenderer";
 import { MarkdownEditor } from "@shared/components";
+import type { EnrichedTicketMetadata } from "@shared/types/messages";
 import styles from "./TicketDescription.module.css";
 
 interface TicketDescriptionProps {
   description?: string;
   onUpdateDescription?: (description: string) => void;
   onTicketClick?: (ticketId: string) => void;
+  enrichedMetadata?: Map<string, EnrichedTicketMetadata>;
 }
 
 export const TicketDescription: React.FC<TicketDescriptionProps> = ({
   description,
   onUpdateDescription,
   onTicketClick,
+  enrichedMetadata,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedDescription, setEditedDescription] = useState(description || "");
@@ -39,8 +42,8 @@ export const TicketDescription: React.FC<TicketDescriptionProps> = ({
 
   // Memoize the rendered markdown to prevent infinite re-renders
   const renderedDescription = useMemo(() => {
-    return description ? renderMarkdown(description, { onTicketClick }) : null;
-  }, [description, onTicketClick]);
+    return description ? renderMarkdown(description, { onTicketClick, enrichedMetadata }) : null;
+  }, [description, onTicketClick, enrichedMetadata]);
 
   return (
     <div className={styles.section}>

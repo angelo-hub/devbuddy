@@ -238,7 +238,8 @@ export type TicketPanelMessageFromWebview =
   | { command: "updateDueDate"; dueDate: string | null }
   | { command: "searchIssues"; searchTerm: string }
   | { command: "createRelation"; relatedIssueId: string; type: LinearIssueRelationType }
-  | { command: "deleteRelation"; relationId: string };
+  | { command: "deleteRelation"; relationId: string }
+  | { command: "enrichTicketLinks"; ticketIds: string[] };
 
 /** Search result for issues (used when creating relations) */
 export interface LinearIssueSearchResult {
@@ -251,6 +252,17 @@ export interface LinearIssueSearchResult {
   };
 }
 
+/** Enriched metadata for ticket links */
+export interface EnrichedTicketMetadata {
+  id: string;
+  identifier: string;
+  title: string;
+  status: string;
+  statusType?: string;  // Linear: 'started', 'completed', etc.
+  statusCategory?: string;  // Jira: 'done', 'in_progress', etc.
+  url: string;
+}
+
 export type TicketPanelMessageFromExtension =
   | { command: "updateIssue"; issue: LinearIssue }
   | { command: "workflowStates"; states: WorkflowState[] }
@@ -261,4 +273,5 @@ export type TicketPanelMessageFromExtension =
   | { command: "cyclesLoaded"; cycles: LinearCycle[] }
   | { command: "issueSearchResults"; issues: LinearIssueSearchResult[] }
   | { command: "relationCreated"; success: boolean }
-  | { command: "relationDeleted"; success: boolean };
+  | { command: "relationDeleted"; success: boolean }
+  | { command: "enrichedTicketMetadata"; metadata: EnrichedTicketMetadata[] };

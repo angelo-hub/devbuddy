@@ -11,6 +11,7 @@ import { ActionButtons } from "./components/ActionButtons";
 import { SubtasksSection } from "./components/SubtasksSection";
 import { BranchManager } from "./components/BranchManager";
 import { IssueLinksSection } from "./components/IssueLinksSection";
+import { extractTicketIdsFromText } from "@shared/hooks/useTicketLinkEnrichment";
 import {
   useJiraIssue,
   useJiraTransitions,
@@ -19,6 +20,7 @@ import {
   useJiraAllBranches,
   useJiraLinkTypes,
   useJiraIssueSearchResults,
+  useJiraEnrichedMetadata,
   useJiraTicketActions,
 } from "./store";
 import styles from "./App.module.css";
@@ -32,6 +34,7 @@ function App() {
   const allBranches = useJiraAllBranches();
   const linkTypes = useJiraLinkTypes();
   const issueSearchResults = useJiraIssueSearchResults();
+  const enrichedMetadata = useJiraEnrichedMetadata();
 
   // Actions from store (stable references)
   const {
@@ -62,12 +65,44 @@ function App() {
     searchIssues,
     createLink,
     deleteLink,
+    enrichTicketLinks,
+    openTicket,
   } = useJiraTicketActions();
 
   // Initialize store and set up message listener
   useEffect(() => {
     return init();
   }, [init]);
+
+  // Enrich ticket links in description and comments
+  useEffect(() => {
+    if (!issue) return;
+
+    const ticketIds: string[] = [];
+
+    // Extract from description (Jira uses ADF format, but we'll try to extract from it)
+    if (issue.description) {
+      ticketIds.push(...extractTicketIdsFromText(issue.description));
+    }
+
+    // Extract from comments
+    if (issue.comments) {
+      issue.comments.forEach((comment) => {
+        if (comment.body) {
+          ticketIds.push(...extractTicketIdsFromText(comment.body));
+        }
+      });
+    }
+
+    // Remove duplicates and current issue
+    const uniqueIds = Array.from(new Set(ticketIds)).filter(
+      (id) => id !== issue.key
+    );
+
+    if (uniqueIds.length > 0) {
+      enrichTicketLinks(uniqueIds);
+    }
+  }, [issue, enrichTicketLinks]);
 
   if (!issue) {
     return (
@@ -189,11 +224,13 @@ function App() {
       <TicketDescription
         description={issue.description}
         onUpdateDescription={updateDescription}
+        onTicketClick={openTicket}
+        enrichedMetadata={enrichedMetadata}
       />
 
       <div className={styles.divider} />
 
-      <Comments comments={issue.comments || []} />
+      <Comments comments={issue.comments || []} onTicketClick={openTicket} enrichedMetadata={enrichedMetadata} />
 
       <div className={styles.divider} />
 

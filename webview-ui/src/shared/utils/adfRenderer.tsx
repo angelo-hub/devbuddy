@@ -8,6 +8,7 @@
 import React from "react";
 import { common, createLowlight } from "lowlight";
 import { toHtml } from "hast-util-to-html";
+import type { EnrichedTicketMetadata } from "../types/messages";
 
 // Import highlight styles (shared with editor)
 import "../components/MarkdownEditor/highlight.css";
@@ -20,7 +21,18 @@ interface ADFNode {
   type: string;
   text?: string;
   marks?: Array<{ type: string; attrs?: unknown }>;
-  attrs?: { language?: string; level?: number; panelType?: string };
+  attrs?: { 
+    language?: string; 
+    level?: number; 
+    panelType?: string;
+    // Mention attrs
+    id?: string;
+    text?: string;  // Display text for mentions
+    accessLevel?: string;
+    localId?: string;
+    // InlineCard attrs
+    url?: string;
+  };
   content?: ADFNode[];
 }
 
@@ -124,14 +136,18 @@ function renderTextNode(node: ADFNode, key: number): React.ReactNode {
 /**
  * Render a paragraph node
  */
-function renderParagraph(node: ADFNode, key: number): React.ReactNode {
+function renderParagraphWithMetadata(
+  node: ADFNode, 
+  key: number,
+  options?: ADFRenderOptions
+): React.ReactNode {
   if (!node.content || node.content.length === 0) {
     return <p key={key}>&nbsp;</p>;
   }
 
   return (
     <p key={key} style={{ marginBottom: "8px", lineHeight: "1.6" }}>
-      {node.content.map((child, idx) => renderNode(child, idx))}
+      {node.content.map((child, idx) => renderNode(child, idx, options))}
     </p>
   );
 }
@@ -212,9 +228,13 @@ function renderPlainCodeBlock(code: string, key: number): React.ReactNode {
 /**
  * Render a heading node
  */
-function renderHeading(node: ADFNode, key: number): React.ReactNode {
+function renderHeadingWithMetadata(
+  node: ADFNode, 
+  key: number,
+  options?: ADFRenderOptions
+): React.ReactNode {
   const level = node.attrs?.level || 1;
-  const content = node.content?.map((child, idx) => renderNode(child, idx));
+  const content = node.content?.map((child, idx) => renderNode(child, idx, options));
   const Tag = `h${level}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 
   return (
@@ -227,10 +247,14 @@ function renderHeading(node: ADFNode, key: number): React.ReactNode {
 /**
  * Render a bullet list
  */
-function renderBulletList(node: ADFNode, key: number): React.ReactNode {
+function renderBulletListWithMetadata(
+  node: ADFNode, 
+  key: number,
+  options?: ADFRenderOptions
+): React.ReactNode {
   return (
     <ul key={key} style={{ marginBottom: "12px", paddingLeft: "20px" }}>
-      {node.content?.map((child, idx) => renderNode(child, idx))}
+      {node.content?.map((child, idx) => renderNode(child, idx, options))}
     </ul>
   );
 }
@@ -238,10 +262,14 @@ function renderBulletList(node: ADFNode, key: number): React.ReactNode {
 /**
  * Render an ordered list
  */
-function renderOrderedList(node: ADFNode, key: number): React.ReactNode {
+function renderOrderedListWithMetadata(
+  node: ADFNode, 
+  key: number,
+  options?: ADFRenderOptions
+): React.ReactNode {
   return (
     <ol key={key} style={{ marginBottom: "12px", paddingLeft: "20px" }}>
-      {node.content?.map((child, idx) => renderNode(child, idx))}
+      {node.content?.map((child, idx) => renderNode(child, idx, options))}
     </ol>
   );
 }
@@ -249,10 +277,14 @@ function renderOrderedList(node: ADFNode, key: number): React.ReactNode {
 /**
  * Render a list item
  */
-function renderListItem(node: ADFNode, key: number): React.ReactNode {
+function renderListItemWithMetadata(
+  node: ADFNode, 
+  key: number,
+  options?: ADFRenderOptions
+): React.ReactNode {
   return (
     <li key={key} style={{ marginBottom: "4px" }}>
-      {node.content?.map((child, idx) => renderNode(child, idx))}
+      {node.content?.map((child, idx) => renderNode(child, idx, options))}
     </li>
   );
 }
@@ -276,7 +308,11 @@ function renderRule(key: number): React.ReactNode {
 /**
  * Render a panel (info/warning/error boxes)
  */
-function renderPanel(node: ADFNode, key: number): React.ReactNode {
+function renderPanelWithMetadata(
+  node: ADFNode, 
+  key: number,
+  options?: ADFRenderOptions
+): React.ReactNode {
   const panelType = node.attrs?.panelType || "info";
   
   const colors = {
@@ -300,7 +336,7 @@ function renderPanel(node: ADFNode, key: number): React.ReactNode {
         borderRadius: "4px",
       }}
     >
-      {node.content?.map((child, idx) => renderNode(child, idx))}
+      {node.content?.map((child, idx) => renderNode(child, idx, options))}
     </div>
   );
 }
@@ -313,43 +349,225 @@ function renderHardBreak(key: number): React.ReactNode {
 }
 
 /**
+ * Render a mention node (@user)
+ */
+function renderMention(node: ADFNode, key: number): React.ReactNode {
+  // Get text from attrs.text (where Jira puts it) or fallback
+  const text = node.attrs?.text || node.text || `@${node.attrs?.id || "unknown"}`;
+  
+  return (
+    <span
+      key={key}
+      style={{
+        backgroundColor: "var(--vscode-badge-background)",
+        color: "var(--vscode-badge-foreground)",
+        padding: "2px 6px",
+        borderRadius: "12px",
+        fontSize: "0.9em",
+        fontWeight: 500,
+        marginLeft: "2px",
+        marginRight: "2px",
+      }}
+    >
+      {text}
+    </span>
+  );
+}
+
+/**
+ * Extract Jira issue key from URL
+ */
+function extractIssueKeyFromUrl(url: string): string | null {
+  // Match patterns like /browse/DEV-4 or /issue/DEV-4
+  const match = url.match(/\/(?:browse|issue)\/([A-Z]+-\d+)/i);
+  return match ? match[1].toUpperCase() : null;
+}
+
+/**
+ * Get status color based on status category
+ */
+function getStatusColor(status?: string): string {
+  if (!status) return "var(--vscode-badge-background)";
+  
+  const statusLower = status.toLowerCase();
+  if (statusLower.includes("done") || statusLower.includes("complete") || statusLower.includes("closed")) {
+    return "#22c55e"; // green
+  }
+  if (statusLower.includes("progress") || statusLower.includes("review") || statusLower.includes("active")) {
+    return "#3b82f6"; // blue
+  }
+  if (statusLower.includes("blocked") || statusLower.includes("impediment")) {
+    return "#ef4444"; // red
+  }
+  return "#6b7280"; // gray for todo/backlog
+}
+
+/**
+ * Render an inlineCard node (issue link)
+ */
+function renderInlineCard(
+  node: ADFNode, 
+  key: number,
+  options?: ADFRenderOptions
+): React.ReactNode {
+  const url = node.attrs?.url || "";
+  const issueKey = extractIssueKeyFromUrl(url);
+  
+  // Check for enriched metadata
+  const metadata = issueKey ? options?.enrichedMetadata?.get(issueKey) : undefined;
+  
+  // Handler for clicking the ticket link
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (issueKey && options?.onTicketClick) {
+      options.onTicketClick(issueKey);
+    }
+  };
+  
+  // Only make it clickable if we have a callback
+  const isClickable = !!options?.onTicketClick && !!issueKey;
+  
+  if (metadata) {
+    const statusColor = getStatusColor(metadata.status);
+    
+    return (
+      <span
+        key={key}
+        onClick={isClickable ? handleClick : undefined}
+        role={isClickable ? "button" : undefined}
+        tabIndex={isClickable ? 0 : undefined}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "6px",
+          backgroundColor: "var(--vscode-editor-inactiveSelectionBackground)",
+          color: "var(--vscode-textLink-foreground)",
+          padding: "2px 8px",
+          borderRadius: "4px",
+          fontSize: "0.9em",
+          marginLeft: "2px",
+          marginRight: "2px",
+          border: "1px solid var(--vscode-panel-border)",
+          cursor: isClickable ? "pointer" : "default",
+        }}
+      >
+        <span style={{ 
+          width: "8px", 
+          height: "8px", 
+          borderRadius: "50%", 
+          backgroundColor: statusColor,
+          flexShrink: 0,
+        }} />
+        <span style={{ fontWeight: 500 }}>{issueKey}:</span>
+        <span style={{ 
+          maxWidth: "200px", 
+          overflow: "hidden", 
+          textOverflow: "ellipsis", 
+          whiteSpace: "nowrap" 
+        }}>
+          {metadata.title}
+        </span>
+        <span style={{
+          backgroundColor: "var(--vscode-badge-background)",
+          color: "var(--vscode-badge-foreground)",
+          padding: "1px 6px",
+          borderRadius: "3px",
+          fontSize: "0.8em",
+          textTransform: "uppercase",
+        }}>
+          {metadata.status}
+        </span>
+      </span>
+    );
+  }
+  
+  // Fallback: render as clickable link with issue key
+  return (
+    <span
+      key={key}
+      onClick={isClickable ? handleClick : undefined}
+      role={isClickable ? "button" : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      style={{
+        color: "var(--vscode-textLink-foreground)",
+        marginLeft: "2px",
+        marginRight: "2px",
+        cursor: isClickable ? "pointer" : "default",
+        textDecoration: "underline",
+      }}
+    >
+      {issueKey || url}
+    </span>
+  );
+}
+
+/**
  * Render any ADF node
  */
-function renderNode(node: ADFNode, key: number): React.ReactNode {
+function renderNode(
+  node: ADFNode, 
+  key: number,
+  options?: ADFRenderOptions
+): React.ReactNode {
   switch (node.type) {
     case "text":
       return renderTextNode(node, key);
     case "paragraph":
-      return renderParagraph(node, key);
+      return renderParagraphWithMetadata(node, key, options);
     case "codeBlock":
       return renderCodeBlock(node, key);
     case "heading":
-      return renderHeading(node, key);
+      return renderHeadingWithMetadata(node, key, options);
     case "bulletList":
-      return renderBulletList(node, key);
+      return renderBulletListWithMetadata(node, key, options);
     case "orderedList":
-      return renderOrderedList(node, key);
+      return renderOrderedListWithMetadata(node, key, options);
     case "listItem":
-      return renderListItem(node, key);
+      return renderListItemWithMetadata(node, key, options);
     case "rule":
       return renderRule(key);
     case "panel":
-      return renderPanel(node, key);
+      return renderPanelWithMetadata(node, key, options);
     case "hardBreak":
       return renderHardBreak(key);
+    case "mention":
+      return renderMention(node, key);
+    case "inlineCard":
+      return renderInlineCard(node, key, options);
     default:
       // Unsupported node type - render children if available
       if (node.content) {
-        return node.content.map((child, idx) => renderNode(child, idx));
+        return node.content.map((child, idx) => renderNode(child, idx, options));
       }
       return null;
   }
 }
 
 /**
- * Main renderer: Convert ADF document to React elements
+ * Options for ADF rendering
  */
-export function renderADF(adf: ADFDocument | string): React.ReactNode {
+export interface ADFRenderOptions {
+  /** Callback when a ticket link is clicked */
+  onTicketClick?: (ticketId: string) => void;
+  /** Enriched metadata for ticket links (title, status) */
+  enrichedMetadata?: Map<string, EnrichedTicketMetadata>;
+}
+
+/**
+ * Main renderer: Convert ADF document to React elements
+ * 
+ * @param adf - The ADF document to render
+ * @param options - Render options including enrichedMetadata and onTicketClick callback
+ */
+export function renderADF(
+  adf: ADFDocument | string,
+  options?: ADFRenderOptions | Map<string, EnrichedTicketMetadata>
+): React.ReactNode {
+  // Handle both old signature (Map) and new signature (options object)
+  const renderOptions: ADFRenderOptions = options instanceof Map 
+    ? { enrichedMetadata: options }
+    : options || {};
   try {
     // Parse if string
     const doc = typeof adf === "string" ? JSON.parse(adf) : adf;
@@ -360,7 +578,7 @@ export function renderADF(adf: ADFDocument | string): React.ReactNode {
 
     return (
       <div style={{ lineHeight: "1.6" }}>
-        {doc.content.map((node: ADFNode, idx: number) => renderNode(node, idx))}
+        {doc.content.map((node: ADFNode, idx: number) => renderNode(node, idx, renderOptions))}
       </div>
     );
   } catch (error) {

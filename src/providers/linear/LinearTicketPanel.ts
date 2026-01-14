@@ -130,6 +130,9 @@ export class LinearTicketPanel {
           case "deleteRelation":
             await this.handleDeleteRelation(message.relationId);
             break;
+          case "enrichTicketLinks":
+            await this.handleEnrichTicketLinks(message.ticketIds);
+            break;
         }
       },
       null,
@@ -778,6 +781,68 @@ export class LinearTicketPanel {
       this._panel.webview.postMessage({
         command: "relationDeleted",
         success: false,
+      });
+    }
+  }
+
+  /**
+   * Handle enriching ticket links with metadata
+   */
+  private async handleEnrichTicketLinks(ticketIds: string[]): Promise<void> {
+    console.log('[Linear Panel] Enrichment requested for:', ticketIds);
+    
+    if (!ticketIds || ticketIds.length === 0) {
+      return;
+    }
+
+    try {
+      const client = await this.getClient();
+      const enrichedMetadata: Array<{
+        id: string;
+        identifier: string;
+        title: string;
+        status: string;
+        statusType?: string;
+        url: string;
+      }> = [];
+
+      // Fetch each ticket's metadata
+      for (const ticketId of ticketIds) {
+        try {
+          console.log(`[Linear Panel] Fetching issue: ${ticketId}`);
+          const issue = await client.getIssue(ticketId);
+          if (issue) {
+            console.log(`[Linear Panel] Found issue ${ticketId}:`, issue.title);
+            enrichedMetadata.push({
+              id: issue.id,
+              identifier: issue.identifier,
+              title: issue.title,
+              status: issue.state.name,
+              statusType: issue.state.type,
+              url: issue.url || "",
+            });
+          } else {
+            console.log(`[Linear Panel] Issue not found: ${ticketId}`);
+          }
+        } catch (error) {
+          console.error(`[Linear Buddy] Failed to fetch issue ${ticketId}:`, error);
+          // Continue with other tickets
+        }
+      }
+
+      console.log('[Linear Panel] Sending enriched metadata:', enrichedMetadata);
+      
+      // Send enriched metadata back to webview
+      this._panel.webview.postMessage({
+        command: "enrichedTicketMetadata",
+        metadata: enrichedMetadata,
+      });
+    } catch (error) {
+      console.error("[Linear Buddy] Failed to enrich ticket links:", error);
+      // Send empty response to prevent hanging
+      this._panel.webview.postMessage({
+        command: "enrichedTicketMetadata",
+        metadata: [],
       });
     }
   }

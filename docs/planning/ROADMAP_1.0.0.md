@@ -165,7 +165,7 @@ Features from Linear/Jira web UIs that would add significant value.
 |------|----------|--------|-----------|
 | **Show related/blocked issues** in ticket panel | 🔴 P0 | 🟢 | Linear ✅, Jira ✅ |
 | **Render ticket links in descriptions/comments** | 🟡 P1 | 🟢 | Linear ✅ (basic), Jira ⬜ |
-| **Enrich ticket links with status/title** (fetch metadata) | 🔴 P0 | 🟡 | Both ⬜ (URL slug is static, shows stale titles) |
+| **Enrich ticket links with status/title** (fetch metadata) | ✅ Done | 🟡 | Linear ✅, Jira ✅ |
 | **Create issue links** (blocks, relates to) | 🟡 P1 | 🟡 | Linear ✅, Jira ✅ |
 | **Dependency visualization** (mini graph) | 🟢 P2 | 🔴 | Both |
 

@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { MessageSquare, User } from "lucide-react";
 import { renderMarkdown } from "@shared/utils/markdownRenderer";
+import type { EnrichedTicketMetadata } from "@shared/types/messages";
 import styles from "./Comments.module.css";
 
 interface Comment {
@@ -19,6 +20,7 @@ interface CommentsProps {
     nodes: Comment[];
   };
   onTicketClick?: (ticketId: string) => void;
+  enrichedMetadata?: Map<string, EnrichedTicketMetadata>;
 }
 
 // Helper to format relative time
@@ -36,14 +38,21 @@ function formatRelativeTime(dateString: string): string {
 }
 
 // Memoized comment renderer to prevent re-renders
-const CommentBody: React.FC<{ body: string; onTicketClick?: (ticketId: string) => void }> = React.memo(({ body, onTicketClick }) => {
-  const renderedBody = useMemo(() => renderMarkdown(body, { onTicketClick }), [body, onTicketClick]);
+const CommentBody: React.FC<{ 
+  body: string; 
+  onTicketClick?: (ticketId: string) => void;
+  enrichedMetadata?: Map<string, EnrichedTicketMetadata>;
+}> = React.memo(({ body, onTicketClick, enrichedMetadata }) => {
+  const renderedBody = useMemo(
+    () => renderMarkdown(body, { onTicketClick, enrichedMetadata }), 
+    [body, onTicketClick, enrichedMetadata]
+  );
   return <>{renderedBody}</>;
 });
 
 CommentBody.displayName = 'CommentBody';
 
-export const Comments: React.FC<CommentsProps> = ({ comments, onTicketClick }) => {
+export const Comments: React.FC<CommentsProps> = ({ comments, onTicketClick, enrichedMetadata }) => {
   const commentCount = comments?.nodes?.length || 0;
 
   return (
@@ -87,7 +96,11 @@ export const Comments: React.FC<CommentsProps> = ({ comments, onTicketClick }) =
                   </div>
                 </div>
                 <div className={styles.commentBody}>
-                  <CommentBody body={comment.body} onTicketClick={onTicketClick} />
+                  <CommentBody 
+                    body={comment.body} 
+                    onTicketClick={onTicketClick} 
+                    enrichedMetadata={enrichedMetadata}
+                  />
                 </div>
               </div>
             </div>

@@ -2,6 +2,8 @@
  * Types for Jira Ticket Panel Store
  */
 
+import type { EnrichedTicketMetadata } from "@shared/types/messages";
+
 // ============================================================================
 // Issue Types
 // ============================================================================
@@ -206,7 +208,8 @@ export type MessageFromExtension =
   | { command: "linkTypesLoaded"; linkTypes: JiraIssueLinkType[] }
   | { command: "issueSearchResults"; issues: JiraIssueSearchResult[] }
   | { command: "linkCreated"; success: boolean }
-  | { command: "linkDeleted"; success: boolean };
+  | { command: "linkDeleted"; success: boolean }
+  | { command: "enrichedTicketMetadata"; metadata: EnrichedTicketMetadata[] };
 
 export type MessageFromWebview =
   | { command: "updateStatus"; transitionId: string }
@@ -240,5 +243,7 @@ export type MessageFromWebview =
       linkTypeName: string;
       isOutward: boolean;
     }
-  | { command: "deleteLink"; linkId: string };
+  | { command: "deleteLink"; linkId: string }
+  | { command: "enrichTicketLinks"; ticketIds: string[] }
+  | { command: "openTicket"; ticketKey: string };
 

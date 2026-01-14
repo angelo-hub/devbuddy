@@ -14,6 +14,7 @@ export {
   useLinearBranchInfo,
   useLinearAllBranches,
   useLinearIssueSearchResults,
+  useLinearEnrichedMetadata,
   useCanGoBack,
   useLinearTicketActions,
   type LinearTicketStore,
