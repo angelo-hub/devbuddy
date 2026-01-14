@@ -28,6 +28,9 @@ interface JiraTicketState {
   // Core issue data
   issue: JiraIssue | null;
 
+  // Navigation history
+  navigationHistory: JiraIssue[];
+
   // Workflow data
   transitions: JiraTransition[];
 
@@ -72,6 +75,7 @@ interface JiraTicketActions {
   copyKey: () => void;
   copyUrl: () => void;
   openLinkedIssue: (issueKey: string) => void;
+  goBack: () => void;
 
   // Branch actions
   checkoutBranch: (ticketKey: string) => void;
@@ -113,6 +117,7 @@ declare global {
 
 const getInitialState = (): JiraTicketState => ({
   issue: window.__JIRA_INITIAL_STATE__?.issue || null,
+  navigationHistory: [],
   transitions: [],
   users: [],
   branchInfo: null,
@@ -266,7 +271,35 @@ export const useJiraTicketStore = create<JiraTicketStore>()((set, get) => ({
   },
 
   openLinkedIssue: (issueKey) => {
+    const currentIssue = get().issue;
+    
+    // Add current issue to navigation history before navigating
+    if (currentIssue) {
+      set((state) => ({
+        navigationHistory: [...state.navigationHistory, currentIssue],
+      }));
+    }
+    
+    // Request new issue from extension
     postMessage<MessageFromWebview>({ command: "openLinkedIssue", issueKey });
+  },
+
+  goBack: () => {
+    const history = get().navigationHistory;
+    
+    if (history.length === 0) {
+      return;
+    }
+    
+    // Get the previous issue
+    const previousIssue = history[history.length - 1];
+    const newHistory = history.slice(0, -1);
+    
+    // Update state with previous issue (no need to fetch from extension)
+    set({
+      issue: previousIssue,
+      navigationHistory: newHistory,
+    });
   },
 
   // --------------------------------------------------------------------------
@@ -357,6 +390,10 @@ export const useJiraLinkTypes = () =>
 export const useJiraIssueSearchResults = () =>
   useJiraTicketStore((state) => state.issueSearchResults);
 
+// Navigation selectors
+export const useJiraCanGoBack = () => 
+  useJiraTicketStore((state) => state.navigationHistory.length > 0);
+
 // Action hooks (use shallow comparison to prevent infinite re-renders)
 export const useJiraTicketActions = () =>
   useJiraTicketStore(
@@ -374,6 +411,7 @@ export const useJiraTicketActions = () =>
       copyKey: state.copyKey,
       copyUrl: state.copyUrl,
       openLinkedIssue: state.openLinkedIssue,
+      goBack: state.goBack,
       checkoutBranch: state.checkoutBranch,
       associateBranch: state.associateBranch,
       removeAssociation: state.removeAssociation,

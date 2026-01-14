@@ -7,7 +7,32 @@
 .ticketIdContainer {
   display: flex;
   align-items: center;
+  gap: 6px;
   margin-bottom: 8px;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  color: var(--color-description);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  opacity: 0.6;
+}
+
+.backButton:hover {
+  background-color: var(--vscode-toolbar-hoverBackground);
+  color: var(--color-foreground);
+  opacity: 1;
+}
+
+.backButton:active {
+  transform: scale(0.92);
 }
 
 .ticketId {
